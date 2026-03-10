@@ -42,5 +42,4 @@
 # Remove any of these lines if you decide to track your own fork in this repo.
 /src/px4_msgs/
 /src/orbbec_sdk/
-/src/lslidar_driver/
 /third_party/PX4-Autopilot/

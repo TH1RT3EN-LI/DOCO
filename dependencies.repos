@@ -19,8 +19,3 @@ repositories:
     type: git
     url: https://github.com/orbbec/OrbbecSDK_ROS2.git
     version: v2-main
-
-  src/lslidar_driver:
-    type: git
-    url: https://github.com/Lslidar/Lslidar_ROS2_driver.git
-    version: main
