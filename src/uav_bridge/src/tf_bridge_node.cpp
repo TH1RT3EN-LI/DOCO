@@ -12,6 +12,7 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 
 namespace uav_bridge {
@@ -23,8 +24,9 @@ public:
     this->declare_parameter<std::string>("gz_pose_topic", "");
     this->declare_parameter<std::string>("world_name", "baylands_world");
     this->declare_parameter<std::string>("model_name", "uav");
-    this->declare_parameter<std::string>("map_frame", "map");
-    this->declare_parameter<std::string>("base_frame", "base_link");
+    this->declare_parameter<std::string>("map_frame", "uav_map");
+    this->declare_parameter<std::string>("odom_frame", "uav_odom");
+    this->declare_parameter<std::string>("base_frame", "uav_base_link");
     this->declare_parameter<std::string>("odom_topic", "/uav/odom");
     this->declare_parameter<bool>("publish_odometry", true);
     this->declare_parameter<bool>("use_initial_pose_as_map_origin", false);
@@ -33,6 +35,7 @@ public:
     this->world_name_ = this->get_parameter("world_name").as_string();
     this->model_name_ = this->get_parameter("model_name").as_string();
     this->map_frame_ = this->get_parameter("map_frame").as_string();
+    this->odom_frame_ = this->get_parameter("odom_frame").as_string();
     this->base_frame_ = this->get_parameter("base_frame").as_string();
     this->odom_topic_ = this->get_parameter("odom_topic").as_string();
     this->publish_odometry_ = this->get_parameter("publish_odometry").as_bool();
@@ -45,6 +48,17 @@ public:
 
     this->tf_broadcaster_ =
         std::make_unique<tf2_ros::TransformBroadcaster>(this);
+    this->static_tf_broadcaster_ =
+        std::make_unique<tf2_ros::StaticTransformBroadcaster>(this);
+
+    if (this->use_initial_pose_as_map_origin_) {
+      RCLCPP_WARN(
+          this->get_logger(),
+          "[pose->tf] use_initial_pose_as_map_origin=true is ignored by the "
+          "uav_map->uav_odom->uav_base_link contract; keeping static %s->%s.",
+          this->map_frame_.c_str(), this->odom_frame_.c_str());
+    }
+    this->PublishMapToOdomStaticTf();
 
     if (this->publish_odometry_) {
       this->odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>(
@@ -64,17 +78,18 @@ public:
 
     RCLCPP_INFO(
         this->get_logger(),
-        "[pose->tf] Gazebo topic: %s, model_name: %s, tf: %s -> %s, odom: %s, "
-        "use_initial_pose_as_map_origin: %s",
+        "[pose->tf] Gazebo topic: %s, model_name: %s, static tf: %s -> %s, "
+        "dynamic tf: %s -> %s, odom: %s",
         this->gz_pose_topic_.c_str(), this->model_name_.c_str(),
-        this->map_frame_.c_str(), this->base_frame_.c_str(),
-        this->publish_odometry_ ? this->odom_topic_.c_str() : "<disabled>",
-        this->use_initial_pose_as_map_origin_ ? "true" : "false");
+        this->map_frame_.c_str(), this->odom_frame_.c_str(),
+        this->odom_frame_.c_str(), this->base_frame_.c_str(),
+        this->publish_odometry_ ? this->odom_topic_.c_str() : "<disabled>");
   }
 
 private:
   gz::transport::Node gz_node_;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::unique_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 
   std::string gz_pose_topic_;
@@ -82,6 +97,7 @@ private:
   std::string model_name_;
   std::string resolved_entity_name_;
   std::string map_frame_;
+  std::string odom_frame_;
   std::string base_frame_;
   std::string odom_topic_;
   bool publish_odometry_{true};
@@ -99,13 +115,7 @@ private:
   };
 
   std::optional<PoseState> prev_state_;
-  std::optional<PoseState> origin_state_;
-  std::optional<PoseState> origin_candidate_state_;
   std::optional<int64_t> last_pose_stamp_ns_;
-  int origin_candidate_stable_samples_{0};
-
-  static constexpr int kOriginLockRequiredSamples = 12;
-  static constexpr double kOriginLockPositionToleranceM = 0.01;
 
   std::optional<gz::msgs::Pose> FindPoseByName(const gz::msgs::Pose_V &msg,
                                                const std::string &name) const {
@@ -188,51 +198,25 @@ private:
     }
   }
 
-  bool EnsureOriginLocked(const PoseState &world_state) {
-    if (!this->use_initial_pose_as_map_origin_) {
-      return true;
-    }
-
-    if (this->origin_state_.has_value()) {
-      return true;
-    }
-
-    if (!this->origin_candidate_state_.has_value()) {
-      this->origin_candidate_state_ = world_state;
-      this->origin_candidate_stable_samples_ = 1;
-      return false;
-    }
-
-    const PoseState &candidate = this->origin_candidate_state_.value();
-    const double dx = world_state.x - candidate.x;
-    const double dy = world_state.y - candidate.y;
-    const double dz = world_state.z - candidate.z;
-    const double position_delta = std::sqrt(dx * dx + dy * dy + dz * dz);
-
-    if (position_delta <= kOriginLockPositionToleranceM) {
-      this->origin_candidate_state_ = world_state;
-      this->origin_candidate_stable_samples_ += 1;
-    } else {
-      this->origin_candidate_state_ = world_state;
-      this->origin_candidate_stable_samples_ = 1;
-    }
-
-    if (this->origin_candidate_stable_samples_ < kOriginLockRequiredSamples) {
-      return false;
-    }
-
-    this->origin_state_ = world_state;
-    RCLCPP_INFO(this->get_logger(),
-                "[pose->tf] map origin locked to initial UAV pose: "
-                "(x=%.3f, y=%.3f, z=%.3f)",
-                world_state.x, world_state.y, world_state.z);
-    return true;
+  void PublishMapToOdomStaticTf() {
+    geometry_msgs::msg::TransformStamped tf_msg;
+    tf_msg.header.stamp = this->now();
+    tf_msg.header.frame_id = this->map_frame_;
+    tf_msg.child_frame_id = this->odom_frame_;
+    tf_msg.transform.translation.x = 0.0;
+    tf_msg.transform.translation.y = 0.0;
+    tf_msg.transform.translation.z = 0.0;
+    tf_msg.transform.rotation.x = 0.0;
+    tf_msg.transform.rotation.y = 0.0;
+    tf_msg.transform.rotation.z = 0.0;
+    tf_msg.transform.rotation.w = 1.0;
+    this->static_tf_broadcaster_->sendTransform(tf_msg);
   }
 
   void PublishDynamicTf(const PoseState &state) {
     geometry_msgs::msg::TransformStamped tf_msg;
     tf_msg.header.stamp = state.stamp;
-    tf_msg.header.frame_id = this->map_frame_;
+    tf_msg.header.frame_id = this->odom_frame_;
     tf_msg.child_frame_id = this->base_frame_;
     tf_msg.transform.translation.x = state.x;
     tf_msg.transform.translation.y = state.y;
@@ -251,7 +235,7 @@ private:
 
     nav_msgs::msg::Odometry odom;
     odom.header.stamp = state.stamp;
-    odom.header.frame_id = this->map_frame_;
+    odom.header.frame_id = this->odom_frame_;
     odom.child_frame_id = this->base_frame_;
 
     odom.pose.pose.position.x = state.x;
@@ -336,23 +320,6 @@ private:
     return false;
   }
 
-  std::optional<PoseState> ToMapFrameState(const PoseState &world_state) {
-    PoseState map_state = world_state;
-    if (!this->use_initial_pose_as_map_origin_) {
-      return map_state;
-    }
-
-    if (!this->EnsureOriginLocked(world_state)) {
-      return std::nullopt;
-    }
-
-    const PoseState &origin = this->origin_state_.value();
-    map_state.x = world_state.x - origin.x;
-    map_state.y = world_state.y - origin.y;
-    map_state.z = world_state.z - origin.z;
-    return map_state;
-  }
-
   void OnPoseInfo(const gz::msgs::Pose_V &msg) {
     const auto model_pose = this->FindModelPose(msg);
     if (!model_pose.has_value()) {
@@ -367,23 +334,19 @@ private:
     if (!this->AcceptPoseStamp(stamp)) {
       return;
     }
-    PoseState world_state = this->PoseMsgToState(model_pose.value(), stamp);
+    PoseState odom_state = this->PoseMsgToState(model_pose.value(), stamp);
 
     if (const auto relative_base_pose = this->FindRelativeBasePose(msg)) {
-      world_state = this->ComposePoseStates(
-          world_state, this->PoseMsgToState(relative_base_pose.value(), stamp));
+      odom_state = this->ComposePoseStates(
+          odom_state, this->PoseMsgToState(relative_base_pose.value(), stamp));
       this->LogResolvedEntity(this->model_name_ + " + " + this->base_frame_);
     } else {
       this->LogResolvedEntity(model_pose->name());
     }
 
-    const auto map_state = this->ToMapFrameState(world_state);
-    if (!map_state.has_value()) {
-      return;
-    }
-    this->PublishDynamicTf(map_state.value());
-    this->PublishOdometry(map_state.value());
-    this->prev_state_ = map_state.value();
+    this->PublishDynamicTf(odom_state);
+    this->PublishOdometry(odom_state);
+    this->prev_state_ = odom_state;
   }
 };
 } // namespace uav_bridge

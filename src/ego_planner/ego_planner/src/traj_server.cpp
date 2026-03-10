@@ -27,6 +27,7 @@ int traj_id_;
 double last_yaw_, last_yaw_dot_;
 double time_forward_;
 std::string restart_topic_;
+std::string command_frame_id_{"uav_map"};
 
 void restartTrajectoryExecution(const char *reason)
 {
@@ -232,7 +233,7 @@ void cmdCallback()
   last_cmd_time_ = time_now;
 
   cmd.header.stamp = stamp_clock.now();
-  cmd.header.frame_id = "world";
+  cmd.header.frame_id = command_frame_id_;
   cmd.trajectory_flag = quadrotor_msgs::msg::PositionCommand::TRAJECTORY_STATUS_READY;
   cmd.trajectory_id = traj_id_;
 
@@ -268,6 +269,8 @@ int main(int argc, char **argv)
 
   node->declare_parameter("traj_server/restart_topic", std::string("/uav/planning/restart_trajectory"));
   node->get_parameter("traj_server/restart_topic", restart_topic_);
+  node->declare_parameter("traj_server/frame_id", command_frame_id_);
+  node->get_parameter("traj_server/frame_id", command_frame_id_);
 
   auto restart_sub = node->create_subscription<std_msgs::msg::Empty>(
       restart_topic_,

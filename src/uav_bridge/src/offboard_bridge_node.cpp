@@ -54,6 +54,7 @@ namespace uav_bridge
       this->declare_parameter<std::string>("manual_pose_topic", "/uav/control/pose");
       this->declare_parameter<std::string>("nudge_topic", "/uav/control/nudge");
       this->declare_parameter<std::string>("velocity_topic", "/uav/control/velocity");
+      this->declare_parameter<std::string>("command_frame_id", "uav_map");
       this->declare_parameter<double>("velocity_timeout_ms", 200.0);
       this->declare_parameter<std::string>("offboard_mode_topic", "/uav/fmu/in/offboard_control_mode");
       this->declare_parameter<std::string>("trajectory_setpoint_topic", "/uav/fmu/in/trajectory_setpoint");
@@ -88,6 +89,7 @@ namespace uav_bridge
       manual_pose_topic_ = this->get_parameter("manual_pose_topic").as_string();
       nudge_topic_ = this->get_parameter("nudge_topic").as_string();
       velocity_topic_ = this->get_parameter("velocity_topic").as_string();
+      command_frame_id_ = this->get_parameter("command_frame_id").as_string();
       velocity_timeout_ms_ = this->get_parameter("velocity_timeout_ms").as_double();
       offboard_mode_topic_ = this->get_parameter("offboard_mode_topic").as_string();
       trajectory_setpoint_topic_ = this->get_parameter("trajectory_setpoint_topic").as_string();
@@ -292,13 +294,14 @@ namespace uav_bridge
 
       RCLCPP_INFO(
           this->get_logger(),
-          "offboard bridge: auto_cmd=%s manual_pose=%s nudge=%s offboard=%s setpoint=%s vehicle_cmd=%s rate=%.1f warmup=%d timestamp_source=%s%s%s",
+          "offboard bridge: auto_cmd=%s manual_pose=%s nudge=%s offboard=%s setpoint=%s vehicle_cmd=%s command_frame=%s rate=%.1f warmup=%d timestamp_source=%s%s%s",
           command_topic_.c_str(),
           manual_pose_topic_.c_str(),
           nudge_topic_.c_str(),
           offboard_mode_topic_.c_str(),
           trajectory_setpoint_topic_.c_str(),
           vehicle_command_topic_.c_str(),
+          command_frame_id_.c_str(),
           publish_rate_hz_,
           warmup_cycles_,
           px4TimestampSourceName(px4_timestamp_source_),
@@ -447,7 +450,7 @@ namespace uav_bridge
     {
       quadrotor_msgs::msg::PositionCommand cmd{};
       cmd.header.stamp = this->now();
-      cmd.header.frame_id = "map";
+      cmd.header.frame_id = command_frame_id_;
       cmd.position.x = manual_target_position_enu_[0];
       cmd.position.y = manual_target_position_enu_[1];
       cmd.position.z = manual_target_position_enu_[2];
@@ -1003,6 +1006,7 @@ namespace uav_bridge
     std::string command_topic_;
     std::string manual_pose_topic_;
     std::string nudge_topic_;
+    std::string command_frame_id_;
     std::string offboard_mode_topic_;
     std::string trajectory_setpoint_topic_;
     std::string vehicle_command_topic_;

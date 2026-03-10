@@ -289,7 +289,7 @@ quadrotor_msgs::msg::PositionCommand FlightModeManager::makeManualTargetCommand(
 {
   quadrotor_msgs::msg::PositionCommand cmd{};
   cmd.header.stamp = stamp;
-  cmd.header.frame_id = "map";
+  cmd.header.frame_id = config_.command_frame_id;
   cmd.position.x = manual_target_position_enu_[0];
   cmd.position.y = manual_target_position_enu_[1];
   cmd.position.z = manual_target_position_enu_[2];

@@ -5,6 +5,7 @@ from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
+    OpaqueFunction,
     SetEnvironmentVariable,
     SetLaunchConfiguration,
 )
@@ -27,6 +28,14 @@ def generate_launch_description():
     headless = LaunchConfiguration("headless")
     gz_partition = LaunchConfiguration("gz_partition")
     render_engine = LaunchConfiguration("render_engine")
+    global_frame = LaunchConfiguration("global_frame")
+    ugv_map_frame = LaunchConfiguration("ugv_map_frame")
+    uav_map_frame = LaunchConfiguration("uav_map_frame")
+    uav_odom_frame = LaunchConfiguration("uav_odom_frame")
+    global_to_ugv_map = LaunchConfiguration("global_to_ugv_map")
+    global_to_uav_map = LaunchConfiguration("global_to_uav_map")
+    publish_global_map_tf = LaunchConfiguration("publish_global_map_tf")
+    enable_dynamic_global_alignment = LaunchConfiguration("enable_dynamic_global_alignment")
 
     ugv_use_teleop = LaunchConfiguration("ugv_use_teleop")
     ugv_keyboard_enabled = LaunchConfiguration("ugv_keyboard_enabled")
@@ -42,6 +51,47 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration("use_rviz")
     top_level_use_rviz = LaunchConfiguration("top_level_use_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
+
+    def parse_six_dof(raw_value: str, arg_name: str):
+        tokens = [token.strip() for token in raw_value.replace(",", " ").split() if token.strip()]
+        if len(tokens) != 6:
+            raise RuntimeError(
+                f"Launch argument '{arg_name}' must contain 6 numeric values (x y z roll pitch yaw), got: '{raw_value}'"
+            )
+        return tokens
+
+    def create_global_map_tfs(context):
+        if publish_global_map_tf.perform(context).lower() != "true":
+            return []
+
+        ugv_transform = parse_six_dof(global_to_ugv_map.perform(context), "global_to_ugv_map")
+        uav_transform = parse_six_dof(global_to_uav_map.perform(context), "global_to_uav_map")
+        return [
+            Node(
+                package="tf2_ros",
+                executable="static_transform_publisher",
+                name="global_to_ugv_map_tf",
+                output="screen",
+                arguments=[
+                    *ugv_transform,
+                    global_frame.perform(context),
+                    ugv_map_frame.perform(context),
+                ],
+            ),
+            Node(
+                package="tf2_ros",
+                executable="static_transform_publisher",
+                name="global_to_uav_map_tf",
+                output="screen",
+                arguments=[
+                    *uav_transform,
+                    global_frame.perform(context),
+                    uav_map_frame.perform(context),
+                ],
+            ),
+        ]
+
+    global_map_tfs_action = OpaqueFunction(function=create_global_map_tfs)
 
     sim_clock_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(sim_worlds_share, "launch", "sim_clock.launch.py")),
@@ -63,6 +113,11 @@ def generate_launch_description():
             "keyboard_backend": ugv_keyboard_backend,
             "use_sim_tf": ugv_use_sim_tf,
             "publish_map_tf": "true",
+            "global_frame": global_frame,
+            "ugv_map_frame": ugv_map_frame,
+            "global_to_ugv_map": global_to_ugv_map,
+            "publish_global_map_tf": "false",
+            "enable_dynamic_global_alignment": enable_dynamic_global_alignment,
             "launch_ros_clock": "false",
         }.items(),
     )
@@ -79,12 +134,16 @@ def generate_launch_description():
             "render_engine": render_engine,
             "frame": uav_frame,
             "px4_start_delay": uav_px4_start_delay,
-            "use_initial_pose_as_map_origin": "true",
+            "global_frame": global_frame,
+            "uav_map_frame": uav_map_frame,
+            "uav_odom_frame": uav_odom_frame,
+            "global_to_uav_map": global_to_uav_map,
+            "publish_global_map_tf": "false",
+            "enable_dynamic_global_alignment": enable_dynamic_global_alignment,
+            "use_initial_pose_as_map_origin": "false",
             "use_offboard_bridge": uav_use_offboard_bridge,
-            "launch_ros_clock": "false",
             "uxrce_agent_port": uav_uxrce_agent_port,
             "use_rviz": "false",
-            "visual_landing_autostart": "false",
         }.items(),
     )
 
@@ -93,6 +152,7 @@ def generate_launch_description():
         executable="rviz2",
         name="rviz2",
         output="screen",
+        arguments=["-d", rviz_config],
         parameters=[{"use_sim_time": True}],
         condition=IfCondition(top_level_use_rviz),
     )
@@ -114,6 +174,22 @@ def generate_launch_description():
                 "render_engine",
                 default_value=EnvironmentVariable("GZ_RENDER_ENGINE", default_value="ogre2"),
             ),
+            DeclareLaunchArgument("global_frame", default_value="global"),
+            DeclareLaunchArgument("ugv_map_frame", default_value="ugv_map"),
+            DeclareLaunchArgument("uav_map_frame", default_value="uav_map"),
+            DeclareLaunchArgument("uav_odom_frame", default_value="uav_odom"),
+            DeclareLaunchArgument(
+                "global_to_ugv_map",
+                default_value="0,0,0,0,0,0",
+                description="Static transform x,y,z,roll,pitch,yaw from global_frame to ugv_map_frame",
+            ),
+            DeclareLaunchArgument(
+                "global_to_uav_map",
+                default_value="0,0,0,0,0,0",
+                description="Static transform x,y,z,roll,pitch,yaw from global_frame to uav_map_frame",
+            ),
+            DeclareLaunchArgument("publish_global_map_tf", default_value="true"),
+            DeclareLaunchArgument("enable_dynamic_global_alignment", default_value="false"),
             DeclareLaunchArgument("ugv_use_teleop", default_value="true"),
             DeclareLaunchArgument("ugv_keyboard_enabled", default_value="false"),
             DeclareLaunchArgument("ugv_keyboard_backend", default_value="tty"),
@@ -131,6 +207,7 @@ def generate_launch_description():
             DeclareLaunchArgument("rviz_config", default_value=default_rviz_config),
             SetLaunchConfiguration("top_level_use_rviz", use_rviz),
             sim_clock_launch,
+            global_map_tfs_action,
             ugv_sim_launch,
             uav_sitl_launch,
             rviz_node,

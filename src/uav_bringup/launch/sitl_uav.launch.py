@@ -6,6 +6,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     ExecuteProcess,
     IncludeLaunchDescription,
+    OpaqueFunction,
     SetEnvironmentVariable,
     TimerAction,
 )
@@ -41,9 +42,7 @@ def _topic_in_namespace(namespace_value, suffix):
 def generate_launch_description():
     frame_default = "sim_uav"
     frame_prefix = "uav_"
-    map_frame = "map"
     base_frame = "uav_base_link"
-    base_link_name = "base_link"
     mono_camera_frame = "uav_camera_optical_frame"
     stereo_camera_frame = "uav_stereo_camera_optical_frame"
 
@@ -65,6 +64,11 @@ def generate_launch_description():
     launch_gz = LaunchConfiguration("launch_gz")
     render_engine = LaunchConfiguration("render_engine")
     gz_partition = LaunchConfiguration("gz_partition")
+    global_frame = LaunchConfiguration("global_frame")
+    uav_map_frame = LaunchConfiguration("uav_map_frame")
+    uav_odom_frame = LaunchConfiguration("uav_odom_frame")
+    global_to_uav_map = LaunchConfiguration("global_to_uav_map")
+    publish_global_map_tf = LaunchConfiguration("publish_global_map_tf")
     px4_start_delay = LaunchConfiguration("px4_start_delay")
     use_initial_pose_as_map_origin = LaunchConfiguration("use_initial_pose_as_map_origin")
     use_offboard_bridge = LaunchConfiguration("use_offboard_bridge")
@@ -96,6 +100,35 @@ def generate_launch_description():
         condition=IfCondition(launch_gz),
     )
 
+    def parse_six_dof(raw_value: str, arg_name: str):
+        tokens = [token.strip() for token in raw_value.replace(",", " ").split() if token.strip()]
+        if len(tokens) != 6:
+            raise RuntimeError(
+                f"Launch argument '{arg_name}' must contain 6 numeric values (x y z roll pitch yaw), got: '{raw_value}'"
+            )
+        return tokens
+
+    def create_global_to_uav_map_tf(context):
+        if publish_global_map_tf.perform(context).lower() != "true":
+            return []
+
+        transform_values = parse_six_dof(global_to_uav_map.perform(context), "global_to_uav_map")
+        return [
+            Node(
+                package="tf2_ros",
+                executable="static_transform_publisher",
+                name="global_to_uav_map_tf",
+                output="screen",
+                arguments=[
+                    *transform_values,
+                    global_frame.perform(context),
+                    uav_map_frame.perform(context),
+                ],
+            )
+        ]
+
+    global_to_uav_map_tf_action = OpaqueFunction(function=create_global_to_uav_map_tf)
+
     px4_proc = ExecuteProcess(
         cmd=[script_path],
         additional_env={
@@ -123,9 +156,9 @@ def generate_launch_description():
             {"gz_pose_topic": gz_pose_topic},
             {"world_name": sim_world_name},
             {"model_name": model_name},
-            {"map_frame": map_frame},
+            {"map_frame": uav_map_frame},
+            {"odom_frame": uav_odom_frame},
             {"base_frame": base_frame},
-            {"base_link_name": base_link_name},
             {"odom_topic": "/uav/odom"},
             {"publish_odometry": True},
             {"use_initial_pose_as_map_origin": use_initial_pose_as_map_origin},
@@ -195,6 +228,7 @@ def generate_launch_description():
             {"vehicle_command_topic": vehicle_command_topic},
             {"px4_local_position_topic": vehicle_local_position_topic},
             {"vehicle_status_topic": vehicle_status_topic},
+            {"command_frame_id": uav_map_frame},
         ],
         condition=IfCondition(use_offboard_bridge),
     )
@@ -312,6 +346,20 @@ def generate_launch_description():
                 "gz_partition",
                 default_value=EnvironmentVariable("GZ_PARTITION", default_value=default_gz_partition),
             ),
+            DeclareLaunchArgument("global_frame", default_value="global"),
+            DeclareLaunchArgument("uav_map_frame", default_value="uav_map"),
+            DeclareLaunchArgument("uav_odom_frame", default_value="uav_odom"),
+            DeclareLaunchArgument(
+                "global_to_uav_map",
+                default_value="0,0,0,0,0,0",
+                description="Static transform x,y,z,roll,pitch,yaw from global_frame to uav_map_frame",
+            ),
+            DeclareLaunchArgument(
+                "publish_global_map_tf",
+                default_value="true",
+                description="Whether to publish static transform from global_frame to uav_map_frame",
+            ),
+            DeclareLaunchArgument("enable_dynamic_global_alignment", default_value="false"),
             DeclareLaunchArgument(
                 "render_engine",
                 default_value=EnvironmentVariable("GZ_RENDER_ENGINE", default_value="ogre2"),
@@ -325,7 +373,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "use_initial_pose_as_map_origin",
                 default_value="false",
-                description="Use UAV initial pose as map frame origin",
+                description="Deprecated compatibility flag (ignored by tf_bridge_node; keep false)",
             ),
             DeclareLaunchArgument(
                 "use_offboard_bridge",
@@ -353,6 +401,7 @@ def generate_launch_description():
                 description="Path to RViz2 config file",
             ),
             gz_launch,
+            global_to_uav_map_tf_action,
             gz_pose_tf_bridge,
             mono_camera_bridge,
             stereo_camera_bridge,

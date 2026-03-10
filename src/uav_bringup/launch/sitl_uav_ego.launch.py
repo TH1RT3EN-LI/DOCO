@@ -47,6 +47,12 @@ def generate_launch_description():
     gz_partition = LaunchConfiguration("gz_partition")
     render_engine = LaunchConfiguration("render_engine")
     px4_start_delay = LaunchConfiguration("px4_start_delay")
+    global_frame = LaunchConfiguration("global_frame")
+    uav_map_frame = LaunchConfiguration("uav_map_frame")
+    uav_odom_frame = LaunchConfiguration("uav_odom_frame")
+    global_to_uav_map = LaunchConfiguration("global_to_uav_map")
+    publish_global_map_tf = LaunchConfiguration("publish_global_map_tf")
+    enable_dynamic_global_alignment = LaunchConfiguration("enable_dynamic_global_alignment")
     use_initial_pose_as_map_origin = LaunchConfiguration("use_initial_pose_as_map_origin")
     use_offboard_bridge = LaunchConfiguration("use_offboard_bridge")
     uxrce_agent_port = LaunchConfiguration("uxrce_agent_port")
@@ -103,6 +109,12 @@ def generate_launch_description():
                     "gz_partition": gz_partition,
                     "render_engine": render_engine,
                     "px4_start_delay": px4_start_delay,
+                    "global_frame": global_frame,
+                    "uav_map_frame": uav_map_frame,
+                    "uav_odom_frame": uav_odom_frame,
+                    "global_to_uav_map": global_to_uav_map,
+                    "publish_global_map_tf": publish_global_map_tf,
+                    "enable_dynamic_global_alignment": enable_dynamic_global_alignment,
                     "fmu_namespace": fmu_namespace,
                     "use_initial_pose_as_map_origin": use_initial_pose_as_map_origin,
                     "use_offboard_bridge": "false",
@@ -182,7 +194,8 @@ def generate_launch_description():
             {"grid_map/visualization_truncate_height": 2.8},
             {"grid_map/show_occ_time": False},
             {"grid_map/pose_type": 2},
-            {"grid_map/frame_id": "map"},
+            {"grid_map/frame_id": uav_map_frame},
+            {"vis/frame_id": uav_map_frame},
             {"grid_map/odom_depth_timeout": 1.0},
             {"manager/max_vel": max_vel},
             {"manager/max_acc": max_acc},
@@ -219,7 +232,10 @@ def generate_launch_description():
             ("position_cmd", "/uav/planning/position_cmd"),
             ("/position_cmd", "/uav/planning/position_cmd"),
         ],
-        parameters=[{"traj_server/time_forward": 1.0}],
+        parameters=[
+            {"traj_server/time_forward": 1.0},
+            {"traj_server/frame_id": uav_map_frame},
+        ],
     )
 
     uxrce_agent_node = ExecuteProcess(
@@ -242,6 +258,7 @@ def generate_launch_description():
             {"planner_odom_topic": "/uav/odom"},
             {"px4_local_position_topic": vehicle_local_position_topic},
             {"vehicle_status_topic": vehicle_status_topic},
+            {"command_frame_id": uav_map_frame},
             {"enable_frame_alignment": True},
             {"lock_alignment_on_first_valid": True},
             {"relock_on_local_position_reset": True},
@@ -305,9 +322,19 @@ def generate_launch_description():
                 default_value="4.0",
                 description="Delay (s) before starting PX4 after Gazebo launch",
             ),
+            DeclareLaunchArgument("global_frame", default_value="global"),
+            DeclareLaunchArgument("uav_map_frame", default_value="uav_map"),
+            DeclareLaunchArgument("uav_odom_frame", default_value="uav_odom"),
+            DeclareLaunchArgument(
+                "global_to_uav_map",
+                default_value="0,0,0,0,0,0",
+                description="Static transform x,y,z,roll,pitch,yaw from global_frame to uav_map_frame",
+            ),
+            DeclareLaunchArgument("publish_global_map_tf", default_value="true"),
+            DeclareLaunchArgument("enable_dynamic_global_alignment", default_value="false"),
             DeclareLaunchArgument(
                 "use_initial_pose_as_map_origin",
-                default_value="true",
+                default_value="false",
             ),
             DeclareLaunchArgument("use_offboard_bridge", default_value="true"),
             DeclareLaunchArgument("uxrce_agent_port", default_value="8888"),

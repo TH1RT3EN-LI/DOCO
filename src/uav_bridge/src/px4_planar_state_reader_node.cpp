@@ -26,8 +26,8 @@ public:
       "vehicle_local_position_topic", "/uav/fmu/out/vehicle_local_position");
     this->declare_parameter<std::string>("vehicle_odometry_topic", "/uav/fmu/out/vehicle_odometry");
     this->declare_parameter<std::string>("output_odom_topic", "/uav/px4/planar_odom");
-    this->declare_parameter<std::string>("world_frame_id", "map");
-    this->declare_parameter<std::string>("base_frame_id", "base_link");
+    this->declare_parameter<std::string>("world_frame_id", "uav_map");
+    this->declare_parameter<std::string>("base_frame_id", "uav_base_link");
     this->declare_parameter<double>("publish_rate_hz", 20.0);
     this->declare_parameter<bool>("publish_odometry", true);
     this->declare_parameter<bool>("log_state", true);

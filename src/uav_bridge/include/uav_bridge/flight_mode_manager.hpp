@@ -26,6 +26,7 @@ public:
     bool nudge_body_frame{true};
     bool require_planner_takeoff_clearance{true};
     double velocity_timeout_ms{200.0};
+    std::string command_frame_id{"uav_map"};
   };
 
   struct TickOutput

@@ -7,6 +7,7 @@
 #include <iostream>
 // #include <bspline_opt/polynomial_traj.h>
 #include <rclcpp/rclcpp.hpp>
+#include <string>
 #include <vector>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
@@ -25,6 +26,7 @@ namespace ego_planner
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr init_list_pub;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr optimal_list_pub;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr a_star_list_pub;
+    std::string frame_id_{"uav_map"};
     // ros::Publisher guide_vector_pub;
     // ros::Publisher intermediate_state_pub;
 
@@ -33,6 +35,11 @@ namespace ego_planner
     PlanningVisualization(const rclcpp::Node::SharedPtr &node)
       : node_(node)
     {
+      if (!node_->has_parameter("vis/frame_id"))
+      {
+        node_->declare_parameter("vis/frame_id", frame_id_);
+      }
+      node_->get_parameter("vis/frame_id", frame_id_);
       // 初始化发布者，调整消息类型和队列大小
       goal_point_pub = node_->create_publisher<visualization_msgs::msg::Marker>("goal_point", 2);
       global_list_pub = node_->create_publisher<visualization_msgs::msg::Marker>("global_list", 2);
