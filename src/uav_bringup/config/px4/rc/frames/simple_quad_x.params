@@ -1,0 +1,27 @@
+# Simple Quad-X frame profile for PX4 SITL.
+# Loaded on top of the base px4-rc.params when UAV_PX4_FRAME=simple_quad_x.
+#
+# Geometry assumes a symmetric X frame with ~0.13 m arm projection in X/Y.
+param set CA_AIRFRAME 0
+param set CA_ROTOR_COUNT 4
+
+param set CA_ROTOR0_PX 0.13
+param set CA_ROTOR0_PY 0.13
+param set CA_ROTOR0_KM 0.05
+
+param set CA_ROTOR1_PX -0.13
+param set CA_ROTOR1_PY -0.13
+param set CA_ROTOR1_KM 0.05
+
+param set CA_ROTOR2_PX 0.13
+param set CA_ROTOR2_PY -0.13
+param set CA_ROTOR2_KM -0.05
+
+param set CA_ROTOR3_PX -0.13
+param set CA_ROTOR3_PY 0.13
+param set CA_ROTOR3_KM -0.05
+
+# Conservative thrust defaults for a light quad.
+param set MPC_THR_HOVER 0.35
+param set MPC_THR_MIN 0.05
+param set MPC_MANTHR_MIN 0.05

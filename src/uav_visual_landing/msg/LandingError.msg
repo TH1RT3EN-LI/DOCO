@@ -1,0 +1,10 @@
+std_msgs/Header header
+bool detected
+float32 err_u_norm
+float32 err_v_norm
+float32 yaw_err_rad
+float32 yaw_alt_rad
+float32 reproj_err_px
+float32 reproj_err_alt_px
+uint8 solution_count
+float32 confidence

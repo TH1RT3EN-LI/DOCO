@@ -1,0 +1,46 @@
+# Colcon / ROS 2 build outputs
+/build/
+/install/
+/log/
+/.colcon/
+/COLCON_IGNORE
+
+# In-source build leftovers
+/src/**/build/
+/src/**/install/
+/src/**/log/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/CTestConfiguration.ini
+**/CTestTestfile.cmake
+**/compile_commands.json
+
+# Python caches
+**/__pycache__/
+**/.pytest_cache/
+**/*.py[cod]
+**/*.egg-info/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# IDE / editor state
+/.idea/
+/.vscode/
+*.swp
+*.swo
+
+# Runtime data
+/.ros/
+*.bag
+*.bag.active
+*.db3
+*.mcap
+*.ulg
+
+# Imported upstream repositories managed by dependencies.repos.
+# Remove any of these lines if you decide to track your own fork in this repo.
+/src/px4_msgs/
+/src/orbbec_sdk/
+/src/lslidar_driver/
+/third_party/PX4-Autopilot/

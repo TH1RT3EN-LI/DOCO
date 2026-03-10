@@ -1,0 +1,2325 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <world name="test">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <plugin filename="gz-sim-air-pressure-system" name="gz::sim::systems::AirPressure"/>
+    <plugin filename="gz-sim-navsat-system" name="gz::sim::systems::NavSat"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <gravity>0 0 -9.8</gravity>
+    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    <atmosphere type="adiabatic"/>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>0</latitude_deg>
+      <longitude_deg>0</longitude_deg>
+      <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <lighting>true</lighting>
+            <ambient>0.45 0.45 0.45 1</ambient>
+            <diffuse>0.45 0.45 0.45 1</diffuse>
+            <specular>0.0 0.0 0.0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+      <model name="ground_tiles">
+        <static>true</static>
+        <pose>0 0 0.002 0 0 0</pose>
+        <link name="link">
+          <visual name="tile_xpm9_ypm9">
+            <pose>-9 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm9_ypm7">
+            <pose>-9 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm9_ypm5">
+            <pose>-9 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm9_ypm3">
+            <pose>-9 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm9_ypm1">
+            <pose>-9 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm9_yp1">
+            <pose>-9 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm9_yp3">
+            <pose>-9 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm9_yp5">
+            <pose>-9 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm9_yp7">
+            <pose>-9 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm9_yp9">
+            <pose>-9 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_ypm9">
+            <pose>-7 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_ypm7">
+            <pose>-7 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_ypm5">
+            <pose>-7 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_ypm3">
+            <pose>-7 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_ypm1">
+            <pose>-7 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_yp1">
+            <pose>-7 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_yp3">
+            <pose>-7 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_yp5">
+            <pose>-7 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_yp7">
+            <pose>-7 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm7_yp9">
+            <pose>-7 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_ypm9">
+            <pose>-5 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_ypm7">
+            <pose>-5 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_ypm5">
+            <pose>-5 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_ypm3">
+            <pose>-5 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_ypm1">
+            <pose>-5 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_yp1">
+            <pose>-5 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_yp3">
+            <pose>-5 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_yp5">
+            <pose>-5 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_yp7">
+            <pose>-5 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm5_yp9">
+            <pose>-5 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_ypm9">
+            <pose>-3 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_ypm7">
+            <pose>-3 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_ypm5">
+            <pose>-3 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_ypm3">
+            <pose>-3 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_ypm1">
+            <pose>-3 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_yp1">
+            <pose>-3 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_yp3">
+            <pose>-3 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_yp5">
+            <pose>-3 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_yp7">
+            <pose>-3 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm3_yp9">
+            <pose>-3 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_ypm9">
+            <pose>-1 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_ypm7">
+            <pose>-1 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_ypm5">
+            <pose>-1 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_ypm3">
+            <pose>-1 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_ypm1">
+            <pose>-1 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_yp1">
+            <pose>-1 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_yp3">
+            <pose>-1 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_yp5">
+            <pose>-1 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_yp7">
+            <pose>-1 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xpm1_yp9">
+            <pose>-1 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_ypm9">
+            <pose>1 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_ypm7">
+            <pose>1 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_ypm5">
+            <pose>1 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_ypm3">
+            <pose>1 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_ypm1">
+            <pose>1 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_yp1">
+            <pose>1 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_yp3">
+            <pose>1 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_yp5">
+            <pose>1 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_yp7">
+            <pose>1 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp1_yp9">
+            <pose>1 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_ypm9">
+            <pose>3 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_ypm7">
+            <pose>3 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_ypm5">
+            <pose>3 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_ypm3">
+            <pose>3 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_ypm1">
+            <pose>3 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_yp1">
+            <pose>3 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_yp3">
+            <pose>3 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_yp5">
+            <pose>3 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_yp7">
+            <pose>3 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp3_yp9">
+            <pose>3 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_ypm9">
+            <pose>5 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_ypm7">
+            <pose>5 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_ypm5">
+            <pose>5 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_ypm3">
+            <pose>5 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_ypm1">
+            <pose>5 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_yp1">
+            <pose>5 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_yp3">
+            <pose>5 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_yp5">
+            <pose>5 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_yp7">
+            <pose>5 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp5_yp9">
+            <pose>5 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_ypm9">
+            <pose>7 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_ypm7">
+            <pose>7 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_ypm5">
+            <pose>7 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_ypm3">
+            <pose>7 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_ypm1">
+            <pose>7 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_yp1">
+            <pose>7 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_yp3">
+            <pose>7 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_yp5">
+            <pose>7 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_yp7">
+            <pose>7 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp7_yp9">
+            <pose>7 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_ypm9">
+            <pose>9 -9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_ypm7">
+            <pose>9 -7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_ypm5">
+            <pose>9 -5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_ypm3">
+            <pose>9 -3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_ypm1">
+            <pose>9 -1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_yp1">
+            <pose>9 1 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_yp3">
+            <pose>9 3 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_yp5">
+            <pose>9 5 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_yp7">
+            <pose>9 7 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+          <visual name="tile_xp9_yp9">
+            <pose>9 9 0 0 0 0</pose>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>2 2</size>
+              </plane>
+            </geometry>
+            <material>
+              <lighting>true</lighting>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.2 0.2 0.2 1</specular>
+              <pbr><metal>
+                <albedo_map>model://ground_texture/media/concrete_floor.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal></pbr>
+            </material>
+          </visual>
+        </link>
+      </model>
+
+    <model name="wall_0">
+      <static>true</static>
+      <pose>0 9.0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </collision>
+        <visual name="v">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_1">
+      <static>true</static>
+      <pose>-7.79 4.5 1.5 0 0 1.0472</pose>
+      <link name="link">
+        <collision name="c">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </collision>
+        <visual name="v">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_2">
+      <static>true</static>
+      <pose>-7.79 -4.5 1.5 0 0 2.0944</pose>
+      <link name="link">
+        <collision name="c">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </collision>
+        <visual name="v">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_3">
+      <static>true</static>
+      <pose>0 -9.0 1.5 0 0 3.1416</pose>
+      <link name="link">
+        <collision name="c">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </collision>
+        <visual name="v">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_4">
+      <static>true</static>
+      <pose>7.79 -4.5 1.5 0 0 -2.0944</pose>
+      <link name="link">
+        <collision name="c">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </collision>
+        <visual name="v">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_5">
+      <static>true</static>
+      <pose>7.79 4.5 1.5 0 0 -1.0472</pose>
+      <link name="link">
+        <collision name="c">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </collision>
+        <visual name="v">
+          <geometry><box><size>10.39 0.3 3.0</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="apriltag_0">
+      <static>true</static>
+      <pose>0 0 0.0026 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.2 0.2 0.001</size></box></geometry>
+          <material>
+            <lighting>false</lighting>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>0 0 0 1</specular>
+            <emissive>0 0 0 1</emissive>
+            <pbr><metal>
+              <albedo_map>model://apriltag/media/tag16h5-0.png</albedo_map>
+              <metalness>0.0</metalness>
+              <roughness>1.0</roughness>
+            </metal></pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ============================================================
+         随机几何障碍  (10 个)
+         中心 3m 半径内无障碍；障碍分布在 r ≈ 4~7.5m 环形区
+         ---- 调整方法 ------------------------------------------------
+         <pose> X Y Z  0 0 YAW </pose>
+           X, Y : 障碍中心水平位置 (m)
+           Z    : 半高 = 障碍高度/2
+           YAW  : 绕 Z 轴旋转 (rad)
+         box  <size> LX LY LZ </size>  → LX,LY=截面, LZ=高度
+         cylinder  <radius> <length>   → radius=半径, length=高度
+         ============================================================ -->
+
+    <!-- 障碍 1: 方柱  r≈4.0m, θ=0°  尺寸 0.5×0.5×3.0m -->
+    <model name="obs_box_0">
+      <static>true</static>
+      <pose>4.0 0.0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.5 0.5 3.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.5 0.5 3.0</size></box></geometry>
+          <material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍 2: 圆柱  r≈4.7m, θ=55°  radius=0.35m h=2.5m -->
+    <model name="obs_cyl_0">
+      <static>true</static>
+      <pose>2.7 3.8 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.35</radius><length>2.5</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.35</radius><length>2.5</length></cylinder></geometry>
+          <material><ambient>0.7 0.4 0.1 1</ambient><diffuse>0.7 0.4 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍 3: 方墩 box  r≈3.7m, θ=110°  尺寸 0.8×0.8×2.0m -->
+    <model name="obs_box_1">
+      <static>true</static>
+      <pose>-1.3 3.5 1.0 0 0 0.5</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.8 0.8 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.8 0.8 2.0</size></box></geometry>
+          <material><ambient>0.3 0.5 0.7 1</ambient><diffuse>0.3 0.5 0.7 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍 4: 圆柱  r≈4.8m, θ=160°  radius=0.3m h=3.2m -->
+    <model name="obs_cyl_1">
+      <static>true</static>
+      <pose>-4.5 1.6 1.6 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.3</radius><length>3.2</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.3</radius><length>3.2</length></cylinder></geometry>
+          <material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍 5: 方柱  r≈4.2m, θ=210°  尺寸 0.4×0.4×2.8m -->
+    <model name="obs_box_2">
+      <static>true</static>
+      <pose>-3.6 -2.1 1.4 0 0 0.3</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.4 0.4 2.8</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.4 0.4 2.8</size></box></geometry>
+          <material><ambient>0.7 0.4 0.1 1</ambient><diffuse>0.7 0.4 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍 6: 宽墙段  r≈4.9m, θ=255°  尺寸 1.5×0.3×2.2m -->
+    <model name="obs_box_3">
+      <static>true</static>
+      <pose>-1.3 -4.7 1.1 0 0 1.1</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>1.5 0.3 2.2</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>1.5 0.3 2.2</size></box></geometry>
+          <material><ambient>0.3 0.5 0.7 1</ambient><diffuse>0.3 0.5 0.7 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍 7: 圆柱  r≈4.7m, θ=305°  radius=0.4m h=2.4m -->
+    <model name="obs_cyl_2">
+      <static>true</static>
+      <pose>2.7 -3.8 1.2 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.4</radius><length>2.4</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.4</radius><length>2.4</length></cylinder></geometry>
+          <material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍 8: 方柱(高)  r≈5.0m, θ=345°  尺寸 0.45×0.45×3.4m -->
+    <model name="obs_box_4">
+      <static>true</static>
+      <pose>4.8 -1.3 1.7 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.45 0.45 3.4</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.45 0.45 3.4</size></box></geometry>
+          <material><ambient>0.7 0.4 0.1 1</ambient><diffuse>0.7 0.4 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍 9: 方墩 box  r≈4.0m, θ=35°  尺寸 0.6×0.6×2.0m -->
+    <model name="obs_box_5">
+      <static>true</static>
+      <pose>3.3 2.3 1.0 0 0 0.8</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.6 0.6 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.6 0.6 2.0</size></box></geometry>
+          <material><ambient>0.3 0.5 0.7 1</ambient><diffuse>0.3 0.5 0.7 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍 10: 圆柱  r≈4.3m, θ=195°  radius=0.3m h=3.0m -->
+    <model name="obs_cyl_3">
+      <static>true</static>
+      <pose>-4.2 -1.1 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.3</radius><length>3.0</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.3</radius><length>3.0</length></cylinder></geometry>
+          <material><ambient>0.55 0.55 0.55 1</ambient><diffuse>0.55 0.55 0.55 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

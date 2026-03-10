@@ -1,0 +1,63 @@
+visual_landing_node:
+  ros__parameters:
+    kp_xy: 0.42
+    kp_yaw: 0.85
+    max_vxy: 0.42
+    max_vyaw: 0.48
+    max_error_norm: 0.50
+    speed_scale_xy: 3.00
+    speed_scale_yaw: 10.00
+    speed_scale_z: 2.00
+
+
+    align_enter_error: 0.030
+    align_exit_error: 0.022
+    align_enter_yaw: 0.12
+    align_exit_yaw: 0.09
+    align_hold_s: 0.5
+    align_z_kp: 0.40
+    align_z_max_vz: 0.04
+    align_z_deadband_m: 0.02
+
+    alpha_xy: 0.20
+    max_acc_xy: 0.85
+    max_acc_yaw: 1.60
+    vel_damping_xy: 0.20
+    vel_damping_yaw: 0.18
+    min_height_for_xy: 0.35
+    yaw_freeze_threshold: 0.60
+    yaw_slow_threshold: 0.25
+    yaw_slow_scale: 0.50
+    yaw_cmd_deadband: 0.03
+    yaw_filter_alpha: 0.35
+    yaw_filter_beta: 0.08
+    yaw_innovation_base_rad: 0.20
+    yaw_innovation_conf_scale: 0.15
+    yaw_rate_state_limit: 1.20
+
+    descend_speed: 0.12
+    land_height_m: 0.12
+    lost_enter_s: 0.90
+    reacquire_confirm_s: 0.08
+
+    search_rise_step_m: 0.04
+    search_rise_speed_mps: 0.03
+    search_max_rise_m: 0.20
+    search_timeout_s: 6.0
+
+    height_distance_topic: /uav/fmu/in/distance_sensor
+    optical_flow_topic: /uav/fmu/in/sensor_optical_flow
+    height_source_timeout_s: 0.15
+    height_range_min_m: 0.05
+    height_range_max_m: 5.0
+    height_consistency_max_diff_m: 0.35
+    flow_quality_timeout_s: 0.20
+    flow_quality_min_for_land: 30
+
+    terminal_entry_height_m: 0.60
+    direct_land_max_vxy_mps: 0.10
+    direct_land_recent_seen_s: 0.30
+    descend_xy_slow_height_m: 0.25
+    descend_xy_min_scale: 0.35
+
+    control_rate_hz: 30.0

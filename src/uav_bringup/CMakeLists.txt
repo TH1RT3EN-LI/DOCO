@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.8)
+project(uav_bringup)
+
+find_package(ament_cmake REQUIRED)
+
+install(PROGRAMS
+  scripts/run_px4_gz_uav.sh
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+  launch
+  config
+  DESTINATION share/${PROJECT_NAME}
+)
+
+ament_package()

@@ -1,0 +1,26 @@
+# Import upstream dependencies from the workspace root with:
+#   vcs import . < dependencies.repos
+#
+# These entries are intentionally pinned to the revisions currently used by
+# this workspace, or to the upstream branch that the local copy clearly tracks.
+
+repositories:
+  third_party/PX4-Autopilot:
+    type: git
+    url: https://github.com/PX4/PX4-Autopilot.git
+    version: v1.15.4
+
+  src/px4_msgs:
+    type: git
+    url: https://github.com/PX4/px4_msgs.git
+    version: a1045ec4feb6d709bdecaf3895f1d5b43a5dabb8
+
+  src/orbbec_sdk:
+    type: git
+    url: https://github.com/orbbec/OrbbecSDK_ROS2.git
+    version: v2-main
+
+  src/lslidar_driver:
+    type: git
+    url: https://github.com/Lslidar/Lslidar_ROS2_driver.git
+    version: main

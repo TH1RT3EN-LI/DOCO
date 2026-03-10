@@ -1,0 +1,113 @@
+# Sim quadrotor profile for the local Gazebo UAV.
+# Assumed propulsion set:
+# - 2306 1750KV motors
+# - 5146 propellers
+# - 1.2 kg all-up mass
+# Rotor geometry is defined in PX4's body frame (FRD), so Y is the
+# opposite sign of the SDF/Gazebo body frame.
+param set CA_AIRFRAME 0
+param set CA_ROTOR_COUNT 4
+
+# Rotor geometry is taken directly from the SDF base_link frame (FLU -> FRD).
+param set CA_ROTOR0_PX 0.041680
+param set CA_ROTOR0_PY 0.051324
+param set CA_ROTOR0_KM 0.05
+
+param set CA_ROTOR1_PX -0.137116
+param set CA_ROTOR1_PY -0.125904
+param set CA_ROTOR1_KM 0.05
+
+param set CA_ROTOR2_PX 0.041680
+param set CA_ROTOR2_PY -0.125904
+param set CA_ROTOR2_KM -0.05
+
+param set CA_ROTOR3_PX -0.137116
+param set CA_ROTOR3_PY 0.051324
+param set CA_ROTOR3_KM -0.05
+
+param set MPC_THR_HOVER 0.58
+param set MPC_THR_MIN 0.09
+param set MPC_MANTHR_MIN 0.09
+param set MPC_XY_VEL_MAX 2.0
+param set MPC_XY_CRUISE 2.0
+param set MPC_Z_VEL_MAX_UP 1.4
+param set MPC_Z_VEL_MAX_DN 1.0
+param set MPC_Z_V_AUTO_UP 1.4
+param set MPC_Z_V_AUTO_DN 1.0
+param set MPC_ACC_HOR 4.0
+param set MPC_ACC_HOR_MAX 5.0
+param set MPC_ACC_UP_MAX 2.8
+param set MPC_ACC_DOWN_MAX 2.0
+param set MPC_TILTMAX_AIR 35
+param set MPC_TILTMAX_LND 12
+param set MPC_JERK_AUTO 10.0
+param set MPC_JERK_MAX 12.0
+
+# In lockstep Gazebo SITL, PX4 time follows simulation time while the
+# MicroXRCEAgent runs on host wall clock. Disable uXRCE timestamp sync here
+# and let the offboard bridge publish timestamps directly in Gazebo sim time.
+param set UXRCE_DDS_SYNCT 0
+
+# Indoor SITL relies on optical flow + rangefinder; disable GPS fusion so
+# preflight checks don't flap on simulated GPS drift.
+param set SENS_EN_GPSSIM 0
+param set EKF2_GPS_CTRL 0
+param set COM_ARM_WO_GPS 2
+
+# Enable barometer simulation for better altitude estimation.
+# GPS-only altitude is noisy in sim and causes Z oscillation.
+param set SENS_EN_BAROSIM 1
+# Force PX4 internal simulated magnetometer (sensor_mag_sim) in SITL.
+param set SENS_EN_MAGSIM 1
+# Use barometer as primary height source (0=baro, 1=GPS, 2=range, 3=vision)
+param set EKF2_HGT_REF 2
+
+# Magnetic fusion settings for deterministic SITL runs.
+param set EKF2_MAG_TYPE 1
+param set EKF2_MAG_CHECK 0
+param set COM_ARM_MAG_STR 0
+
+# ==========================================
+# EKF2 传感器融合配置 (Sensor Fusion)
+# ==========================================
+
+# 激活并融合测距仪 (Rangefinder)
+param set EKF2_RNG_CTRL 1      # 允许 EKF 融合测距仪数据
+param set EKF2_RNG_A_VMAX 1.0  # 水平速度 <1.0m/s 时信任测距仪
+
+# 激活并融合光流传感器 (Optical Flow)
+param set EKF2_OF_CTRL 1       # 允许 EKF 融合光流水平速度
+param set EKF2_OF_QMIN 10      # 光流质量阈值: <10 不信任
+param set EKF2_OF_DELAY 20     # 光流延迟补偿 (ms)
+
+# Rate controller tuning for this 1.2 kg asymmetric airframe.
+# Slightly reduced from PX4 defaults to avoid oscillation in sim.
+# Roll/Pitch: Ixx=Iyy~0.003 kg*m^2; reduce D to limit derivative noise amplification.
+param set MC_ROLLRATE_P 0.12
+param set MC_ROLLRATE_I 0.15
+param set MC_ROLLRATE_D 0.002
+param set MC_ROLLRATE_FF 0.0
+param set MC_PITCHRATE_P 0.12
+param set MC_PITCHRATE_I 0.15
+param set MC_PITCHRATE_D 0.002
+param set MC_PITCHRATE_FF 0.0
+# Yaw: Izz~0.005 kg*m^2; use conservative gains
+param set MC_YAWRATE_P 0.15
+param set MC_YAWRATE_I 0.12
+param set MC_YAWRATE_D 0.0
+
+# Attitude controller
+param set MC_ROLL_P 5.0
+param set MC_PITCH_P 5.0
+param set MC_YAW_P 3.3
+param set MPC_YAWRAUTO_MAX 135.0
+
+# Position/velocity controller: less sluggish while keeping sim stable
+param set MPC_XY_P 1.0
+param set MPC_Z_P 1.2
+param set MPC_XY_VEL_P_ACC 2.4
+param set MPC_XY_VEL_I_ACC 0.3
+param set MPC_XY_VEL_D_ACC 0.25
+param set MPC_Z_VEL_P_ACC 4.5
+param set MPC_Z_VEL_I_ACC 1.8
+param set MPC_Z_VEL_D_ACC 0.0
