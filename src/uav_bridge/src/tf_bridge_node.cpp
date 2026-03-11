@@ -15,6 +15,8 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 
+#include <uav_bridge/gz_topic_utils.hpp>
+
 namespace uav_bridge {
 constexpr double kPi = 3.14159265358979323846;
 
@@ -22,7 +24,7 @@ class TfBridgeNode : public rclcpp::Node {
 public:
   TfBridgeNode() : Node("tf_bridge_node") {
     this->declare_parameter<std::string>("gz_pose_topic", "");
-    this->declare_parameter<std::string>("world_name", "baylands_world");
+    this->declare_parameter<std::string>("gz_world_name", "test");
     this->declare_parameter<std::string>("model_name", "uav");
     this->declare_parameter<std::string>("map_frame", "uav_map");
     this->declare_parameter<std::string>("odom_frame", "uav_odom");
@@ -32,7 +34,7 @@ public:
     this->declare_parameter<bool>("use_initial_pose_as_map_origin", false);
 
     this->gz_pose_topic_ = this->get_parameter("gz_pose_topic").as_string();
-    this->world_name_ = this->get_parameter("world_name").as_string();
+    this->gz_world_name_ = this->get_parameter("gz_world_name").as_string();
     this->model_name_ = this->get_parameter("model_name").as_string();
     this->map_frame_ = this->get_parameter("map_frame").as_string();
     this->odom_frame_ = this->get_parameter("odom_frame").as_string();
@@ -43,7 +45,7 @@ public:
         this->get_parameter("use_initial_pose_as_map_origin").as_bool();
 
     if (this->gz_pose_topic_.empty()) {
-      gz_pose_topic_ = "/world/" + this->world_name_ + "/pose/info";
+      gz_pose_topic_ = gz_topics::PoseInfo(this->gz_world_name_);
     }
 
     this->tf_broadcaster_ =
@@ -93,7 +95,7 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 
   std::string gz_pose_topic_;
-  std::string world_name_;
+  std::string gz_world_name_;
   std::string model_name_;
   std::string resolved_entity_name_;
   std::string map_frame_;

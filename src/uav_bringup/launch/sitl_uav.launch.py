@@ -1,4 +1,6 @@
 import os
+import sys
+from functools import partial
 
 from ament_index_python.packages import get_package_prefix, get_package_share_directory
 from launch import LaunchDescription
@@ -20,17 +22,12 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node
 
-def _world_name_substitution(world_value):
-    return PythonExpression([
-        '"', world_value, '".rsplit("/", 1)[-1].rsplit(".sdf", 1)[0]'
-    ])
+SIM_WORLDS_SHARE = get_package_share_directory("sim_worlds")
+SIM_WORLDS_LAUNCH_DIR = os.path.join(SIM_WORLDS_SHARE, "launch")
+if SIM_WORLDS_LAUNCH_DIR not in sys.path:
+    sys.path.insert(0, SIM_WORLDS_LAUNCH_DIR)
 
-
-def _world_file_substitution(world_value):
-    return PythonExpression([
-        '"', world_value, '" if "', world_value, '".endswith(".sdf") '
-        'else "', world_value, '" + ".sdf"'
-    ])
+from world_registry import resolve_world_launch_configurations
 
 
 def _topic_in_namespace(namespace_value, suffix):
@@ -74,10 +71,12 @@ def generate_launch_description():
     use_offboard_bridge = LaunchConfiguration("use_offboard_bridge")
     uxrce_agent_port = LaunchConfiguration("uxrce_agent_port")
     fmu_namespace = LaunchConfiguration("fmu_namespace")
+    attach_existing_model = LaunchConfiguration("attach_existing_model")
     use_rviz = LaunchConfiguration("use_rviz")
+    rviz_software_gl = LaunchConfiguration("rviz_software_gl")
     rviz_config = LaunchConfiguration("rviz_config")
-    sim_world_name = _world_name_substitution(world)
-    sim_world_file = _world_file_substitution(world)
+    resolved_world_id = LaunchConfiguration("resolved_world_id")
+    resolved_gz_world_name = LaunchConfiguration("resolved_gz_world_name")
     offboard_mode_topic = _topic_in_namespace(fmu_namespace, "/in/offboard_control_mode")
     trajectory_setpoint_topic = _topic_in_namespace(fmu_namespace, "/in/trajectory_setpoint")
     vehicle_command_topic = _topic_in_namespace(fmu_namespace, "/in/vehicle_command")
@@ -88,11 +87,20 @@ def generate_launch_description():
     gz_pose_topic = LaunchConfiguration("gz_pose_topic")
     gz_image_topic = LaunchConfiguration("gz_image_topic")
     px4_headless = PythonExpression(['"1" if "', headless, '" == "true" else "0"'])
+    px4_model_name = PythonExpression(
+        ['"', model_name, '" if "', attach_existing_model, '".lower() in ("1", "true", "yes", "on") else ""']
+    )
     default_rviz_config = os.path.join(bringup_share, "config", "rviz", "sitl_uav.rviz")
+    resolve_world_action = OpaqueFunction(
+        function=partial(
+            resolve_world_launch_configurations,
+            package_share=SIM_WORLDS_SHARE,
+        )
+    )
     gz_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(bringup_share, "launch", "gz_sim.launch.py")),
         launch_arguments={
-            "world": sim_world_file,
+            "world": resolved_world_id,
             "headless": headless,
             "render_engine": render_engine,
             "gz_partition": gz_partition,
@@ -132,9 +140,9 @@ def generate_launch_description():
     px4_proc = ExecuteProcess(
         cmd=[script_path],
         additional_env={
-            "PX4_GZ_MODEL_NAME": model_name,
+            "PX4_GZ_MODEL_NAME": px4_model_name,
             "PX4_GZ_MODEL_POSE": pose,
-            "PX4_GZ_WORLD": sim_world_name,
+            "PX4_GZ_WORLD": resolved_gz_world_name,
             "PX4_SIM_MODEL": "gz_uav",
             "UAV_PX4_FRAME": frame,
             "GZ_PARTITION": gz_partition,
@@ -154,7 +162,7 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"gz_pose_topic": gz_pose_topic},
-            {"world_name": sim_world_name},
+            {"gz_world_name": resolved_gz_world_name},
             {"model_name": model_name},
             {"map_frame": uav_map_frame},
             {"odom_frame": uav_odom_frame},
@@ -173,7 +181,7 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"gz_image_topic": gz_image_topic},
-            {"world_name": sim_world_name},
+            {"gz_world_name": resolved_gz_world_name},
             {"model_name": model_name},
             {"link_name": "base_link"},
             {"sensor_name": "mono_camera"},
@@ -189,7 +197,7 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {"use_sim_time": True},
-            {"world_name": sim_world_name},
+            {"gz_world_name": resolved_gz_world_name},
             {"model_name": model_name},
             {"link_name": "base_link"},
             {"rgb_sensor_name": "stereo_depth_camera_rgb"},
@@ -222,7 +230,7 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"px4_timestamp_source": "gz_sim"},
-            {"world_name": sim_world_name},
+            {"gz_world_name": resolved_gz_world_name},
             {"offboard_mode_topic": offboard_mode_topic},
             {"trajectory_setpoint_topic": trajectory_setpoint_topic},
             {"vehicle_command_topic": vehicle_command_topic},
@@ -247,7 +255,7 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {"use_sim_time": True},
-            {"world_name": sim_world_name},
+            {"gz_world_name": resolved_gz_world_name},
             {"model_name": model_name},
             {"link_name": "base_link"},
             {"sensor_name": "distance_sensor"},
@@ -262,7 +270,7 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {"use_sim_time": True},
-            {"world_name": sim_world_name},
+            {"gz_world_name": resolved_gz_world_name},
             {"model_name": model_name},
             {"link_name": "base_link"},
             {"sensor_name": "optical_flow"},
@@ -285,7 +293,18 @@ def generate_launch_description():
             {"target_marker_id":0},
         ],
     )
-    robot_description = Command(["xacro", " ", xacro_file])
+    robot_description = Command(
+        [
+            "xacro",
+            " ",
+            xacro_file,
+            " ",
+            "prefix:=",
+            frame_prefix,
+            " ",
+            "base_frame:=base_link",
+        ]
+    )
     robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
@@ -294,8 +313,20 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"robot_description": robot_description},
-            {"frame_prefix": frame_prefix},
         ],
+    )
+
+    rviz_soft_condition = IfCondition(
+        PythonExpression(
+            ['"', use_rviz, '".lower() in ("1", "true", "yes", "on") and "',
+             rviz_software_gl, '".lower() in ("1", "true", "yes", "on")']
+        )
+    )
+    rviz_hw_condition = IfCondition(
+        PythonExpression(
+            ['"', use_rviz, '".lower() in ("1", "true", "yes", "on") and "',
+             rviz_software_gl, '".lower() not in ("1", "true", "yes", "on")']
+        )
     )
 
     rviz = Node(
@@ -305,7 +336,23 @@ def generate_launch_description():
         output="screen",
         arguments=["-d", rviz_config],
         parameters=[{"use_sim_time": True}],
-        condition=IfCondition(use_rviz),
+        additional_env={
+            "LIBGL_DRI3_DISABLE": "1",
+            "LIBGL_ALWAYS_SOFTWARE": "1",
+            "MESA_LOADER_DRIVER_OVERRIDE": "llvmpipe",
+            "QT_XCB_GL_INTEGRATION": "none",
+            "QT_OPENGL": "software",
+        },
+        condition=rviz_soft_condition,
+    )
+    rviz_hw = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="screen",
+        arguments=["-d", rviz_config],
+        parameters=[{"use_sim_time": True}],
+        condition=rviz_hw_condition,
     )
 
     return LaunchDescription(
@@ -313,12 +360,17 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "world",
                 default_value=EnvironmentVariable("UAV_WORLD", default_value="test"),
-                description="World name",
+                description="Registered sim_worlds world id",
             ),
             DeclareLaunchArgument(
                 "model_name",
                 default_value=default_model_name,
-                description="Gazebo model name shared by PX4 and bridge nodes",
+                description="Gazebo model name used by bridge nodes and by PX4 when attach_existing_model=true",
+            ),
+            DeclareLaunchArgument(
+                "attach_existing_model",
+                default_value=EnvironmentVariable("PX4_GZ_ATTACH_EXISTING_MODEL", default_value="false"),
+                description="Attach PX4 to an already spawned Gazebo model named by model_name",
             ),
             DeclareLaunchArgument("pose", default_value=default_model_pose),
             DeclareLaunchArgument(
@@ -396,10 +448,16 @@ def generate_launch_description():
                 description="Whether to launch RViz2",
             ),
             DeclareLaunchArgument(
+                "rviz_software_gl",
+                default_value=EnvironmentVariable("UAV_RVIZ_SOFTWARE_GL", default_value="true"),
+                description="Use software OpenGL for RViz2 to improve container GPU compatibility",
+            ),
+            DeclareLaunchArgument(
                 "rviz_config",
                 default_value=default_rviz_config,
                 description="Path to RViz2 config file",
             ),
+            resolve_world_action,
             gz_launch,
             global_to_uav_map_tf_action,
             gz_pose_tf_bridge,
@@ -413,6 +471,7 @@ def generate_launch_description():
             aruco_detector,
             robot_state_publisher,
             rviz,
+            rviz_hw,
             px4_proc_delayed,
         ]
     )

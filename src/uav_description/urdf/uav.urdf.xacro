@@ -5,15 +5,56 @@
   <xacro:property name="prefix" value="$(arg prefix)"/>
   <xacro:property name="base_frame" value="$(arg base_frame)"/>
 
-  <xacro:property name="arm_l" value="0.26"/>
-  <xacro:property name="arm_w" value="0.015"/>
-  <xacro:property name="arm_h" value="0.015"/>
-  <xacro:property name="rotor_r" value="0.055"/>
-  <xacro:property name="rotor_h" value="0.008"/>
-  <xacro:property name="rotor_z" value="0.03"/>
-  <!-- hw_uav.params uses PX4 FRD; base_link here is FLU, so rotor Y is sign-flipped. -->
+  <xacro:property name="PI" value="3.1415926535897931"/>
+  <xacro:property name="mesh_root" value="package://uav_description/models/uav_base/meshes"/>
   <xacro:property name="rotor_x_offset" value="0.09"/>
   <xacro:property name="rotor_y_offset" value="0.09"/>
+  <xacro:property name="rotor_z" value="0.033"/>
+  <xacro:property name="motor_base_z" value="0.0325"/>
+  <xacro:property name="motor_base_yaw" value="-0.45"/>
+  <xacro:property name="propeller_z" value="0.01"/>
+
+  <material name="uav_dark">
+    <color rgba="0.18 0.18 0.18 1.0"/>
+  </material>
+
+  <material name="uav_camera">
+    <color rgba="0.08 0.08 0.08 1.0"/>
+  </material>
+
+  <xacro:macro name="uav_motor_base_visual" params="x y">
+    <visual>
+      <origin xyz="${x} ${y} ${motor_base_z}" rpy="0 0 ${motor_base_yaw}"/>
+      <geometry>
+        <mesh filename="${mesh_root}/motor_2306_base.dae" scale="0.5 0.5 0.5"/>
+      </geometry>
+    </visual>
+  </xacro:macro>
+
+  <xacro:macro name="uav_rotor" params="index x y">
+    <link name="${prefix}rotor_${index}">
+      <visual>
+        <origin xyz="0 0 ${propeller_z}" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${mesh_root}/propeller_5x3.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="uav_dark"/>
+      </visual>
+
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${mesh_root}/motor_2306_bell.dae" scale="0.5 0.5 0.5"/>
+        </geometry>
+      </visual>
+    </link>
+
+    <joint name="${prefix}rotor_${index}_joint" type="fixed">
+      <parent link="${prefix}${base_frame}"/>
+      <child link="${prefix}rotor_${index}"/>
+      <origin xyz="${x} ${y} ${rotor_z}" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
 
   <link name="${prefix}${base_frame}">
     <inertial>
@@ -21,107 +62,43 @@
       <mass value="0.8"/>
       <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.02"/>
     </inertial>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0.78539816339"/>
-      <geometry>
-        <box size="${arm_l} ${arm_w} ${arm_h}"/>
-      </geometry>
-      <material name="uav_arm">
-        <color rgba="0.85 0.85 0.85 1.0"/>
-      </material>
-    </visual>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 2.35619449018"/>
-      <geometry>
-        <box size="${arm_l} ${arm_w} ${arm_h}"/>
-      </geometry>
-      <material name="uav_arm"/>
-    </visual>
-  </link>
 
-  <link name="${prefix}rotor_0">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="${rotor_r}" length="${rotor_h}"/>
+        <mesh filename="${mesh_root}/dj250_airframe.dae" scale="1 1 1"/>
       </geometry>
-      <material name="uav_rotor_cw">
-        <color rgba="0.1 0.7 1.0 1.0"/>
-      </material>
     </visual>
-  </link>
-  <joint name="${prefix}rotor_0_joint" type="fixed">
-    <parent link="${prefix}${base_frame}"/>
-    <child link="${prefix}rotor_0"/>
-    <origin xyz="${rotor_x_offset} -${rotor_y_offset} ${rotor_z}" rpy="0 0 0"/>
-  </joint>
 
-  <link name="${prefix}rotor_1">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="${rotor_r}" length="${rotor_h}"/>
-      </geometry>
-      <material name="uav_rotor_cw">
-        <color rgba="1.0 0.45 0.2 1.0"/>
-      </material>
-    </visual>
+    <xacro:uav_motor_base_visual x="${rotor_x_offset}" y="${-rotor_y_offset}"/>
+    <xacro:uav_motor_base_visual x="${-rotor_x_offset}" y="${rotor_y_offset}"/>
+    <xacro:uav_motor_base_visual x="${rotor_x_offset}" y="${rotor_y_offset}"/>
+    <xacro:uav_motor_base_visual x="${-rotor_x_offset}" y="${-rotor_y_offset}"/>
   </link>
-  <joint name="${prefix}rotor_1_joint" type="fixed">
-    <parent link="${prefix}${base_frame}"/>
-    <child link="${prefix}rotor_1"/>
-    <origin xyz="-${rotor_x_offset} ${rotor_y_offset} ${rotor_z}" rpy="0 0 0"/>
-  </joint>
 
-  <link name="${prefix}rotor_2">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="${rotor_r}" length="${rotor_h}"/>
-      </geometry>
-      <material name="uav_rotor_ccw"/>
-    </visual>
-  </link>
-  <joint name="${prefix}rotor_2_joint" type="fixed">
-    <parent link="${prefix}${base_frame}"/>
-    <child link="${prefix}rotor_2"/>
-    <origin xyz="${rotor_x_offset} ${rotor_y_offset} ${rotor_z}" rpy="0 0 0"/>
-  </joint>
+  <xacro:uav_rotor index="0" x="${rotor_x_offset}" y="${-rotor_y_offset}"/>
+  <xacro:uav_rotor index="1" x="${-rotor_x_offset}" y="${rotor_y_offset}"/>
+  <xacro:uav_rotor index="2" x="${rotor_x_offset}" y="${rotor_y_offset}"/>
+  <xacro:uav_rotor index="3" x="${-rotor_x_offset}" y="${-rotor_y_offset}"/>
 
-  <link name="${prefix}rotor_3">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="${rotor_r}" length="${rotor_h}"/>
-      </geometry>
-      <material name="uav_rotor_ccw"/>
-    </visual>
-  </link>
-  <joint name="${prefix}rotor_3_joint" type="fixed">
-    <parent link="${prefix}${base_frame}"/>
-    <child link="${prefix}rotor_3"/>
-    <origin xyz="-${rotor_x_offset} -${rotor_y_offset} ${rotor_z}" rpy="0 0 0"/>
-  </joint>
-
-  <!-- Legacy visualization alias for the mono camera. Canonical mono TF is published by launch/profile. -->
   <link name="${prefix}camera_link">
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 ${PI / 2.0} 0"/>
       <geometry>
-        <box size="0.03 0.03 0.02"/>
+        <box size="0.008 0.018 0.014"/>
       </geometry>
-      <material name="uav_camera">
-        <color rgba="0.1 0.1 0.1 1.0"/>
-      </material>
+      <material name="uav_camera"/>
     </visual>
   </link>
+
   <joint name="${prefix}camera_joint" type="fixed">
     <parent link="${prefix}${base_frame}"/>
     <child link="${prefix}camera_link"/>
-    <origin xyz="0.05 0 -0.02" rpy="0 0 0"/>
+    <origin xyz="0.0903 0 0.0098" rpy="0 0 0"/>
   </joint>
 
   <link name="${prefix}camera_optical_frame"/>
+
   <joint name="${prefix}camera_optical_joint" type="fixed">
     <parent link="${prefix}camera_link"/>
     <child link="${prefix}camera_optical_frame"/>
@@ -130,22 +107,22 @@
 
   <link name="${prefix}stereo_camera_link">
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="-0.0051 0 -0.0125" rpy="0 0 0"/>
       <geometry>
-        <box size="0.0307 0.09 0.025"/>
+        <mesh filename="${mesh_root}/camera_orbbec_gemini336_link.stl" scale="1 1 1"/>
       </geometry>
-      <material name="uav_camera">
-        <color rgba="0.1 0.1 0.1 1.0"/>
-      </material>
+      <material name="uav_camera"/>
     </visual>
   </link>
+
   <joint name="${prefix}stereo_camera_joint" type="fixed">
     <parent link="${prefix}${base_frame}"/>
     <child link="${prefix}stereo_camera_link"/>
-    <origin xyz="0.05 0 0.045" rpy="0 0 0"/>
+    <origin xyz="0.0503 0 0.1043" rpy="0 0 0"/>
   </joint>
 
   <link name="${prefix}stereo_camera_optical_frame"/>
+
   <joint name="${prefix}stereo_camera_optical_joint" type="fixed">
     <parent link="${prefix}stereo_camera_link"/>
     <child link="${prefix}stereo_camera_optical_frame"/>

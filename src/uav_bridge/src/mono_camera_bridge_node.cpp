@@ -10,12 +10,14 @@
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
+#include <uav_bridge/gz_topic_utils.hpp>
+
 namespace uav_bridge {
 class MonoCameraBridgeNode : public rclcpp::Node {
 public:
   MonoCameraBridgeNode() : Node("mono_camera_bridge_node") {
     this->declare_parameter<std::string>("gz_image_topic", "");
-    this->declare_parameter<std::string>("world_name", "baylands_world");
+    this->declare_parameter<std::string>("gz_world_name", "test");
     this->declare_parameter<std::string>("model_name", "uav");
     this->declare_parameter<std::string>("link_name", "base_link");
     this->declare_parameter<std::string>("sensor_name", "mono_camera");
@@ -27,7 +29,8 @@ public:
 
     std::string gz_image_topic =
         this->get_parameter("gz_image_topic").as_string();
-    std::string world_name = this->get_parameter("world_name").as_string();
+    std::string gz_world_name =
+        this->get_parameter("gz_world_name").as_string();
     std::string model_name = this->get_parameter("model_name").as_string();
     std::string link_name = this->get_parameter("link_name").as_string();
     std::string sensor_name = this->get_parameter("sensor_name").as_string();
@@ -37,9 +40,8 @@ public:
     _frame_id = this->get_parameter("frame_id").as_string();
 
     if (gz_image_topic.empty()) {
-      gz_image_topic = "/world/" + world_name + "/model/" + model_name +
-                       "/link/" + link_name + "/sensor/" + sensor_name +
-                       "/image";
+      gz_image_topic = gz_topics::Image(gz_world_name, model_name, link_name,
+                                        sensor_name);
     }
 
     this->_image_pub = this->create_publisher<sensor_msgs::msg::Image>(

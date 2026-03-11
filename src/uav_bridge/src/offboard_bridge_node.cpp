@@ -24,6 +24,7 @@
 #include <std_srvs/srv/trigger.hpp>
 
 #include <uav_bridge/frame_aligner.hpp>
+#include <uav_bridge/gz_topic_utils.hpp>
 #include <uav_bridge/math_utils.hpp>
 
 namespace uav_bridge
@@ -82,7 +83,7 @@ namespace uav_bridge
       this->declare_parameter<double>("max_velocity_setpoint_mps", 1.5);
       this->declare_parameter<double>("max_acceleration_setpoint_mps2", 2.0);
       this->declare_parameter<std::string>("px4_timestamp_source", "system");
-      this->declare_parameter<std::string>("world_name", "test");
+      this->declare_parameter<std::string>("gz_world_name", "test");
       this->declare_parameter<std::string>("gz_clock_topic", "");
 
       command_topic_ = this->get_parameter("command_topic").as_string();
@@ -116,7 +117,7 @@ namespace uav_bridge
       require_planner_takeoff_clearance_ = this->get_parameter("require_planner_takeoff_clearance").as_bool();
       max_velocity_setpoint_mps_ = static_cast<float>(this->get_parameter("max_velocity_setpoint_mps").as_double());
       max_acceleration_setpoint_mps2_ = static_cast<float>(this->get_parameter("max_acceleration_setpoint_mps2").as_double());
-      world_name_ = this->get_parameter("world_name").as_string();
+      gz_world_name_ = this->get_parameter("gz_world_name").as_string();
       gz_clock_topic_ = this->get_parameter("gz_clock_topic").as_string();
 
       const std::string px4_timestamp_source = this->get_parameter("px4_timestamp_source").as_string();
@@ -141,7 +142,7 @@ namespace uav_bridge
       {
         if (gz_clock_topic_.empty())
         {
-          gz_clock_topic_ = "/world/" + world_name_ + "/clock";
+          gz_clock_topic_ = gz_topics::Clock(gz_world_name_);
         }
 
         const bool ok = gz_node_.Subscribe(gz_clock_topic_, &OffboardBridgeNode::onGzClock, this);
@@ -1018,7 +1019,7 @@ namespace uav_bridge
     std::string hover_service_;
     std::string land_service_;
     std::string resume_auto_service_;
-    std::string world_name_;
+    std::string gz_world_name_;
     std::string gz_clock_topic_;
     double publish_rate_hz_{50.0};
     int warmup_cycles_{20};

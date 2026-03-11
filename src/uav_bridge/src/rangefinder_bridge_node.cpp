@@ -16,20 +16,22 @@
 #include <rclcpp/rclcpp.hpp>
 #include <px4_msgs/msg/distance_sensor.hpp>
 
+#include <uav_bridge/gz_topic_utils.hpp>
+
 namespace uav_bridge {
 
 class RangefinderBridgeNode : public rclcpp::Node {
 public:
   RangefinderBridgeNode() : Node("rangefinder_bridge_node") {
     // ---------- parameters ----------
-    declare_parameter<std::string>("world_name", "test");
+    declare_parameter<std::string>("gz_world_name", "test");
     declare_parameter<std::string>("model_name", "uav");
     declare_parameter<std::string>("link_name", "base_link");
     declare_parameter<std::string>("sensor_name", "distance_sensor");
     declare_parameter<std::string>("gz_topic_override", "");
     declare_parameter<std::string>("ros_topic", "/uav/fmu/in/distance_sensor");
 
-    const auto world  = get_parameter("world_name").as_string();
+    const auto gz_world_name = get_parameter("gz_world_name").as_string();
     const auto model  = get_parameter("model_name").as_string();
     const auto link   = get_parameter("link_name").as_string();
     const auto sensor = get_parameter("sensor_name").as_string();
@@ -37,9 +39,7 @@ public:
     const auto ros_topic = get_parameter("ros_topic").as_string();
 
     if (gz_topic.empty()) {
-      // Standard GZ topic path for a gpu_lidar sensor
-      gz_topic = "/world/" + world + "/model/" + model + "/link/" + link +
-                 "/sensor/" + sensor + "/scan";
+      gz_topic = gz_topics::Scan(gz_world_name, model, link, sensor);
     }
 
     // ROS publisher (best-effort sensor QoS to match uXRCE-DDS)

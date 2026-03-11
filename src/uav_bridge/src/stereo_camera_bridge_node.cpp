@@ -14,6 +14,8 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/msg/point_field.hpp>
 
+#include <uav_bridge/gz_topic_utils.hpp>
+
 namespace uav_bridge {
 class StereoCameraBridgeNode : public rclcpp::Node {
 public:
@@ -21,7 +23,7 @@ public:
     this->declare_parameter<std::string>("gz_rgb_image_topic", "");
     this->declare_parameter<std::string>("gz_depth_image_topic", "");
     this->declare_parameter<std::string>("gz_points_topic", "");
-    this->declare_parameter<std::string>("world_name", "baylands_world");
+    this->declare_parameter<std::string>("gz_world_name", "test");
     this->declare_parameter<std::string>("model_name", "uav");
     this->declare_parameter<std::string>("link_name", "base_link");
     this->declare_parameter<std::string>("rgb_sensor_name",
@@ -44,8 +46,8 @@ public:
         this->get_parameter("gz_depth_image_topic").as_string();
     std::string gz_points_topic =
         this->get_parameter("gz_points_topic").as_string();
-    const std::string world_name =
-        this->get_parameter("world_name").as_string();
+    const std::string gz_world_name =
+        this->get_parameter("gz_world_name").as_string();
     const std::string model_name =
         this->get_parameter("model_name").as_string();
     const std::string link_name = this->get_parameter("link_name").as_string();
@@ -68,19 +70,17 @@ public:
                this->get_parameter("points_downsample_step").as_int()));
 
     if (gz_rgb_image_topic.empty()) {
-      gz_rgb_image_topic = "/world/" + world_name + "/model/" + model_name +
-                           "/link/" + link_name + "/sensor/" + rgb_sensor_name +
-                           "/image";
+      gz_rgb_image_topic = gz_topics::Image(gz_world_name, model_name,
+                                            link_name, rgb_sensor_name);
     }
     if (gz_depth_image_topic.empty()) {
-      gz_depth_image_topic = "/world/" + world_name + "/model/" + model_name +
-                             "/link/" + link_name + "/sensor/" +
-                             depth_sensor_name + "/depth_image";
+      gz_depth_image_topic = gz_topics::DepthImage(gz_world_name, model_name,
+                                                   link_name,
+                                                   depth_sensor_name);
     }
     if (gz_points_topic.empty()) {
-      gz_points_topic = "/world/" + world_name + "/model/" + model_name +
-                        "/link/" + link_name + "/sensor/" + depth_sensor_name +
-                        "/depth_image/points";
+      gz_points_topic = gz_topics::DepthPoints(gz_world_name, model_name,
+                                               link_name, depth_sensor_name);
     }
 
     rclcpp::QoS image_qos = rclcpp::SensorDataQoS();

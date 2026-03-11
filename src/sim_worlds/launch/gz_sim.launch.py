@@ -1,4 +1,6 @@
 import os
+import sys
+from functools import partial
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -11,7 +13,12 @@ from launch.actions import (
     SetLaunchConfiguration,
 )
 from launch.conditions import IfCondition, UnlessCondition
-from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PythonExpression
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration
+
+if os.path.dirname(__file__) not in sys.path:
+    sys.path.insert(0, os.path.dirname(__file__))
+
+from world_registry import resolve_world_launch_configurations
 
 
 def _is_true(value: str) -> bool:
@@ -96,22 +103,33 @@ def generate_launch_description():
         resource_dirs.append("/usr/share/gz")
     resource_path = ":".join([d for d in resource_dirs if os.path.isdir(d)])
 
-    world = LaunchConfiguration("world")
-    world_file = PythonExpression([
-        '"', world, '" if "', world, '".startswith("/") else "',
-        worlds_dir, '/" + "', world, '"'
-    ])
+    world_file = LaunchConfiguration("resolved_world_sdf_path")
     effective_headless = LaunchConfiguration("effective_headless")
     render_engine = LaunchConfiguration("render_engine")
     gz_partition = LaunchConfiguration("gz_partition")
 
     return LaunchDescription([
-        DeclareLaunchArgument("world", default_value="baylands.sdf"),
+        DeclareLaunchArgument(
+            "world",
+            default_value="baylands",
+            description="Registered sim_worlds world id",
+        ),
+        DeclareLaunchArgument(
+            "world_sdf_path",
+            default_value="",
+            description="Internal override for resolved SDF path",
+        ),
         DeclareLaunchArgument("headless", default_value="false"),
         DeclareLaunchArgument("gz_partition", default_value=EnvironmentVariable("GZ_PARTITION", default_value="")),
         DeclareLaunchArgument("render_engine", default_value=EnvironmentVariable("GZ_RENDER_ENGINE", default_value="ogre2")),
         SetEnvironmentVariable("GZ_SIM_RESOURCE_PATH", resource_path),
         SetEnvironmentVariable("GZ_PARTITION", gz_partition),
+        OpaqueFunction(
+            function=partial(
+                resolve_world_launch_configurations,
+                package_share=pkg_share,
+            )
+        ),
         OpaqueFunction(function=_resolve_effective_headless),
         ExecuteProcess(
             cmd=["gz", "sim", "-r", "-s", "--headless-rendering", "--render-engine-server", render_engine, world_file],

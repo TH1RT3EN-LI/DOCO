@@ -1,16 +1,3 @@
-WORLD_PROFILES = {
-    "test": {
-        "ground_height": "-0.30",
-    },
-    "living_room": {
-        "ground_height": "-0.30",
-    },
-    "baylands": {
-        "ground_height": "-0.30",
-    },
-}
-
-
 def _quote(value):
     return '"' + str(value) + '"'
 

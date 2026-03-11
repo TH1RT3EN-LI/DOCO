@@ -31,13 +31,15 @@
 #include <rclcpp/rclcpp.hpp>
 #include <px4_msgs/msg/sensor_optical_flow.hpp>
 
+#include <uav_bridge/gz_topic_utils.hpp>
+
 namespace uav_bridge {
 
 class OpticalFlowBridgeNode : public rclcpp::Node {
 public:
   OpticalFlowBridgeNode() : Node("optical_flow_bridge_node") {
     // ---------- parameters ----------
-    declare_parameter<std::string>("world_name", "test");
+    declare_parameter<std::string>("gz_world_name", "test");
     declare_parameter<std::string>("model_name", "uav");
     declare_parameter<std::string>("link_name", "base_link");
     declare_parameter<std::string>("sensor_name", "optical_flow");
@@ -64,7 +66,7 @@ public:
     declare_parameter<bool>("imu_is_flu_frame", true);
     declare_parameter<double>("imu_min_coverage_ratio", 0.7);
 
-    const auto world  = get_parameter("world_name").as_string();
+    const auto gz_world_name = get_parameter("gz_world_name").as_string();
     const auto model  = get_parameter("model_name").as_string();
     const auto link   = get_parameter("link_name").as_string();
     const auto sensor = get_parameter("sensor_name").as_string();
@@ -100,12 +102,10 @@ public:
                        std::tan(camera_hfov_ / 2.0);
 
     if (gz_topic.empty()) {
-      gz_topic = "/world/" + world + "/model/" + model + "/link/" + link +
-                 "/sensor/" + sensor + "/image";
+      gz_topic = gz_topics::Image(gz_world_name, model, link, sensor);
     }
     if (gz_imu_topic.empty()) {
-      gz_imu_topic = "/world/" + world + "/model/" + model + "/link/" + link +
-                     "/sensor/" + imu_sensor + "/imu";
+      gz_imu_topic = gz_topics::Imu(gz_world_name, model, link, imu_sensor);
     }
 
     pub_ = create_publisher<px4_msgs::msg::SensorOpticalFlow>(

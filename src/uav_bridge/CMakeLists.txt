@@ -25,6 +25,7 @@ add_executable(mono_camera_bridge_node
   src/mono_camera_bridge_node.cpp
 )
 target_compile_features(mono_camera_bridge_node PUBLIC cxx_std_17)
+target_include_directories(mono_camera_bridge_node PRIVATE include)
 ament_target_dependencies(mono_camera_bridge_node
   rclcpp
   sensor_msgs
@@ -38,6 +39,7 @@ add_executable(stereo_camera_bridge_node
   src/stereo_camera_bridge_node.cpp
 )
 target_compile_features(stereo_camera_bridge_node PUBLIC cxx_std_17)
+target_include_directories(stereo_camera_bridge_node PRIVATE include)
 ament_target_dependencies(stereo_camera_bridge_node
   rclcpp
   sensor_msgs
@@ -51,6 +53,7 @@ add_executable(tf_bridge_node
   src/tf_bridge_node.cpp
 )
 target_compile_features(tf_bridge_node PUBLIC cxx_std_17)
+target_include_directories(tf_bridge_node PRIVATE include)
 ament_target_dependencies(tf_bridge_node
   rclcpp
   geometry_msgs
@@ -90,6 +93,7 @@ add_executable(rangefinder_bridge_node
   src/rangefinder_bridge_node.cpp
 )
 target_compile_features(rangefinder_bridge_node PUBLIC cxx_std_17)
+target_include_directories(rangefinder_bridge_node PRIVATE include)
 ament_target_dependencies(rangefinder_bridge_node
   rclcpp
   px4_msgs
@@ -103,6 +107,7 @@ add_executable(optical_flow_bridge_node
   src/optical_flow_bridge_node.cpp
 )
 target_compile_features(optical_flow_bridge_node PUBLIC cxx_std_17)
+target_include_directories(optical_flow_bridge_node PRIVATE include)
 target_include_directories(optical_flow_bridge_node SYSTEM PRIVATE ${OpenCV_INCLUDE_DIRS})
 ament_target_dependencies(optical_flow_bridge_node
   rclcpp

@@ -1,5 +1,6 @@
 import os
 import sys
+from functools import partial
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -8,8 +9,10 @@ from launch.actions import (
     ExecuteProcess,
     GroupAction,
     IncludeLaunchDescription,
+    OpaqueFunction,
     PopLaunchConfigurations,
     PushLaunchConfigurations,
+    SetLaunchConfiguration,
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -20,9 +23,15 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from profile_defaults import (
     VEHICLE_PROFILES,
-    WORLD_PROFILES,
     profile_expression,
 )
+
+SIM_WORLDS_SHARE = get_package_share_directory("sim_worlds")
+SIM_WORLDS_LAUNCH_DIR = os.path.join(SIM_WORLDS_SHARE, "launch")
+if SIM_WORLDS_LAUNCH_DIR not in sys.path:
+    sys.path.insert(0, SIM_WORLDS_LAUNCH_DIR)
+
+from world_registry import resolve_world_launch_configurations
 
 
 def _topic_in_namespace(namespace_value, suffix):
@@ -57,7 +66,9 @@ def generate_launch_description():
     use_offboard_bridge = LaunchConfiguration("use_offboard_bridge")
     uxrce_agent_port = LaunchConfiguration("uxrce_agent_port")
     fmu_namespace = LaunchConfiguration("fmu_namespace")
+    attach_existing_model = LaunchConfiguration("attach_existing_model")
     use_rviz = LaunchConfiguration("use_rviz")
+    rviz_software_gl = LaunchConfiguration("rviz_software_gl")
     rviz_config = LaunchConfiguration("rviz_config")
     offboard_mode_topic = _topic_in_namespace(fmu_namespace, "/in/offboard_control_mode")
     trajectory_setpoint_topic = _topic_in_namespace(fmu_namespace, "/in/trajectory_setpoint")
@@ -89,9 +100,24 @@ def generate_launch_description():
     cam2body_z_default = PythonExpression(
         profile_expression(VEHICLE_PROFILES, vehicle_profile, "cam2body_z")
     )
-    ground_height_default = PythonExpression(
-        profile_expression(WORLD_PROFILES, world, "ground_height")
+    effective_ground_height = LaunchConfiguration("effective_ground_height")
+
+    resolve_world_action = OpaqueFunction(
+        function=partial(
+            resolve_world_launch_configurations,
+            package_share=SIM_WORLDS_SHARE,
+        )
     )
+
+    def resolve_ground_height(context):
+        override_value = ground_height.perform(context).strip()
+        if override_value:
+            resolved_value = override_value
+        else:
+            resolved_value = LaunchConfiguration("resolved_ground_height").perform(context)
+        return [SetLaunchConfiguration("effective_ground_height", resolved_value)]
+
+    resolve_ground_height_action = OpaqueFunction(function=resolve_ground_height)
 
     sitl_launch = GroupAction(
         actions=[
@@ -116,6 +142,7 @@ def generate_launch_description():
                     "publish_global_map_tf": publish_global_map_tf,
                     "enable_dynamic_global_alignment": enable_dynamic_global_alignment,
                     "fmu_namespace": fmu_namespace,
+                    "attach_existing_model": attach_existing_model,
                     "use_initial_pose_as_map_origin": use_initial_pose_as_map_origin,
                     "use_offboard_bridge": "false",
                     "use_rviz": "false",
@@ -168,7 +195,7 @@ def generate_launch_description():
             {"grid_map/local_update_range_z": 4.5},
             {"grid_map/obstacles_inflation": 0.20},
             {"grid_map/local_map_margin": 10},
-            {"grid_map/ground_height": ground_height},
+            {"grid_map/ground_height": effective_ground_height},
             {"grid_map/cx": cx_default},
             {"grid_map/cy": cy_default},
             {"grid_map/fx": fx_default},
@@ -272,13 +299,41 @@ def generate_launch_description():
         condition=IfCondition(use_offboard_bridge),
     )
 
+    rviz_soft_condition = IfCondition(
+        PythonExpression(
+            ['"', use_rviz, '".lower() in ("1", "true", "yes", "on") and "',
+             rviz_software_gl, '".lower() in ("1", "true", "yes", "on")']
+        )
+    )
+    rviz_hw_condition = IfCondition(
+        PythonExpression(
+            ['"', use_rviz, '".lower() in ("1", "true", "yes", "on") and "',
+             rviz_software_gl, '".lower() not in ("1", "true", "yes", "on")']
+        )
+    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         name="rviz2",
         output="screen",
         arguments=["-d", rviz_config],
-        condition=IfCondition(use_rviz),
+        additional_env={
+            "LIBGL_DRI3_DISABLE": "1",
+            "LIBGL_ALWAYS_SOFTWARE": "1",
+            "MESA_LOADER_DRIVER_OVERRIDE": "llvmpipe",
+            "QT_XCB_GL_INTEGRATION": "none",
+            "QT_OPENGL": "software",
+        },
+        condition=rviz_soft_condition,
+    )
+    rviz_node_hw = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="screen",
+        arguments=["-d", rviz_config],
+        condition=rviz_hw_condition,
     )
 
     return LaunchDescription(
@@ -286,12 +341,12 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "world",
                 default_value=EnvironmentVariable("UAV_WORLD", default_value="test"),
-                description="World name",
+                description="Registered sim_worlds world id",
             ),
             DeclareLaunchArgument(
                 "model_name",
-                default_value=EnvironmentVariable("PX4_GZ_MODEL_NAME", default_value="uav"),
-                description="Gazebo model name shared by PX4 and bridge nodes",
+                default_value=EnvironmentVariable("UAV_MODEL_NAME", default_value="uav"),
+                description="Gazebo model name used by bridge nodes and by PX4 when attach_existing_model=true",
             ),
             DeclareLaunchArgument(
                 "vehicle_profile",
@@ -339,10 +394,15 @@ def generate_launch_description():
             DeclareLaunchArgument("use_offboard_bridge", default_value="true"),
             DeclareLaunchArgument("uxrce_agent_port", default_value="8888"),
             DeclareLaunchArgument("fmu_namespace", default_value="/uav/fmu"),
+            DeclareLaunchArgument(
+                "attach_existing_model",
+                default_value=EnvironmentVariable("PX4_GZ_ATTACH_EXISTING_MODEL", default_value="false"),
+                description="Attach PX4 to an already spawned Gazebo model named by model_name",
+            ),
             DeclareLaunchArgument("map_size_x", default_value="50.0"),
             DeclareLaunchArgument("map_size_y", default_value="50.0"),
             DeclareLaunchArgument("map_size_z", default_value="5.0"),
-            DeclareLaunchArgument("ground_height", default_value=ground_height_default),
+            DeclareLaunchArgument("ground_height", default_value=""),
             DeclareLaunchArgument("max_vel", default_value="2.0"),
             DeclareLaunchArgument("max_acc", default_value="4.0"),
             DeclareLaunchArgument("planning_horizon", default_value="7.5"),
@@ -350,12 +410,20 @@ def generate_launch_description():
             DeclareLaunchArgument("cam2body_y", default_value=cam2body_y_default),
             DeclareLaunchArgument("cam2body_z", default_value=cam2body_z_default),
             DeclareLaunchArgument("use_rviz", default_value="true"),
+            DeclareLaunchArgument(
+                "rviz_software_gl",
+                default_value=EnvironmentVariable("UAV_RVIZ_SOFTWARE_GL", default_value="true"),
+                description="Use software OpenGL for RViz2 to improve container GPU compatibility",
+            ),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz_config),
+            resolve_world_action,
+            resolve_ground_height_action,
             sitl_launch,
             uxrce_agent_node,
             offboard_bridge_node,
             ego_planner_node,
             traj_server_node,
             rviz_node,
+            rviz_node_hw,
         ]
     )

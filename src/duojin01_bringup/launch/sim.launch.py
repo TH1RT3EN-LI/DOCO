@@ -162,7 +162,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "world",
                 default_value=EnvironmentVariable("SIM_WORLD", default_value="test"),
-                description="Shared world basename under sim_worlds/worlds without .sdf suffix",
+                description="Registered sim_worlds world id",
             ),
             DeclareLaunchArgument("headless", default_value="true"),
             DeclareLaunchArgument(
