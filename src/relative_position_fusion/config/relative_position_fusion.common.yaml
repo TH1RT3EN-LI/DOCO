@@ -1,0 +1,49 @@
+/**:
+  ros__parameters:
+    publish_rate_hz: 20.0
+    global_frame: global
+    uav_body_frame: uav_base_link
+    tf_lookup_timeout_sec: 0.03
+
+    uav_odom_topic: /uav/odom
+    ugv_amcl_pose_topic: /amcl_pose
+    ugv_filtered_odom_topic: /ugv/odometry/filtered
+    ugv_odom_topic: /ugv/odom
+
+    relative_pose_global_topic: /relative_position/estimate/global
+    relative_pose_body_topic: /relative_position/estimate/uav_body
+    relative_velocity_topic: /relative_position/debug/relative_velocity
+    relocalize_requested_topic: /relative_position/relocalize_requested
+    diagnostics_topic: /relative_position/diagnostics
+
+    uav_twist_in_child_frame: false
+    ugv_filtered_twist_in_child_frame: true
+    ugv_odom_twist_in_child_frame: true
+    assume_ugv_odom_is_global: false
+
+    pose_timeout_sec: 0.25
+    velocity_timeout_sec: 0.15
+    measurement_sync_tolerance_sec: 0.05
+    min_pose_diff_velocity_dt_sec: 0.03
+    max_pose_diff_velocity_dt_sec: 0.25
+    buffer_length_sec: 2.0
+
+    covariance_floor_m2: 1.0e-4
+    covariance_ceiling_m2: 25.0
+    covariance_nan_fallback_m2: 1.0
+    covariance_age_inflation_m2_per_s: 0.25
+
+    q_rate_nominal_m2_per_s: 0.004
+    q_rate_measurement_missing_m2_per_s: 0.012
+    q_rate_gate_rejected_m2_per_s: 0.020
+    q_rate_source_degraded_m2_per_s: 0.050
+
+    use_measurement_gating: true
+    gate_chi2_threshold: 5.99
+
+    rho_gamma: 2.0
+    relocalize_enter_threshold_m: 1.0
+    relocalize_exit_threshold_m: 0.7
+    relocalize_enter_hold_cycles: 5
+    relocalize_exit_hold_cycles: 10
+    max_consecutive_gate_rejects_before_force_request: 10

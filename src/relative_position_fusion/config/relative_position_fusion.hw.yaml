@@ -1,0 +1,7 @@
+/**:
+  ros__parameters:
+    assume_ugv_odom_is_global: false
+    q_rate_nominal_m2_per_s: 0.006
+    q_rate_measurement_missing_m2_per_s: 0.018
+    q_rate_gate_rejected_m2_per_s: 0.030
+    q_rate_source_degraded_m2_per_s: 0.060

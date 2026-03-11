@@ -1,3 +1,4 @@
+import sys
 from glob import glob
 import os
 
@@ -5,6 +6,41 @@ from setuptools import setup
 
 
 package_name = "duojin01_bringup"
+
+
+def _sanitize_argv(argv):
+    drop_exact = {
+        "--uninstall",
+        "--editable",
+        "-e",
+    }
+    drop_prefix = (
+        "--editable=",
+        "--build-directory=",
+    )
+    drop_with_value = {
+        "--build-directory",
+    }
+
+    out = []
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg in drop_exact:
+            i += 1
+            continue
+        if any(arg.startswith(prefix) for prefix in drop_prefix):
+            i += 1
+            continue
+        if arg in drop_with_value:
+            i += 2
+            continue
+        out.append(arg)
+        i += 1
+    return out
+
+
+sys.argv = _sanitize_argv(sys.argv)
 
 setup(
     name=package_name,

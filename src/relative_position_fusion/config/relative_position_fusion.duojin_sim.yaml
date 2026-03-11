@@ -1,0 +1,6 @@
+/**:
+  ros__parameters:
+    assume_ugv_odom_is_global: true
+    ugv_amcl_pose_topic: /amcl_pose
+    ugv_filtered_odom_topic: /ugv/odometry/filtered
+    ugv_odom_topic: /ugv/odom

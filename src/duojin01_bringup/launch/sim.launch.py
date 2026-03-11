@@ -28,6 +28,7 @@ from sim_worlds.launch_common import (
 def generate_launch_description():
     ugv_bringup_share = get_package_share_directory("ugv_bringup")
     uav_bringup_share = get_package_share_directory("uav_bringup")
+    relative_position_fusion_share = get_package_share_directory("relative_position_fusion")
     sim_worlds_share = get_package_share_directory("sim_worlds")
     package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -66,6 +67,7 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration("use_rviz")
     top_level_use_rviz = LaunchConfiguration("top_level_use_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
+    enable_relative_position_fusion = LaunchConfiguration("enable_relative_position_fusion")
     default_uav_model_name = PythonExpression(['"', uav_sim_model, '" + "_" + "', uav_px4_instance, '"'])
 
     resolve_world_action = OpaqueFunction(
@@ -157,6 +159,19 @@ def generate_launch_description():
         }.items(),
     )
 
+    relative_position_fusion_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(relative_position_fusion_share, "launch", "relative_position_fusion.launch.py")
+        ),
+        launch_arguments={
+            "preset": "duojin_sim",
+            "use_sim_time": "true",
+            "global_frame": global_frame,
+            "uav_body_frame": "uav_base_link",
+        }.items(),
+        condition=IfCondition(enable_relative_position_fusion),
+    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -239,6 +254,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument("uav_px4_start_delay", default_value="4.0"),
             DeclareLaunchArgument("uav_uxrce_agent_port", default_value="8888"),
+            DeclareLaunchArgument("enable_relative_position_fusion", default_value="true"),
             DeclareLaunchArgument("use_rviz", default_value="true"),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz_config),
             SetLaunchConfiguration("top_level_use_rviz", use_rviz),
@@ -249,6 +265,7 @@ def generate_launch_description():
             global_map_tfs_action,
             ugv_sim_launch,
             uav_sitl_launch,
+            relative_position_fusion_launch,
             rviz_node,
         ]
     )
