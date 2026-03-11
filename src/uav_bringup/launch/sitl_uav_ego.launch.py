@@ -1,5 +1,4 @@
 import os
-import sys
 from functools import partial
 
 from ament_index_python.packages import get_package_share_directory
@@ -19,19 +18,19 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
-sys.path.insert(0, os.path.dirname(__file__))
-
-from profile_defaults import (
+from sim_worlds.launch_common import (
+    create_launch_summary_action,
+    create_rviz_conditions,
+    create_true_only_notice_action,
+    normalize_clock_mode,
+    resolve_world_launch_configurations,
+)
+from uav_bringup.profile_defaults import (
     VEHICLE_PROFILES,
     profile_expression,
 )
 
 SIM_WORLDS_SHARE = get_package_share_directory("sim_worlds")
-SIM_WORLDS_LAUNCH_DIR = os.path.join(SIM_WORLDS_SHARE, "launch")
-if SIM_WORLDS_LAUNCH_DIR not in sys.path:
-    sys.path.insert(0, SIM_WORLDS_LAUNCH_DIR)
-
-from world_registry import resolve_world_launch_configurations
 
 
 def _topic_in_namespace(namespace_value, suffix):
@@ -47,6 +46,9 @@ def generate_launch_description():
     default_rviz_config = os.path.join(bringup_share, "config", "rviz", "sitl_uav_ego.rviz")
 
     world = LaunchConfiguration("world")
+    resolved_world_id = LaunchConfiguration("resolved_world_id")
+    resolved_world_sdf_path = LaunchConfiguration("resolved_world_sdf_path")
+    resolved_gz_world_name = LaunchConfiguration("resolved_gz_world_name")
     vehicle_profile = LaunchConfiguration("vehicle_profile")
     model_name = LaunchConfiguration("model_name")
     frame = LaunchConfiguration("frame")
@@ -67,6 +69,8 @@ def generate_launch_description():
     uxrce_agent_port = LaunchConfiguration("uxrce_agent_port")
     fmu_namespace = LaunchConfiguration("fmu_namespace")
     attach_existing_model = LaunchConfiguration("attach_existing_model")
+    clock_mode = LaunchConfiguration("clock_mode")
+    effective_clock_mode = LaunchConfiguration("effective_clock_mode")
     use_rviz = LaunchConfiguration("use_rviz")
     rviz_software_gl = LaunchConfiguration("rviz_software_gl")
     rviz_config = LaunchConfiguration("rviz_config")
@@ -119,6 +123,17 @@ def generate_launch_description():
 
     resolve_ground_height_action = OpaqueFunction(function=resolve_ground_height)
 
+    def resolve_effective_clock_mode(context):
+        requested_clock_mode = clock_mode.perform(context)
+        return [
+            SetLaunchConfiguration(
+                "effective_clock_mode",
+                normalize_clock_mode(requested_clock_mode, default_value="internal"),
+            )
+        ]
+
+    resolve_clock_mode_action = OpaqueFunction(function=resolve_effective_clock_mode)
+
     sitl_launch = GroupAction(
         actions=[
             PushLaunchConfigurations(),
@@ -126,10 +141,14 @@ def generate_launch_description():
                 PythonLaunchDescriptionSource(os.path.join(bringup_share, "launch", "sitl_uav.launch.py")),
                 launch_arguments={
                     "world": world,
-                    "vehicle_profile": vehicle_profile,
+                    "resolved_world_id": resolved_world_id,
+                    "resolved_world_sdf_path": resolved_world_sdf_path,
+                    "resolved_gz_world_name": resolved_gz_world_name,
+                    "resolved_ground_height": LaunchConfiguration("resolved_ground_height"),
                     "model_name": model_name,
                     "frame": frame,
                     "headless": headless,
+                    "clock_mode": effective_clock_mode,
                     "gz_pose_topic": gz_pose_topic,
                     "gz_image_topic": gz_image_topic,
                     "gz_partition": gz_partition,
@@ -299,18 +318,7 @@ def generate_launch_description():
         condition=IfCondition(use_offboard_bridge),
     )
 
-    rviz_soft_condition = IfCondition(
-        PythonExpression(
-            ['"', use_rviz, '".lower() in ("1", "true", "yes", "on") and "',
-             rviz_software_gl, '".lower() in ("1", "true", "yes", "on")']
-        )
-    )
-    rviz_hw_condition = IfCondition(
-        PythonExpression(
-            ['"', use_rviz, '".lower() in ("1", "true", "yes", "on") and "',
-             rviz_software_gl, '".lower() not in ("1", "true", "yes", "on")']
-        )
-    )
+    rviz_soft_condition, rviz_hw_condition = create_rviz_conditions(use_rviz, rviz_software_gl)
 
     rviz_node = Node(
         package="rviz2",
@@ -336,6 +344,28 @@ def generate_launch_description():
         condition=rviz_hw_condition,
     )
 
+    summary_action = create_launch_summary_action(
+        "uav_sitl_ego",
+        items=[
+            ("clock_mode", effective_clock_mode),
+            ("gz_partition", gz_partition),
+            ("world", resolved_world_id),
+            ("gz_world", resolved_gz_world_name),
+        ],
+    )
+    no_op_alignment_notice = create_true_only_notice_action(
+        "uav_sitl_ego",
+        argument_name="enable_dynamic_global_alignment",
+        argument_value=enable_dynamic_global_alignment,
+        message="The dynamic global alignment hook has no runtime consumer in the current stack.",
+    )
+    initial_pose_notice = create_true_only_notice_action(
+        "uav_sitl_ego",
+        argument_name="use_initial_pose_as_map_origin",
+        argument_value=use_initial_pose_as_map_origin,
+        message="The tf bridge keeps the static map->odom contract and ignores this flag.",
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -343,6 +373,10 @@ def generate_launch_description():
                 default_value=EnvironmentVariable("UAV_WORLD", default_value="test"),
                 description="Registered sim_worlds world id",
             ),
+            DeclareLaunchArgument("resolved_world_id", default_value=""),
+            DeclareLaunchArgument("resolved_world_sdf_path", default_value=""),
+            DeclareLaunchArgument("resolved_gz_world_name", default_value=""),
+            DeclareLaunchArgument("resolved_ground_height", default_value=""),
             DeclareLaunchArgument(
                 "model_name",
                 default_value=EnvironmentVariable("UAV_MODEL_NAME", default_value="uav"),
@@ -362,6 +396,8 @@ def generate_launch_description():
                 description="PX4 frame params profile: sim_uav, hw_uav, default, or simple_quad_x",
             ),
             DeclareLaunchArgument("headless", default_value="false"),
+            DeclareLaunchArgument("clock_mode", default_value=""),
+            DeclareLaunchArgument("effective_clock_mode", default_value=""),
             DeclareLaunchArgument("gz_pose_topic", default_value=""),
             DeclareLaunchArgument("gz_image_topic", default_value=""),
             DeclareLaunchArgument(
@@ -417,7 +453,11 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz_config),
             resolve_world_action,
+            resolve_clock_mode_action,
             resolve_ground_height_action,
+            no_op_alignment_notice,
+            initial_pose_notice,
+            summary_action,
             sitl_launch,
             uxrce_agent_node,
             offboard_bridge_node,

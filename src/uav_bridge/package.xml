@@ -4,8 +4,8 @@
   <name>uav_bridge</name>
   <version>0.0.0</version>
   <description>Bridge nodes for UAV simulation topics between Gazebo and ROS 2.</description>
-  <maintainer email="th1rt3en@todo.todo">th1rt3en</maintainer>
-  <license>Proprietary</license>
+  <maintainer email="litianshun.cn@gmail.com">litianshun</maintainer>
+  <license>GPL-3.0-only</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

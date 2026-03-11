@@ -13,6 +13,14 @@
   <xacro:property name="motor_base_z" value="0.0325"/>
   <xacro:property name="motor_base_yaw" value="-0.45"/>
   <xacro:property name="propeller_z" value="0.01"/>
+  <xacro:property name="base_mass" value="1.19196153846"/>
+  <xacro:property name="base_ixx" value="0.002926086497"/>
+  <xacro:property name="base_iyy" value="0.002922870097"/>
+  <xacro:property name="base_izz" value="0.004866464599"/>
+  <xacro:property name="rotor_mass" value="0.002009615385"/>
+  <xacro:property name="rotor_ixx" value="0.00000001202"/>
+  <xacro:property name="rotor_iyy" value="0.00000081612"/>
+  <xacro:property name="rotor_izz" value="0.000000828081"/>
 
   <material name="uav_dark">
     <color rgba="0.18 0.18 0.18 1.0"/>
@@ -33,6 +41,12 @@
 
   <xacro:macro name="uav_rotor" params="index x y">
     <link name="${prefix}rotor_${index}">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${rotor_mass}"/>
+        <inertia ixx="${rotor_ixx}" ixy="0.0" ixz="0.0" iyy="${rotor_iyy}" iyz="0.0" izz="${rotor_izz}"/>
+      </inertial>
+
       <visual>
         <origin xyz="0 0 ${propeller_z}" rpy="0 0 0"/>
         <geometry>
@@ -59,8 +73,8 @@
   <link name="${prefix}${base_frame}">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="0.8"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.02"/>
+      <mass value="${base_mass}"/>
+      <inertia ixx="${base_ixx}" ixy="0.0" ixz="0.0" iyy="${base_iyy}" iyz="0.0" izz="${base_izz}"/>
     </inertial>
 
     <visual>

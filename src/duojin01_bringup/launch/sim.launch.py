@@ -1,4 +1,5 @@
 import os
+from functools import partial
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -14,6 +15,15 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import EnvironmentVariable, LaunchConfiguration
 from launch_ros.actions import Node
 
+from sim_worlds.launch_common import (
+    create_launch_summary_action,
+    create_static_transform_node,
+    create_true_only_notice_action,
+    is_true,
+    parse_six_dof,
+    resolve_world_launch_configurations,
+)
+
 
 def generate_launch_description():
     bringup_share = get_package_share_directory("duojin01_bringup")
@@ -25,6 +35,9 @@ def generate_launch_description():
     default_rviz_config = os.path.join(bringup_share, "config", "rviz", "sim.rviz")
 
     world = LaunchConfiguration("world")
+    resolved_world_id = LaunchConfiguration("resolved_world_id")
+    resolved_world_sdf_path = LaunchConfiguration("resolved_world_sdf_path")
+    resolved_gz_world_name = LaunchConfiguration("resolved_gz_world_name")
     headless = LaunchConfiguration("headless")
     gz_partition = LaunchConfiguration("gz_partition")
     render_engine = LaunchConfiguration("render_engine")
@@ -52,42 +65,29 @@ def generate_launch_description():
     top_level_use_rviz = LaunchConfiguration("top_level_use_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
 
-    def parse_six_dof(raw_value: str, arg_name: str):
-        tokens = [token.strip() for token in raw_value.replace(",", " ").split() if token.strip()]
-        if len(tokens) != 6:
-            raise RuntimeError(
-                f"Launch argument '{arg_name}' must contain 6 numeric values (x y z roll pitch yaw), got: '{raw_value}'"
-            )
-        return tokens
+    resolve_world_action = OpaqueFunction(
+        function=partial(
+            resolve_world_launch_configurations,
+            package_share=sim_worlds_share,
+        )
+    )
 
     def create_global_map_tfs(context):
-        if publish_global_map_tf.perform(context).lower() != "true":
+        if not is_true(publish_global_map_tf.perform(context)):
             return []
 
-        ugv_transform = parse_six_dof(global_to_ugv_map.perform(context), "global_to_ugv_map")
-        uav_transform = parse_six_dof(global_to_uav_map.perform(context), "global_to_uav_map")
         return [
-            Node(
-                package="tf2_ros",
-                executable="static_transform_publisher",
-                name="global_to_ugv_map_tf",
-                output="screen",
-                arguments=[
-                    *ugv_transform,
-                    global_frame.perform(context),
-                    ugv_map_frame.perform(context),
-                ],
+            create_static_transform_node(
+                node_name="global_to_ugv_map_tf",
+                transform_values=parse_six_dof(global_to_ugv_map.perform(context), "global_to_ugv_map"),
+                parent_frame=global_frame.perform(context),
+                child_frame=ugv_map_frame.perform(context),
             ),
-            Node(
-                package="tf2_ros",
-                executable="static_transform_publisher",
-                name="global_to_uav_map_tf",
-                output="screen",
-                arguments=[
-                    *uav_transform,
-                    global_frame.perform(context),
-                    uav_map_frame.perform(context),
-                ],
+            create_static_transform_node(
+                node_name="global_to_uav_map_tf",
+                transform_values=parse_six_dof(global_to_uav_map.perform(context), "global_to_uav_map"),
+                parent_frame=global_frame.perform(context),
+                child_frame=uav_map_frame.perform(context),
             ),
         ]
 
@@ -104,6 +104,9 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(os.path.join(ugv_bringup_share, "launch", "sim.launch.py")),
         launch_arguments={
             "world": world,
+            "resolved_world_id": resolved_world_id,
+            "resolved_world_sdf_path": resolved_world_sdf_path,
+            "resolved_gz_world_name": resolved_gz_world_name,
             "headless": headless,
             "gz_partition": gz_partition,
             "render_engine": render_engine,
@@ -117,8 +120,7 @@ def generate_launch_description():
             "ugv_map_frame": ugv_map_frame,
             "global_to_ugv_map": global_to_ugv_map,
             "publish_global_map_tf": "false",
-            "enable_dynamic_global_alignment": enable_dynamic_global_alignment,
-            "launch_ros_clock": "false",
+            "clock_mode": "external",
         }.items(),
     )
 
@@ -126,8 +128,12 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(os.path.join(uav_bringup_share, "launch", "sitl_uav.launch.py")),
         launch_arguments={
             "world": world,
+            "resolved_world_id": resolved_world_id,
+            "resolved_world_sdf_path": resolved_world_sdf_path,
+            "resolved_gz_world_name": resolved_gz_world_name,
             "headless": headless,
             "launch_gz": "false",
+            "clock_mode": "external",
             "model_name": uav_model_name,
             "pose": uav_pose,
             "gz_partition": gz_partition,
@@ -139,7 +145,6 @@ def generate_launch_description():
             "uav_odom_frame": uav_odom_frame,
             "global_to_uav_map": global_to_uav_map,
             "publish_global_map_tf": "false",
-            "enable_dynamic_global_alignment": enable_dynamic_global_alignment,
             "use_initial_pose_as_map_origin": "false",
             "use_offboard_bridge": uav_use_offboard_bridge,
             "uxrce_agent_port": uav_uxrce_agent_port,
@@ -157,6 +162,22 @@ def generate_launch_description():
         condition=IfCondition(top_level_use_rviz),
     )
 
+    summary_action = create_launch_summary_action(
+        "duojin_sim",
+        items=[
+            ("clock_mode", "top_level_internal"),
+            ("gz_partition", gz_partition),
+            ("world", resolved_world_id),
+            ("gz_world", resolved_gz_world_name),
+        ],
+    )
+    no_op_alignment_notice = create_true_only_notice_action(
+        "duojin_sim",
+        argument_name="enable_dynamic_global_alignment",
+        argument_value=enable_dynamic_global_alignment,
+        message="The dynamic global alignment hook has no runtime consumer in the current stack.",
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -164,6 +185,10 @@ def generate_launch_description():
                 default_value=EnvironmentVariable("SIM_WORLD", default_value="test"),
                 description="Registered sim_worlds world id",
             ),
+            DeclareLaunchArgument("resolved_world_id", default_value=""),
+            DeclareLaunchArgument("resolved_world_sdf_path", default_value=""),
+            DeclareLaunchArgument("resolved_gz_world_name", default_value=""),
+            DeclareLaunchArgument("resolved_ground_height", default_value=""),
             DeclareLaunchArgument("headless", default_value="true"),
             DeclareLaunchArgument(
                 "gz_partition",
@@ -206,6 +231,9 @@ def generate_launch_description():
             DeclareLaunchArgument("use_rviz", default_value="true"),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz_config),
             SetLaunchConfiguration("top_level_use_rviz", use_rviz),
+            resolve_world_action,
+            no_op_alignment_notice,
+            summary_action,
             sim_clock_launch,
             global_map_tfs_action,
             ugv_sim_launch,

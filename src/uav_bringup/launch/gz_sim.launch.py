@@ -12,6 +12,9 @@ def generate_launch_description():
     default_gz_partition = f"uav_{os.getpid()}"
 
     world = LaunchConfiguration("world")
+    resolved_world_id = LaunchConfiguration("resolved_world_id")
+    resolved_world_sdf_path = LaunchConfiguration("resolved_world_sdf_path")
+    resolved_gz_world_name = LaunchConfiguration("resolved_gz_world_name")
     headless = LaunchConfiguration("headless")
     render_engine = LaunchConfiguration("render_engine")
     gz_partition = LaunchConfiguration("gz_partition")
@@ -20,6 +23,9 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(os.path.join(sim_worlds_share, "launch", "gz_sim.launch.py")),
         launch_arguments={
             "world": world,
+            "resolved_world_id": resolved_world_id,
+            "resolved_world_sdf_path": resolved_world_sdf_path,
+            "resolved_gz_world_name": resolved_gz_world_name,
             "headless": headless,
             "render_engine": render_engine,
             "gz_partition": gz_partition,
@@ -33,6 +39,9 @@ def generate_launch_description():
                 default_value=EnvironmentVariable("UAV_WORLD", default_value="test"),
                 description="Registered sim_worlds world id",
             ),
+            DeclareLaunchArgument("resolved_world_id", default_value=""),
+            DeclareLaunchArgument("resolved_world_sdf_path", default_value=""),
+            DeclareLaunchArgument("resolved_gz_world_name", default_value=""),
             DeclareLaunchArgument("headless", default_value="false"),
             DeclareLaunchArgument(
                 "gz_partition",

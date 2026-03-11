@@ -1,5 +1,5 @@
 import os
-import sys
+import subprocess
 from functools import partial
 
 from ament_index_python.packages import get_package_prefix, get_package_share_directory
@@ -8,26 +8,29 @@ from launch.actions import (
     DeclareLaunchArgument,
     ExecuteProcess,
     IncludeLaunchDescription,
+    LogInfo,
     OpaqueFunction,
     SetEnvironmentVariable,
+    SetLaunchConfiguration,
     TimerAction,
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (
-    Command,
-    EnvironmentVariable,
-    LaunchConfiguration,
-    PythonExpression,
-)
+from launch.substitutions import Command, EnvironmentVariable, LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
-SIM_WORLDS_SHARE = get_package_share_directory("sim_worlds")
-SIM_WORLDS_LAUNCH_DIR = os.path.join(SIM_WORLDS_SHARE, "launch")
-if SIM_WORLDS_LAUNCH_DIR not in sys.path:
-    sys.path.insert(0, SIM_WORLDS_LAUNCH_DIR)
+from sim_worlds.launch_common import (
+    create_launch_summary_action,
+    create_rviz_conditions,
+    create_static_transform_node,
+    create_true_only_notice_action,
+    is_true,
+    normalize_clock_mode,
+    parse_six_dof,
+    resolve_world_launch_configurations,
+)
 
-from world_registry import resolve_world_launch_configurations
+SIM_WORLDS_SHARE = get_package_share_directory("sim_worlds")
 
 
 def _topic_in_namespace(namespace_value, suffix):
@@ -54,6 +57,9 @@ def generate_launch_description():
     default_gz_partition = f"uav_{os.getpid()}"
 
     world = LaunchConfiguration("world")
+    resolved_world_id = LaunchConfiguration("resolved_world_id")
+    resolved_world_sdf_path = LaunchConfiguration("resolved_world_sdf_path")
+    resolved_gz_world_name = LaunchConfiguration("resolved_gz_world_name")
     frame = LaunchConfiguration("frame")
     model_name = LaunchConfiguration("model_name")
     pose = LaunchConfiguration("pose")
@@ -75,8 +81,10 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration("use_rviz")
     rviz_software_gl = LaunchConfiguration("rviz_software_gl")
     rviz_config = LaunchConfiguration("rviz_config")
-    resolved_world_id = LaunchConfiguration("resolved_world_id")
-    resolved_gz_world_name = LaunchConfiguration("resolved_gz_world_name")
+    clock_mode = LaunchConfiguration("clock_mode")
+    effective_clock_mode = LaunchConfiguration("effective_clock_mode")
+    enable_dynamic_global_alignment = LaunchConfiguration("enable_dynamic_global_alignment")
+    offboard_wait_logged = LaunchConfiguration("offboard_wait_logged")
     offboard_mode_topic = _topic_in_namespace(fmu_namespace, "/in/offboard_control_mode")
     trajectory_setpoint_topic = _topic_in_namespace(fmu_namespace, "/in/trajectory_setpoint")
     vehicle_command_topic = _topic_in_namespace(fmu_namespace, "/in/vehicle_command")
@@ -91,16 +99,43 @@ def generate_launch_description():
         ['"', model_name, '" if "', attach_existing_model, '".lower() in ("1", "true", "yes", "on") else ""']
     )
     default_rviz_config = os.path.join(bringup_share, "config", "rviz", "sitl_uav.rviz")
+
     resolve_world_action = OpaqueFunction(
         function=partial(
             resolve_world_launch_configurations,
             package_share=SIM_WORLDS_SHARE,
         )
     )
+
+    def resolve_effective_clock_mode(context):
+        requested_clock_mode = clock_mode.perform(context)
+        if requested_clock_mode.strip():
+            return [
+                SetLaunchConfiguration(
+                    "effective_clock_mode",
+                    normalize_clock_mode(
+                        requested_clock_mode,
+                        default_value="internal" if is_true(launch_gz.perform(context)) else "external",
+                    ),
+                )
+            ]
+
+        return [
+            SetLaunchConfiguration(
+                "effective_clock_mode",
+                "internal" if is_true(launch_gz.perform(context)) else "external",
+            )
+        ]
+
+    resolve_clock_mode_action = OpaqueFunction(function=resolve_effective_clock_mode)
+
     gz_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(bringup_share, "launch", "gz_sim.launch.py")),
         launch_arguments={
-            "world": resolved_world_id,
+            "world": world,
+            "resolved_world_id": resolved_world_id,
+            "resolved_world_sdf_path": resolved_world_sdf_path,
+            "resolved_gz_world_name": resolved_gz_world_name,
             "headless": headless,
             "render_engine": render_engine,
             "gz_partition": gz_partition,
@@ -108,30 +143,27 @@ def generate_launch_description():
         condition=IfCondition(launch_gz),
     )
 
-    def parse_six_dof(raw_value: str, arg_name: str):
-        tokens = [token.strip() for token in raw_value.replace(",", " ").split() if token.strip()]
-        if len(tokens) != 6:
-            raise RuntimeError(
-                f"Launch argument '{arg_name}' must contain 6 numeric values (x y z roll pitch yaw), got: '{raw_value}'"
-            )
-        return tokens
+    internal_clock_condition = IfCondition(
+        PythonExpression(['"', effective_clock_mode, '" == "internal"'])
+    )
+    sim_clock_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(SIM_WORLDS_SHARE, "launch", "sim_clock.launch.py")),
+        launch_arguments={
+            "gz_partition": gz_partition,
+        }.items(),
+        condition=internal_clock_condition,
+    )
 
     def create_global_to_uav_map_tf(context):
-        if publish_global_map_tf.perform(context).lower() != "true":
+        if not is_true(publish_global_map_tf.perform(context)):
             return []
 
-        transform_values = parse_six_dof(global_to_uav_map.perform(context), "global_to_uav_map")
         return [
-            Node(
-                package="tf2_ros",
-                executable="static_transform_publisher",
-                name="global_to_uav_map_tf",
-                output="screen",
-                arguments=[
-                    *transform_values,
-                    global_frame.perform(context),
-                    uav_map_frame.perform(context),
-                ],
+            create_static_transform_node(
+                node_name="global_to_uav_map_tf",
+                transform_values=parse_six_dof(global_to_uav_map.perform(context), "global_to_uav_map"),
+                parent_frame=global_frame.perform(context),
+                child_frame=uav_map_frame.perform(context),
             )
         ]
 
@@ -151,8 +183,13 @@ def generate_launch_description():
         output="screen",
         emulate_tty=True,
     )
-    px4_proc_delayed = TimerAction(period=px4_start_delay, actions=[px4_proc])
-
+    px4_proc_delayed = TimerAction(
+        period=px4_start_delay,
+        actions=[
+            LogInfo(msg="[uav_sitl] starting PX4 after px4_start_delay."),
+            px4_proc,
+        ],
+    )
 
     gz_pose_tf_bridge = Node(
         package="uav_bridge",
@@ -172,7 +209,7 @@ def generate_launch_description():
             {"use_initial_pose_as_map_origin": use_initial_pose_as_map_origin},
         ],
     )
-    
+
     mono_camera_bridge = Node(
         package="uav_bridge",
         executable="mono_camera_bridge_node",
@@ -221,7 +258,7 @@ def generate_launch_description():
             {"global_fmu_prefix": "/fmu"},
         ],
     )
-    
+
     offboard_bridge = Node(
         package="uav_bridge",
         executable="offboard_bridge_node",
@@ -247,6 +284,43 @@ def generate_launch_description():
         emulate_tty=True,
         condition=IfCondition(use_offboard_bridge),
     )
+
+    def launch_offboard_bridge_when_agent_ready(context):
+        if not is_true(use_offboard_bridge.perform(context)):
+            return []
+
+        port_value = uxrce_agent_port.perform(context)
+        try:
+            socket_listeners = subprocess.run(
+                ["ss", "-lun"],
+                capture_output=True,
+                text=True,
+                check=False,
+            ).stdout
+        except FileNotFoundError:
+            return [
+                LogInfo(msg="[uav_sitl] 'ss' unavailable; starting offboard bridge without UDP readiness check."),
+                offboard_bridge,
+            ]
+
+        if f":{port_value} " in socket_listeners or socket_listeners.rstrip().endswith(f":{port_value}"):
+            return [
+                LogInfo(msg=f"[uav_sitl] MicroXRCEAgent UDP port ready on {port_value}; starting offboard bridge."),
+                offboard_bridge,
+            ]
+
+        actions = []
+        if not is_true(offboard_wait_logged.perform(context)):
+            actions.extend([
+                SetLaunchConfiguration("offboard_wait_logged", "true"),
+                LogInfo(msg=f"[uav_sitl] waiting for MicroXRCEAgent UDP port: {port_value}"),
+            ])
+        actions.append(
+            TimerAction(period=0.5, actions=[OpaqueFunction(function=launch_offboard_bridge_when_agent_ready)])
+        )
+        return actions
+
+    offboard_bridge_ready_action = OpaqueFunction(function=launch_offboard_bridge_when_agent_ready)
 
     rangefinder_bridge = Node(
         package="uav_bridge",
@@ -290,7 +364,7 @@ def generate_launch_description():
         name="aruco_detector_node",
         output="screen",
         parameters=[
-            {"target_marker_id":0},
+            {"target_marker_id": 0},
         ],
     )
     robot_description = Command(
@@ -316,18 +390,7 @@ def generate_launch_description():
         ],
     )
 
-    rviz_soft_condition = IfCondition(
-        PythonExpression(
-            ['"', use_rviz, '".lower() in ("1", "true", "yes", "on") and "',
-             rviz_software_gl, '".lower() in ("1", "true", "yes", "on")']
-        )
-    )
-    rviz_hw_condition = IfCondition(
-        PythonExpression(
-            ['"', use_rviz, '".lower() in ("1", "true", "yes", "on") and "',
-             rviz_software_gl, '".lower() not in ("1", "true", "yes", "on")']
-        )
-    )
+    rviz_soft_condition, rviz_hw_condition = create_rviz_conditions(use_rviz, rviz_software_gl)
 
     rviz = Node(
         package="rviz2",
@@ -355,6 +418,28 @@ def generate_launch_description():
         condition=rviz_hw_condition,
     )
 
+    summary_action = create_launch_summary_action(
+        "uav_sitl",
+        items=[
+            ("clock_mode", effective_clock_mode),
+            ("gz_partition", gz_partition),
+            ("world", resolved_world_id),
+            ("gz_world", resolved_gz_world_name),
+        ],
+    )
+    no_op_alignment_notice = create_true_only_notice_action(
+        "uav_sitl",
+        argument_name="enable_dynamic_global_alignment",
+        argument_value=enable_dynamic_global_alignment,
+        message="The dynamic global alignment hook has no runtime consumer in the current stack.",
+    )
+    initial_pose_notice = create_true_only_notice_action(
+        "uav_sitl",
+        argument_name="use_initial_pose_as_map_origin",
+        argument_value=use_initial_pose_as_map_origin,
+        message="The tf bridge keeps the static map->odom contract and ignores this flag.",
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -362,6 +447,10 @@ def generate_launch_description():
                 default_value=EnvironmentVariable("UAV_WORLD", default_value="test"),
                 description="Registered sim_worlds world id",
             ),
+            DeclareLaunchArgument("resolved_world_id", default_value=""),
+            DeclareLaunchArgument("resolved_world_sdf_path", default_value=""),
+            DeclareLaunchArgument("resolved_gz_world_name", default_value=""),
+            DeclareLaunchArgument("resolved_ground_height", default_value=""),
             DeclareLaunchArgument(
                 "model_name",
                 default_value=default_model_name,
@@ -383,6 +472,11 @@ def generate_launch_description():
                 "launch_gz",
                 default_value="true",
                 description="Whether to launch Gazebo simulation process",
+            ),
+            DeclareLaunchArgument(
+                "clock_mode",
+                default_value="",
+                description="Clock ownership mode: internal or external",
             ),
             DeclareLaunchArgument(
                 "gz_pose_topic",
@@ -457,15 +551,22 @@ def generate_launch_description():
                 default_value=default_rviz_config,
                 description="Path to RViz2 config file",
             ),
+            DeclareLaunchArgument("effective_clock_mode", default_value=""),
+            DeclareLaunchArgument("offboard_wait_logged", default_value="false"),
             resolve_world_action,
+            resolve_clock_mode_action,
+            no_op_alignment_notice,
+            initial_pose_notice,
+            summary_action,
             gz_launch,
+            sim_clock_launch,
             global_to_uav_map_tf_action,
             gz_pose_tf_bridge,
             mono_camera_bridge,
             stereo_camera_bridge,
             fmu_topic_namespace_bridge,
             uxrce_agent_node,
-            offboard_bridge,
+            offboard_bridge_ready_action,
             rangefinder_bridge,
             optical_flow_bridge,
             aruco_detector,

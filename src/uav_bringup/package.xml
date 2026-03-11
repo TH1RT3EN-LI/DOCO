@@ -5,9 +5,10 @@
   <version>0.1.0</version>
   <description>Minimal bringup package to launch PX4 SITL + Gazebo with the custom uav model.</description>
   <maintainer email="litianshun.cn@gmail.com">litianshun</maintainer>
-  <license>BSD-3-Clause</license>
+  <license>GPL-3.0-only</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
