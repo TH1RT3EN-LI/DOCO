@@ -27,8 +27,9 @@
           </mesh>
         </geometry>
       </visual>
-      <!-- Motor base layout follows hw_uav.params CA_ROTOR*_P* (FRD) converted to FLU by flipping Y. -->
-      <visual name="5010_motor_base_0">
+      <!-- Motor base layout follows hw_uav.params CA_ROTOR*_P* (FRD) converted to FLU by flipping Y.
+           PX4 numbering is preserved here: 0=front-right, 1=rear-left, 2=front-left, 3=rear-right. -->
+      <visual name="motor_2306_base_0">
         <pose>0.09 -0.09 0.0325 0 0 -0.45</pose>
         <geometry>
           <mesh>
@@ -37,7 +38,7 @@
           </mesh>
         </geometry>
       </visual>
-      <visual name="5010_motor_base_1">
+      <visual name="motor_2306_base_1">
         <pose>-0.09 0.09 0.0325 0 0 -0.45</pose>
         <geometry>
           <mesh>
@@ -46,7 +47,7 @@
           </mesh>
         </geometry>
       </visual>
-      <visual name="5010_motor_base_2">
+      <visual name="motor_2306_base_2">
         <pose>0.09 0.09 0.0325 0 0 -0.45</pose>
         <geometry>
           <mesh>
@@ -55,7 +56,7 @@
           </mesh>
         </geometry>
       </visual>
-      <visual name="5010_motor_base_3">
+      <visual name="motor_2306_base_3">
         <pose>-0.09 -0.09 0.0325 0 0 -0.45</pose>
         <geometry>
           <mesh>
@@ -759,6 +760,8 @@
         <visualize>false</visualize>
       </sensor>
     </link>
+    <!-- Rotor links keep the same PX4 ordering as hw_uav.params after FRD->FLU conversion.
+         CA_ROTOR*_AZ=-1 in PX4 FRD maps to a +Z spin axis in Gazebo FLU. -->
     <link name="rotor_0">
       <gravity>true</gravity>
       <self_collide>false</self_collide>
@@ -859,7 +862,7 @@
           </script>
         </material>
       </visual>
-      <visual name="rotor_1_visual_motor_top">
+      <visual name="rotor_1_visual_motor_bell">
         <pose>0 0 0 0 0 0</pose>
         <geometry>
           <mesh>
@@ -931,7 +934,7 @@
           </script>
         </material>
       </visual>
-      <visual name="rotor_2_visual_motor_top">
+      <visual name="rotor_2_visual_motor_bell">
         <pose>0 0 0 0 0 0</pose>
         <geometry>
           <mesh>
@@ -1003,7 +1006,7 @@
           </script>
         </material>
       </visual>
-      <visual name="rotor_3_visual_motor_top">
+      <visual name="rotor_3_visual_motor_bell">
         <pose>0 0 0 0 0 0</pose>
         <geometry>
           <mesh>
