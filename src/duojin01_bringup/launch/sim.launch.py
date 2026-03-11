@@ -12,7 +12,7 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import EnvironmentVariable, LaunchConfiguration
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
 from sim_worlds.launch_common import (
@@ -56,6 +56,8 @@ def generate_launch_description():
     ugv_use_sim_tf = LaunchConfiguration("ugv_use_sim_tf")
 
     uav_use_offboard_bridge = LaunchConfiguration("uav_use_offboard_bridge")
+    uav_sim_model = LaunchConfiguration("uav_sim_model")
+    uav_px4_instance = LaunchConfiguration("uav_px4_instance")
     uav_model_name = LaunchConfiguration("uav_model_name")
     uav_pose = LaunchConfiguration("uav_pose")
     uav_frame = LaunchConfiguration("uav_frame")
@@ -64,6 +66,7 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration("use_rviz")
     top_level_use_rviz = LaunchConfiguration("top_level_use_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
+    default_uav_model_name = PythonExpression(['"', uav_sim_model, '" + "_" + "', uav_px4_instance, '"'])
 
     resolve_world_action = OpaqueFunction(
         function=partial(
@@ -134,6 +137,8 @@ def generate_launch_description():
             "headless": headless,
             "launch_gz": "false",
             "clock_mode": "external",
+            "sim_model": uav_sim_model,
+            "px4_instance": uav_px4_instance,
             "model_name": uav_model_name,
             "pose": uav_pose,
             "gz_partition": gz_partition,
@@ -220,7 +225,13 @@ def generate_launch_description():
             DeclareLaunchArgument("ugv_keyboard_backend", default_value="tty"),
             DeclareLaunchArgument("ugv_use_sim_tf", default_value="true"),
             DeclareLaunchArgument("uav_use_offboard_bridge", default_value="true"),
-            DeclareLaunchArgument("uav_model_name", default_value="uav_0"),
+            DeclareLaunchArgument("uav_sim_model", default_value="uav"),
+            DeclareLaunchArgument("uav_px4_instance", default_value="0"),
+            DeclareLaunchArgument(
+                "uav_model_name",
+                default_value=default_uav_model_name,
+                description="Gazebo entity name used by the UAV SITL stack",
+            ),
             DeclareLaunchArgument("uav_pose", default_value="-0.03,-0.0,0.3,0,0,0"),
             DeclareLaunchArgument(
                 "uav_frame",

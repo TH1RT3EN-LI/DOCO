@@ -131,7 +131,13 @@ PX4_SYS_AUTOSTART="${PX4_SYS_AUTOSTART:-4901}"
 PX4_SIM_MODEL="${PX4_SIM_MODEL:-gz_uav}"
 PX4_GZ_WORLD="${PX4_GZ_WORLD:-test}"
 PX4_GZ_MODEL_POSE="${PX4_GZ_MODEL_POSE:-1.5,0.0,0.3,0,0,0}"
+PX4_INSTANCE="${PX4_INSTANCE:-0}"
 HEADLESS="${HEADLESS:-0}"
+
+if ! [[ "${PX4_INSTANCE}" =~ ^[0-9]+$ ]]; then
+  echo "ERROR [run_px4_gz_uav] PX4_INSTANCE must be a non-negative integer: ${PX4_INSTANCE}" >&2
+  exit 1
+fi
 
 RUNTIME_RC_DIR="$(mktemp -d -t uav_px4_rc_XXXXXX)"
 trap 'rm -rf "${RUNTIME_RC_DIR}"' EXIT
@@ -223,6 +229,7 @@ export GZ_SIM_RESOURCE_PATH="${MODEL_DIR}${GZ_SIM_RESOURCE_PATH:+:${GZ_SIM_RESOU
 export PATH="${RUNTIME_RC_DIR}:${PATH}"
 
 echo "INFO  [run_px4_gz_uav] using PX4_DIR: ${PX4_DIR}"
+echo "INFO  [run_px4_gz_uav] using PX4_INSTANCE: ${PX4_INSTANCE}"
 
 reset_stale_px4_build_dir() {
   local build_dir="${PX4_DIR}/build/px4_sitl_default"
@@ -262,4 +269,4 @@ rm -f \
   "${PX4_ROOTFS_DIR}/param_import_fail.bson"
 
 cd "${PX4_ROOTFS_DIR}"
-exec "${PX4_BIN}"
+exec "${PX4_BIN}" -i "${PX4_INSTANCE}"

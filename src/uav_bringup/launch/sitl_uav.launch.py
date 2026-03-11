@@ -55,7 +55,8 @@ def generate_launch_description():
     description_share = get_package_share_directory("uav_description")
     pkg_prefix = get_package_prefix("uav_bringup")
     script_path = os.path.join(pkg_prefix, "lib", "uav_bringup", "run_px4_gz_uav.sh")
-    default_model_name = "uav"
+    default_sim_model = "uav"
+    default_px4_instance = "0"
     default_model_pose = "0,0.0,0.3,0,0,0"
     xacro_file = os.path.join(description_share, "urdf", "uav.urdf.xacro")
 
@@ -65,6 +66,8 @@ def generate_launch_description():
     resolved_world_id = LaunchConfiguration("resolved_world_id")
     resolved_world_sdf_path = LaunchConfiguration("resolved_world_sdf_path")
     resolved_gz_world_name = LaunchConfiguration("resolved_gz_world_name")
+    sim_model = LaunchConfiguration("sim_model")
+    px4_instance = LaunchConfiguration("px4_instance")
     model_name = LaunchConfiguration("model_name")
     pose = LaunchConfiguration("pose")
     headless = LaunchConfiguration("headless")
@@ -95,15 +98,11 @@ def generate_launch_description():
     vehicle_status_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/out/vehicle_status"'])
     gz_pose_topic = LaunchConfiguration("gz_pose_topic")
     gz_image_topic = LaunchConfiguration("gz_image_topic")
+    default_entity_name = PythonExpression(['"', sim_model, '" + "_" + "', px4_instance, '"'])
     px4_headless = PythonExpression(['"1" if "', headless, '" == "true" else "0"'])
+    px4_sim_model = PythonExpression(['"gz_" + "', sim_model, '"'])
     px4_model_name = PythonExpression(
         ['"', model_name, '" if "', attach_existing_model, '".lower() in ("1", "true", "yes", "on") else ""']
-    )
-    bridge_model_name = PythonExpression(
-        [
-            '"', model_name, '" if "', attach_existing_model,
-            '".lower() in ("1", "true", "yes", "on") else "', model_name, '_0"'
-        ]
     )
     default_rviz_config = os.path.join(bringup_share, "config", "rviz", "sitl_uav.rviz")
 
@@ -135,6 +134,50 @@ def generate_launch_description():
         ]
 
     resolve_clock_mode_action = OpaqueFunction(function=resolve_effective_clock_mode)
+
+    def validate_model_configuration(context):
+        sim_model_value = sim_model.perform(context).strip()
+        px4_instance_value = px4_instance.perform(context).strip()
+        model_name_value = model_name.perform(context).strip()
+
+        def fail(message):
+            raise RuntimeError(message)
+
+        if not sim_model_value:
+            fail("[uav_sitl] sim_model must not be empty.")
+
+        if not model_name_value:
+            fail("[uav_sitl] model_name must not be empty.")
+
+        try:
+            px4_instance_int = int(px4_instance_value)
+        except ValueError:
+            fail(
+                f"[uav_sitl] px4_instance must be a non-negative integer: "
+                f"got '{px4_instance_value}'."
+            )
+
+        if px4_instance_int < 0:
+            fail(
+                f"[uav_sitl] px4_instance must be a non-negative integer: "
+                f"got '{px4_instance_value}'."
+            )
+
+        if is_true(attach_existing_model.perform(context)):
+            return []
+
+        expected_entity_name = f"{sim_model_value}_{px4_instance_int}"
+        if model_name_value != expected_entity_name:
+            fail(
+                f"[uav_sitl] attach_existing_model=false requires model_name to match "
+                f"the PX4-spawned Gazebo entity name. expected='{expected_entity_name}', "
+                f"configured='{model_name_value}', sim_model='{sim_model_value}', "
+                f"px4_instance='{px4_instance_int}'."
+            )
+
+        return []
+
+    validate_model_configuration_action = OpaqueFunction(function=validate_model_configuration)
 
     gz_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(bringup_share, "launch", "gz_sim.launch.py")),
@@ -194,7 +237,8 @@ def generate_launch_description():
             "PX4_GZ_MODEL_NAME": px4_model_name,
             "PX4_GZ_MODEL_POSE": pose,
             "PX4_GZ_WORLD": resolved_gz_world_name,
-            "PX4_SIM_MODEL": "gz_uav",
+            "PX4_SIM_MODEL": px4_sim_model,
+            "PX4_INSTANCE": px4_instance,
             "UAV_PX4_FRAME": px4_frame,
             "GZ_PARTITION": gz_partition,
             "HEADLESS": px4_headless,
@@ -238,7 +282,7 @@ def generate_launch_description():
             {"use_sim_time": True},
             {"gz_image_topic": gz_image_topic},
             {"gz_world_name": resolved_gz_world_name},
-            {"model_name": bridge_model_name},
+            {"model_name": model_name},
             {"link_name": base_frame},
             {"sensor_name": mono_camera_sensor},
             {"ros_image_topic": "/uav/camera/image_raw"},
@@ -254,7 +298,7 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"gz_world_name": resolved_gz_world_name},
-            {"model_name": bridge_model_name},
+            {"model_name": model_name},
             {"link_name": base_frame},
             {"rgb_sensor_name": stereo_rgb_sensor},
             {"depth_sensor_name": stereo_depth_sensor},
@@ -351,7 +395,7 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"gz_world_name": resolved_gz_world_name},
-            {"model_name": bridge_model_name},
+            {"model_name": model_name},
             {"link_name": base_frame},
             {"sensor_name": optical_flow_range_sensor},
             {"ros_topic": distance_sensor_topic},
@@ -366,7 +410,7 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"gz_world_name": resolved_gz_world_name},
-            {"model_name": bridge_model_name},
+            {"model_name": model_name},
             {"link_name": base_frame},
             {"sensor_name": optical_flow_sensor},
             {"imu_sensor_name": imu_sensor},
@@ -452,6 +496,9 @@ def generate_launch_description():
         items=[
             ("clock_mode", effective_clock_mode),
             ("px4_frame", px4_frame),
+            ("sim_model", sim_model),
+            ("px4_instance", px4_instance),
+            ("model_name", model_name),
             ("gz_partition", gz_partition),
             ("world", resolved_world_id),
             ("gz_world", resolved_gz_world_name),
@@ -469,9 +516,19 @@ def generate_launch_description():
             DeclareLaunchArgument("resolved_world_sdf_path", default_value=""),
             DeclareLaunchArgument("resolved_gz_world_name", default_value=""),
             DeclareLaunchArgument(
+                "sim_model",
+                default_value=default_sim_model,
+                description="PX4 Gazebo simulation model base name used for spawn naming",
+            ),
+            DeclareLaunchArgument(
+                "px4_instance",
+                default_value=default_px4_instance,
+                description="PX4 instance id used for Gazebo entity naming and PX4 process instance selection",
+            ),
+            DeclareLaunchArgument(
                 "model_name",
-                default_value=default_model_name,
-                description="Gazebo model name used by bridge nodes and by PX4 when attach_existing_model=true",
+                default_value=default_entity_name,
+                description="Gazebo entity name used by bridge nodes and by PX4 when attach_existing_model=true",
             ),
             DeclareLaunchArgument(
                 "attach_existing_model",
@@ -554,6 +611,7 @@ def generate_launch_description():
             ),
             resolve_world_action,
             resolve_clock_mode_action,
+            validate_model_configuration_action,
             summary_action,
             gz_launch,
             sim_clock_bridge,
