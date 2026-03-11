@@ -64,7 +64,7 @@ def all_true_condition(*substitutions):
         expression.extend([
             '"',
             substitution,
-            '".strip().lower() in ("1", "true", "yes", "on")',
+                '".strip().lower() in ("1", "true", "yes", "on")',
         ])
     return IfCondition(PythonExpression(expression))
 

@@ -1,6 +1,7 @@
-from .profile_defaults import VEHICLE_PROFILES, profile_expression
+from .profile_defaults import DEFAULT_CAMERA_INTRINSICS, DEFAULT_CAMERA_TO_BODY, DEFAULT_PX4_FRAME
 
 __all__ = [
-    "VEHICLE_PROFILES",
-    "profile_expression",
+    "DEFAULT_PX4_FRAME",
+    "DEFAULT_CAMERA_INTRINSICS",
+    "DEFAULT_CAMERA_TO_BODY",
 ]

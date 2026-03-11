@@ -150,7 +150,6 @@ PROCESS_GROUPS=(
   "uav_visual_landing.sh|[u]av_visual_landing\\.sh"
   "offboard_bridge_node|[o]ffboard_bridge_node"
   "sitl_uav launch|[r]os2 launch .*sitl_uav\\.launch\\.py"
-  "sitl_uav_ego launch|[r]os2 launch .*sitl_uav_ego\\.launch\\.py"
   "duojin sim launch|[r]os2 launch .*duojin01_bringup .*sim\\.launch\\.py"
   "MicroXRCEAgent|[M]icroXRCEAgent"
   "PX4 SITL|/px4($| )"

@@ -30,6 +30,14 @@
     <color rgba="0.08 0.08 0.08 1.0"/>
   </material>
 
+  <material name="uav_optical_lens">
+    <color rgba="0.04 0.06 0.08 1.0"/>
+  </material>
+
+  <material name="uav_optical_range">
+    <color rgba="0.10 0.10 0.10 1.0"/>
+  </material>
+
   <xacro:macro name="uav_motor_base_visual" params="x y">
     <visual>
       <origin xyz="${x} ${y} ${motor_base_z}" rpy="0 0 ${motor_base_yaw}"/>
@@ -88,6 +96,30 @@
     <xacro:uav_motor_base_visual x="${-rotor_x_offset}" y="${rotor_y_offset}"/>
     <xacro:uav_motor_base_visual x="${rotor_x_offset}" y="${rotor_y_offset}"/>
     <xacro:uav_motor_base_visual x="${-rotor_x_offset}" y="${-rotor_y_offset}"/>
+
+    <visual>
+      <origin xyz="0.005 0 -0.081" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.030 0.015 0.005"/>
+      </geometry>
+      <material name="uav_dark"/>
+    </visual>
+
+    <visual>
+      <origin xyz="0.012 0 -0.0838" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.008 0.008 0.0008"/>
+      </geometry>
+      <material name="uav_optical_lens"/>
+    </visual>
+
+    <visual>
+      <origin xyz="-0.008 0 -0.0838" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.0025" length="0.0008"/>
+      </geometry>
+      <material name="uav_optical_range"/>
+    </visual>
   </link>
 
   <xacro:uav_rotor index="0" x="${rotor_x_offset}" y="${-rotor_y_offset}"/>

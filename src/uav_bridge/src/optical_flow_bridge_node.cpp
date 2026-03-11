@@ -22,6 +22,7 @@
 
 #include <gz/msgs/image.pb.h>
 #include <gz/msgs/imu.pb.h>
+#include <gz/msgs/laserscan.pb.h>
 #include <gz/transport/Node.hh>
 
 #include <opencv2/core.hpp>
@@ -42,17 +43,19 @@ public:
     declare_parameter<std::string>("gz_world_name", "test");
     declare_parameter<std::string>("model_name", "uav");
     declare_parameter<std::string>("link_name", "base_link");
-    declare_parameter<std::string>("sensor_name", "optical_flow");
+    declare_parameter<std::string>("sensor_name", "optical_flow_camera");
+    declare_parameter<std::string>("range_sensor_name", "optical_flow_range");
     declare_parameter<std::string>("imu_sensor_name", "imu_sensor");
     declare_parameter<std::string>("gz_topic_override", "");
+    declare_parameter<std::string>("gz_range_topic_override", "");
     declare_parameter<std::string>("gz_imu_topic_override", "");
     declare_parameter<std::string>("ros_topic", "/uav/fmu/in/sensor_optical_flow");
     declare_parameter<double>("camera_hfov", 0.25);         // radians
     declare_parameter<int>("image_width", 64);
     declare_parameter<int>("image_height", 64);
     declare_parameter<double>("max_flow_rate", 7.4);        // rad/s
-    declare_parameter<double>("min_ground_distance", 0.1);  // m
-    declare_parameter<double>("max_ground_distance", 30.0); // m
+    declare_parameter<double>("min_ground_distance", 0.08); // m
+    declare_parameter<double>("max_ground_distance", 8.0);  // m
     declare_parameter<int>("quality_threshold", 20);        // 0-255
     declare_parameter<double>("roi_ratio", 0.8);            // center ROI ratio in [0,1]
     declare_parameter<int>("max_features", 120);
@@ -62,6 +65,9 @@ public:
     declare_parameter<double>("phase_corr_min_response", 0.08);
     declare_parameter<double>("flow_deadband_px", 0.04);
     declare_parameter<double>("max_integration_time_ms", 80.0);
+    declare_parameter<double>("range_sample_timeout_ms", 100.0);
+    declare_parameter<double>("range_min_valid_m", 0.08);
+    declare_parameter<double>("range_max_valid_m", 8.0);
     declare_parameter<bool>("use_imu_delta_angle", true);
     declare_parameter<bool>("imu_is_flu_frame", true);
     declare_parameter<double>("imu_min_coverage_ratio", 0.7);
@@ -70,16 +76,23 @@ public:
     const auto model  = get_parameter("model_name").as_string();
     const auto link   = get_parameter("link_name").as_string();
     const auto sensor = get_parameter("sensor_name").as_string();
+    const auto range_sensor = get_parameter("range_sensor_name").as_string();
     const auto imu_sensor = get_parameter("imu_sensor_name").as_string();
-    auto gz_topic     = get_parameter("gz_topic_override").as_string();
+    auto gz_topic = get_parameter("gz_topic_override").as_string();
+    auto gz_range_topic = get_parameter("gz_range_topic_override").as_string();
     auto gz_imu_topic = get_parameter("gz_imu_topic_override").as_string();
     const auto ros_topic = get_parameter("ros_topic").as_string();
     camera_hfov_      = get_parameter("camera_hfov").as_double();
     image_width_      = get_parameter("image_width").as_int();
     image_height_     = get_parameter("image_height").as_int();
-    max_flow_rate_    = get_parameter("max_flow_rate").as_double();
-    min_ground_dist_  = get_parameter("min_ground_distance").as_double();
-    max_ground_dist_  = get_parameter("max_ground_distance").as_double();
+    max_flow_rate_ = get_parameter("max_flow_rate").as_double();
+    min_ground_dist_ = get_parameter("min_ground_distance").as_double();
+    max_ground_dist_ = get_parameter("max_ground_distance").as_double();
+    range_sample_timeout_us_ = static_cast<uint64_t>(
+      std::max(1.0, get_parameter("range_sample_timeout_ms").as_double()) * 1000.0);
+    range_min_valid_m_ = std::max(0.01, get_parameter("range_min_valid_m").as_double());
+    range_max_valid_m_ = std::max(
+      range_min_valid_m_ + 0.01, get_parameter("range_max_valid_m").as_double());
     quality_threshold_ = get_parameter("quality_threshold").as_int();
     roi_ratio_ = std::clamp(get_parameter("roi_ratio").as_double(), 0.2, 1.0);
     max_features_ = std::max(20, static_cast<int>(get_parameter("max_features").as_int()));
@@ -104,6 +117,9 @@ public:
     if (gz_topic.empty()) {
       gz_topic = gz_topics::Image(gz_world_name, model, link, sensor);
     }
+    if (gz_range_topic.empty()) {
+      gz_range_topic = gz_topics::Scan(gz_world_name, model, link, range_sensor);
+    }
     if (gz_imu_topic.empty()) {
       gz_imu_topic = gz_topics::Imu(gz_world_name, model, link, imu_sensor);
     }
@@ -116,6 +132,11 @@ public:
       RCLCPP_FATAL(get_logger(), "Failed to subscribe to GZ topic: %s", gz_topic.c_str());
       throw std::runtime_error("GZ optical flow camera subscribe failed");
     }
+    ok = gz_node_.Subscribe(gz_range_topic, &OpticalFlowBridgeNode::OnGzRange, this);
+    if (!ok) {
+      RCLCPP_FATAL(get_logger(), "Failed to subscribe to GZ range topic: %s", gz_range_topic.c_str());
+      throw std::runtime_error("GZ optical flow range subscribe failed");
+    }
     if (use_imu_delta_angle_) {
       ok = gz_node_.Subscribe(gz_imu_topic, &OpticalFlowBridgeNode::OnGzImu, this);
       if (!ok) {
@@ -125,8 +146,9 @@ public:
     }
 
     RCLCPP_INFO(get_logger(),
-                "Optical flow bridge: GZ image [%s] IMU [%s] -> ROS [%s] (focal=%.1f px, hfov=%.3f rad)",
+                "Optical flow bridge: GZ image [%s] range [%s] IMU [%s] -> ROS [%s] (focal=%.1f px, hfov=%.3f rad)",
                 gz_topic.c_str(),
+                gz_range_topic.c_str(),
                 use_imu_delta_angle_ ? gz_imu_topic.c_str() : "<disabled>",
                 ros_topic.c_str(),
                 focal_length_px_,
@@ -175,6 +197,9 @@ private:
   double phase_corr_min_response_{0.08};
   double flow_deadband_px_{0.04};
   uint64_t max_dt_us_{80000};
+  uint64_t range_sample_timeout_us_{100000};
+  double range_min_valid_m_{0.08};
+  double range_max_valid_m_{8.0};
   bool use_imu_delta_angle_{true};
   bool imu_is_flu_frame_{true};
   double imu_min_coverage_ratio_{0.7};
@@ -184,12 +209,18 @@ private:
     std::array<float, 3> gyro_frd{0.0f, 0.0f, 0.0f};
   };
 
+  struct RangeSample {
+    uint64_t stamp_us{0};
+    float distance_m{std::numeric_limits<float>::quiet_NaN()};
+  };
+
   // Previous frame state
   std::mutex mu_;
   cv::Mat prev_gray_;
   uint64_t prev_stamp_us_{0};
   cv::Mat hann_window_;
   std::deque<ImuSample> imu_samples_;
+  RangeSample last_range_sample_{};
 
   static float Clamp01(float value) {
     return std::clamp(value, 0.0f, 1.0f);
@@ -211,6 +242,14 @@ private:
     return 0;
   }
 
+  uint64_t GzStampToUs(const gz::msgs::LaserScan &msg) const {
+    if (msg.has_header() && msg.header().has_stamp()) {
+      return static_cast<uint64_t>(msg.header().stamp().sec()) * 1000000ULL +
+             static_cast<uint64_t>(msg.header().stamp().nsec()) / 1000ULL;
+    }
+    return 0;
+  }
+
   std::array<float, 3> GyroToFrd(const gz::msgs::IMU &msg) const {
     const float wx = static_cast<float>(msg.angular_velocity().x());
     const float wy = static_cast<float>(msg.angular_velocity().y());
@@ -221,6 +260,29 @@ private:
     }
     // Gazebo IMU is typically FLU; PX4 expects FRD.
     return {wx, -wy, -wz};
+  }
+
+  void OnGzRange(const gz::msgs::LaserScan &scan_msg) {
+    const uint64_t stamp_us = GzStampToUs(scan_msg);
+    if (stamp_us == 0) {
+      return;
+    }
+
+    float distance_m = std::numeric_limits<float>::quiet_NaN();
+    if (scan_msg.ranges_size() > 0) {
+      const float candidate = static_cast<float>(scan_msg.ranges(0));
+      if (std::isfinite(candidate) && candidate >= range_min_valid_m_ && candidate <= range_max_valid_m_) {
+        distance_m = candidate;
+      }
+    }
+
+    std::lock_guard<std::mutex> lock(mu_);
+    if (last_range_sample_.stamp_us != 0 && stamp_us <= last_range_sample_.stamp_us) {
+      return;
+    }
+
+    last_range_sample_.stamp_us = stamp_us;
+    last_range_sample_.distance_m = distance_m;
   }
 
   void OnGzImu(const gz::msgs::IMU &imu_msg) {
@@ -245,6 +307,23 @@ private:
     while (imu_samples_.size() > 600 || (!imu_samples_.empty() && imu_samples_.front().stamp_us < keep_from_us)) {
       imu_samples_.pop_front();
     }
+  }
+
+  bool TryGetFreshRangeSampleLocked(uint64_t stamp_us, float &distance_m) const {
+    if (last_range_sample_.stamp_us == 0 || stamp_us < last_range_sample_.stamp_us) {
+      return false;
+    }
+
+    if ((stamp_us - last_range_sample_.stamp_us) > range_sample_timeout_us_) {
+      return false;
+    }
+
+    if (!std::isfinite(last_range_sample_.distance_m)) {
+      return false;
+    }
+
+    distance_m = last_range_sample_.distance_m;
+    return true;
   }
 
   bool IntegrateDeltaAngleLocked(
@@ -545,15 +624,23 @@ private:
     out.delta_angle[1] = delta_angle[1];
     out.delta_angle[2] = delta_angle[2];
     out.delta_angle_available = delta_angle_available;
-    out.distance_m = 0.0f;   // no integrated distance sensor
-    out.distance_available = false;
+
+    float distance_m = 0.0f;
+    if (TryGetFreshRangeSampleLocked(stamp_us, distance_m)) {
+      out.distance_m = distance_m;
+      out.distance_available = true;
+    } else {
+      out.distance_m = 0.0f;
+      out.distance_available = false;
+    }
+
     out.integration_timespan_us = static_cast<uint32_t>(dt_us);
     out.quality = static_cast<uint8_t>(quality);
     out.error_count = static_cast<uint32_t>(std::max(0, track_candidates - inlier_count));
     out.max_flow_rate = static_cast<float>(max_flow_rate_);
     out.min_ground_distance = static_cast<float>(min_ground_dist_);
     out.max_ground_distance = static_cast<float>(max_ground_dist_);
-    out.mode = px4_msgs::msg::SensorOpticalFlow::MODE_LOWLIGHT;
+    out.mode = px4_msgs::msg::SensorOpticalFlow::MODE_BRIGHT;
 
     // Device ID: simulation bus
     out.device_id = (4U << 28) | (2U << 16) | (1U << 8) | 0x51U;

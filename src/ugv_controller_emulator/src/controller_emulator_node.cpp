@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <errno.h>
+#include <fcntl.h>
 #include <functional>
 #include <poll.h>
 #include <pty.h>
@@ -50,6 +51,18 @@ std::string errno_message(const char * prefix)
   return std::string(prefix) + ": " + std::strerror(errno);
 }
 
+void set_nonblocking(int fd)
+{
+  const int flags = ::fcntl(fd, F_GETFL, 0);
+  if (flags < 0) {
+    throw std::runtime_error(errno_message("failed to query file descriptor flags"));
+  }
+
+  if (::fcntl(fd, F_SETFL, flags | O_NONBLOCK) != 0) {
+    throw std::runtime_error(errno_message("failed to configure file descriptor as non-blocking"));
+  }
+}
+
 }
 
 class ControllerEmulatorNode : public rclcpp::Node
@@ -58,10 +71,11 @@ public:
   ControllerEmulatorNode()
   : Node("ugv_controller_emulator")
   {
-    pty_link_path_ = this->declare_parameter<std::string>("pty_link_path", "/tmp/ugv_controller");
+    controller_device_path_ = this->declare_parameter<std::string>(
+      "controller_device_path", "/tmp/ugv_controller");
     odom_topic_ = this->declare_parameter<std::string>("odom_topic", "/ugv/sim/odom");
-    cmd_vel_out_topic_ = this->declare_parameter<std::string>(
-      "cmd_vel_out_topic", "/ugv/cmd_vel_sim");
+    command_topic_ = this->declare_parameter<std::string>("command_topic", "/ugv/cmd_vel_safe");
+    sim_command_topic_ = this->declare_parameter<std::string>("sim_command_topic", "/ugv/cmd_vel_sim");
 
     config_.cmd_timeout = this->declare_parameter<double>("cmd_timeout", 0.5);
     config_.cmd_pub_hz = this->declare_parameter<double>("cmd_pub_hz", 50.0);
@@ -78,7 +92,11 @@ public:
 
     create_pty_link();
 
-    command_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>(cmd_vel_out_topic_, 10);
+    command_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>(sim_command_topic_, 10);
+    command_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
+      command_topic_,
+      rclcpp::QoS(20),
+      std::bind(&ControllerEmulatorNode::handle_command_input, this, std::placeholders::_1));
     odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
       odom_topic_,
       rclcpp::QoS(20),
@@ -93,10 +111,11 @@ public:
 
     RCLCPP_INFO(
       this->get_logger(),
-      "controller emulator started: pty_link_path='%s', odom_topic='%s', cmd_vel_out_topic='%s'",
-      pty_link_path_.c_str(),
+      "controller emulator started: controller_device_path='%s', odom_topic='%s', command_topic='%s', sim_command_topic='%s'",
+      controller_device_path_.c_str(),
       odom_topic_.c_str(),
-      cmd_vel_out_topic_.c_str());
+      command_topic_.c_str(),
+      sim_command_topic_.c_str());
   }
 
   ~ControllerEmulatorNode() override
@@ -150,7 +169,7 @@ private:
     slave_name_ = slave_name_cstr;
 
     try {
-      const std::filesystem::path link_path(pty_link_path_);
+      const std::filesystem::path link_path(controller_device_path_);
       if (link_path.has_parent_path()) {
         std::filesystem::create_directories(link_path.parent_path());
       }
@@ -162,17 +181,18 @@ private:
       close_file_descriptor(master_fd);
       close_file_descriptor(slave_fd);
       throw std::runtime_error(
-              "failed to create pty link path '" + pty_link_path_ + "': " + exc.what());
+              "failed to create controller device path '" + controller_device_path_ + "': " + exc.what());
     }
 
     master_fd_ = master_fd;
     slave_fd_ = slave_fd;
+    set_nonblocking(master_fd_);
 
     RCLCPP_INFO(
       this->get_logger(),
-      "PTY ready: slave='%s' -> link='%s'",
+      "controller device ready: slave='%s' -> link='%s'",
       slave_name_.c_str(),
-      pty_link_path_.c_str());
+      controller_device_path_.c_str());
 
     rx_thread_ = std::thread(&ControllerEmulatorNode::run_receive_loop, this);
   }
@@ -180,7 +200,7 @@ private:
   void remove_pty_link() noexcept
   {
     try {
-      const std::filesystem::path link_path(pty_link_path_);
+      const std::filesystem::path link_path(controller_device_path_);
       if (std::filesystem::is_symlink(link_path)) {
         std::filesystem::remove(link_path);
       }
@@ -265,6 +285,18 @@ private:
     odom_state_ = odom;
   }
 
+  void handle_command_input(const geometry_msgs::msg::Twist::SharedPtr msg)
+  {
+    TwistState command{};
+    command.vx = static_cast<double>(msg->linear.x);
+    command.vy = static_cast<double>(msg->linear.y);
+    command.wz = static_cast<double>(msg->angular.z);
+    command.stamp = SteadyClock::now();
+
+    std::lock_guard<std::mutex> lock(target_mutex_);
+    target_twist_ = command;
+  }
+
   void handle_command_timer()
   {
     TwistState target;
@@ -310,15 +342,29 @@ private:
 
     const auto frame = build_feedback_frame(config_, applied, odom, SteadyClock::now());
     const ssize_t written = ::write(fd, frame.data(), frame.size());
-    (void)written;
+    if (written >= 0) {
+      return;
+    }
+
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return;
+    }
+
+    RCLCPP_WARN_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      2000,
+      "failed to write PTY feedback frame: %s",
+      std::strerror(errno));
   }
 
   EmulatorParams config_{};
 
-  std::string pty_link_path_;
+  std::string controller_device_path_;
   std::string slave_name_;
   std::string odom_topic_;
-  std::string cmd_vel_out_topic_;
+  std::string command_topic_;
+  std::string sim_command_topic_;
 
   int master_fd_{-1};
   int slave_fd_{-1};
@@ -337,6 +383,7 @@ private:
   std::optional<TwistState> odom_state_;
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr command_publisher_;
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr command_subscription_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
   rclcpp::TimerBase::SharedPtr command_timer_;
   rclcpp::TimerBase::SharedPtr feedback_timer_;

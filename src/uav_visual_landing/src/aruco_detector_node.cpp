@@ -11,6 +11,7 @@
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <image_transport/image_transport.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <std_msgs/msg/bool.hpp>
@@ -34,6 +35,7 @@ namespace uav_visual_landing
       this->declare_parameter<double>("camera_cx", 320.0);
       this->declare_parameter<double>("camera_cy", 240.0);
       this->declare_parameter<bool>("always_publish_debug", true);
+      this->declare_parameter<double>("debug_publish_rate_hz", 20.0);
 
       image_topic_ = this->get_parameter("image_topic").as_string();
       camera_info_topic_ = this->get_parameter("camera_info_topic").as_string();
@@ -42,6 +44,8 @@ namespace uav_visual_landing
       detected_topic_ = this->get_parameter("detected_topic").as_string();
       target_marker_id_ = this->get_parameter("target_marker_id").as_int();
       always_publish_debug_ = this->get_parameter("always_publish_debug").as_bool();
+      const double debug_publish_rate_hz = this->get_parameter("debug_publish_rate_hz").as_double();
+      debug_publish_period_s_ = debug_publish_rate_hz > 1.0e-6 ? (1.0 / debug_publish_rate_hz) : 0.0;
 
       fx_ = static_cast<float>(this->get_parameter("camera_fx").as_double());
       fy_ = static_cast<float>(this->get_parameter("camera_fy").as_double());
@@ -78,9 +82,82 @@ namespace uav_visual_landing
       RCLCPP_INFO(this->get_logger(),
                   "[apriltag_detector] fallback intrinsics: fx=%.1f fy=%.1f cx=%.1f cy=%.1f",
                   fx_, fy_, cx_, cy_);
+      RCLCPP_INFO(this->get_logger(),
+                  "[apriltag_detector] debug publish rate limit: %.1f Hz (0 = unlimited)",
+                  debug_publish_rate_hz);
     }
 
   private:
+    cv::Mat toGray(const cv::Mat &frame, const std::string &encoding,
+                   const sensor_msgs::msg::Image::ConstSharedPtr &msg) const
+    {
+      namespace enc = sensor_msgs::image_encodings;
+
+      cv::Mat gray;
+      if (encoding == enc::MONO8)
+      {
+        return frame;
+      }
+      if (encoding == enc::BGR8)
+      {
+        cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+        return gray;
+      }
+      if (encoding == enc::RGB8)
+      {
+        cv::cvtColor(frame, gray, cv::COLOR_RGB2GRAY);
+        return gray;
+      }
+      if (encoding == enc::BGRA8)
+      {
+        cv::cvtColor(frame, gray, cv::COLOR_BGRA2GRAY);
+        return gray;
+      }
+      if (encoding == enc::RGBA8)
+      {
+        cv::cvtColor(frame, gray, cv::COLOR_RGBA2GRAY);
+        return gray;
+      }
+
+      return cv_bridge::toCvCopy(msg, enc::MONO8)->image;
+    }
+
+    bool shouldPublishDebug(const sensor_msgs::msg::Image::ConstSharedPtr &msg, bool detected)
+    {
+      if (!(always_publish_debug_ || detected))
+      {
+        return false;
+      }
+
+      if (debug_image_pub_.getNumSubscribers() == 0)
+      {
+        return false;
+      }
+
+      if (debug_publish_period_s_ <= 1.0e-6)
+      {
+        return true;
+      }
+
+      const bool has_stamp = (msg->header.stamp.sec != 0) || (msg->header.stamp.nanosec != 0);
+      const rclcpp::Time stamp = has_stamp ? rclcpp::Time(msg->header.stamp) : this->now();
+
+      if (!debug_publish_initialized_)
+      {
+        last_debug_publish_time_ = stamp;
+        debug_publish_initialized_ = true;
+        return true;
+      }
+
+      if ((stamp - last_debug_publish_time_).seconds() + 1.0e-9 < debug_publish_period_s_)
+      {
+        return false;
+      }
+
+      last_debug_publish_time_ = stamp;
+      return true;
+    }
+
     void onCameraInfo(const sensor_msgs::msg::CameraInfo::SharedPtr msg)
     {
       if (camera_info_received_)
@@ -102,7 +179,7 @@ namespace uav_visual_landing
       cv_bridge::CvImageConstPtr cv_ptr;
       try
       {
-        cv_ptr = cv_bridge::toCvShare(msg, "bgr8");
+        cv_ptr = cv_bridge::toCvShare(msg);
       }
       catch (const cv_bridge::Exception &e)
       {
@@ -114,16 +191,22 @@ namespace uav_visual_landing
       if (frame.empty())
         return;
 
-      cv::Mat debug_img = frame.clone();
+      const std::string &encoding = cv_ptr->encoding;
+      cv::Mat gray;
+      try
+      {
+        gray = toGray(frame, encoding, msg);
+      }
+      catch (const cv_bridge::Exception &e)
+      {
+        RCLCPP_WARN(this->get_logger(), "gray conversion failed for encoding '%s': %s",
+                    encoding.c_str(), e.what());
+        return;
+      }
 
       std::vector<int> ids;
       std::vector<std::vector<cv::Point2f>> corners, rejected;
-      cv::aruco::detectMarkers(frame, tag_dict_, corners, ids, tag_params_, rejected);
-
-      if (!ids.empty())
-      {
-        cv::aruco::drawDetectedMarkers(debug_img, corners, ids);
-      }
+      cv::aruco::detectMarkers(gray, tag_dict_, corners, ids, tag_params_, rejected);
 
       std::optional<cv::Point2f> target_center;
       double target_yaw = 0.0;
@@ -150,18 +233,11 @@ namespace uav_visual_landing
           static_cast<float>(frame.cols) / 2.0f,
           static_cast<float>(frame.rows) / 2.0f);
 
-      constexpr int kCross = 12;
-      const cv::Scalar kYellow(0, 255, 255);
-      cv::line(debug_img,
-               {static_cast<int>(img_center.x) - kCross, static_cast<int>(img_center.y)},
-               {static_cast<int>(img_center.x) + kCross, static_cast<int>(img_center.y)},
-               kYellow, 2);
-      cv::line(debug_img,
-               {static_cast<int>(img_center.x), static_cast<int>(img_center.y) - kCross},
-               {static_cast<int>(img_center.x), static_cast<int>(img_center.y) + kCross},
-               kYellow, 2);
-
       const bool detected = target_center.has_value();
+      const bool publish_debug = shouldPublishDebug(msg, detected);
+      float err_u = 0.0f;
+      float err_v = 0.0f;
+      float err_norm = 0.0f;
 
       std_msgs::msg::Bool detected_msg;
       detected_msg.data = detected;
@@ -169,24 +245,9 @@ namespace uav_visual_landing
 
       if (detected)
       {
-        const float err_u = target_center->x - img_center.x;
-        const float err_v = target_center->y - img_center.y;
-        const float err_norm = std::sqrt(err_u * err_u + err_v * err_v);
-
-
-        cv::circle(debug_img,
-                   cv::Point(static_cast<int>(target_center->x), static_cast<int>(target_center->y)),
-                   6, cv::Scalar(0, 0, 255), -1);
-        cv::line(debug_img,
-                 cv::Point(static_cast<int>(img_center.x), static_cast<int>(img_center.y)),
-                 cv::Point(static_cast<int>(target_center->x), static_cast<int>(target_center->y)),
-                 cv::Scalar(0, 0, 255), 2);
-
-        char buf[128];
-        std::snprintf(buf, sizeof(buf),
-                      "ID:%d  err=(%.1f, %.1f)px  |e|=%.1f", matched_id, err_u, err_v, err_norm);
-        cv::putText(debug_img, buf, cv::Point(8, 24),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 2);
+        err_u = target_center->x - img_center.x;
+        err_v = target_center->y - img_center.y;
+        err_norm = std::sqrt(err_u * err_u + err_v * err_v);
 
         geometry_msgs::msg::PointStamped pe;
         pe.header = msg->header;
@@ -199,16 +260,54 @@ namespace uav_visual_landing
                      "tag id=%d  center=(%.1f, %.1f)  err=(%.1f, %.1f)px",
                      matched_id, target_center->x, target_center->y, err_u, err_v);
       }
+
+      if (!publish_debug)
+      {
+        return;
+      }
+
+      namespace enc = sensor_msgs::image_encodings;
+      cv::Mat debug_img = gray.clone();
+
+      if (!ids.empty())
+      {
+        cv::aruco::drawDetectedMarkers(debug_img, corners, ids, cv::Scalar(255));
+      }
+
+      constexpr int kCross = 12;
+      const cv::Scalar kCrossColor(180);
+      cv::line(debug_img,
+               {static_cast<int>(img_center.x) - kCross, static_cast<int>(img_center.y)},
+               {static_cast<int>(img_center.x) + kCross, static_cast<int>(img_center.y)},
+               kCrossColor, 2);
+      cv::line(debug_img,
+               {static_cast<int>(img_center.x), static_cast<int>(img_center.y) - kCross},
+               {static_cast<int>(img_center.x), static_cast<int>(img_center.y) + kCross},
+               kCrossColor, 2);
+
+      if (detected)
+      {
+        cv::circle(debug_img,
+                   cv::Point(static_cast<int>(target_center->x), static_cast<int>(target_center->y)),
+                   6, cv::Scalar(255), -1);
+        cv::line(debug_img,
+                 cv::Point(static_cast<int>(img_center.x), static_cast<int>(img_center.y)),
+                 cv::Point(static_cast<int>(target_center->x), static_cast<int>(target_center->y)),
+                 cv::Scalar(255), 2);
+
+        char buf[128];
+        std::snprintf(buf, sizeof(buf),
+                      "ID:%d  err=(%.1f, %.1f)px  |e|=%.1f", matched_id, err_u, err_v, err_norm);
+        cv::putText(debug_img, buf, cv::Point(8, 24),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255), 2);
+      }
       else
       {
         cv::putText(debug_img, "NO TARGET", cv::Point(8, 24),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
+                    cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255), 2);
       }
 
-      if (always_publish_debug_ || detected)
-      {
-        debug_image_pub_.publish(*cv_bridge::CvImage(msg->header, "bgr8", debug_img).toImageMsg());
-      }
+      debug_image_pub_.publish(*cv_bridge::CvImage(msg->header, enc::MONO8, debug_img).toImageMsg());
     }
 
     std::string image_topic_;
@@ -218,12 +317,15 @@ namespace uav_visual_landing
     std::string detected_topic_;
     int target_marker_id_{-1};
     bool always_publish_debug_{true};
+    double debug_publish_period_s_{0.0};
 
     float fx_{320.0f};
     float fy_{320.0f};
     float cx_{320.0f};
     float cy_{240.0f};
     bool camera_info_received_{false};
+    rclcpp::Time last_debug_publish_time_{0, 0, RCL_ROS_TIME};
+    bool debug_publish_initialized_{false};
 
     cv::Ptr<cv::aruco::Dictionary> tag_dict_;
     cv::Ptr<cv::aruco::DetectorParameters> tag_params_;

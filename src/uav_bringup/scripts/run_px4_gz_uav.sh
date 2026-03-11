@@ -126,7 +126,7 @@ else
   fi
 fi
 
-UAV_PX4_FRAME="${UAV_PX4_FRAME:-sim_uav}"
+UAV_PX4_FRAME="${UAV_PX4_FRAME:-hw_uav}"
 PX4_SYS_AUTOSTART="${PX4_SYS_AUTOSTART:-4901}"
 PX4_SIM_MODEL="${PX4_SIM_MODEL:-gz_uav}"
 PX4_GZ_WORLD="${PX4_GZ_WORLD:-test}"
@@ -223,6 +223,29 @@ export GZ_SIM_RESOURCE_PATH="${MODEL_DIR}${GZ_SIM_RESOURCE_PATH:+:${GZ_SIM_RESOU
 export PATH="${RUNTIME_RC_DIR}:${PATH}"
 
 echo "INFO  [run_px4_gz_uav] using PX4_DIR: ${PX4_DIR}"
+
+reset_stale_px4_build_dir() {
+  local build_dir="${PX4_DIR}/build/px4_sitl_default"
+  local cache_file="${build_dir}/CMakeCache.txt"
+  local cached_home=""
+  local cached_cache_dir=""
+
+  if [[ ! -f "${cache_file}" ]]; then
+    return 0
+  fi
+
+  cached_home="$(sed -n 's/^CMAKE_HOME_DIRECTORY:INTERNAL=//p' "${cache_file}" | head -n 1)"
+  cached_cache_dir="$(sed -n 's/^CMAKE_CACHEFILE_DIR:INTERNAL=//p' "${cache_file}" | head -n 1)"
+
+  if [[ ( -n "${cached_home}" && "${cached_home}" != "${PX4_DIR}" ) ||         ( -n "${cached_cache_dir}" && "${cached_cache_dir}" != "${build_dir}" ) ]]; then
+    echo "WARN  [run_px4_gz_uav] stale PX4 build cache detected; resetting ${build_dir}"
+    echo "WARN  [run_px4_gz_uav] cached_home=${cached_home}"
+    echo "WARN  [run_px4_gz_uav] cached_cache_dir=${cached_cache_dir}"
+    rm -rf "${build_dir}"
+  fi
+}
+
+reset_stale_px4_build_dir
 
 make -C "${PX4_DIR}" px4_sitl
 

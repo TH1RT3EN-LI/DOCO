@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from functools import partial
 
@@ -21,14 +22,13 @@ from launch_ros.actions import Node
 
 from sim_worlds.launch_common import (
     create_launch_summary_action,
-    create_rviz_conditions,
     create_static_transform_node,
-    create_true_only_notice_action,
     is_true,
     normalize_clock_mode,
     parse_six_dof,
     resolve_world_launch_configurations,
 )
+from uav_bringup.profile_defaults import DEFAULT_PX4_FRAME
 
 SIM_WORLDS_SHARE = get_package_share_directory("sim_worlds")
 
@@ -40,7 +40,7 @@ def _topic_in_namespace(namespace_value, suffix):
 
 
 def generate_launch_description():
-    frame_default = "sim_uav"
+    px4_frame = DEFAULT_PX4_FRAME
     frame_prefix = "uav_"
     base_frame = "uav_base_link"
     mono_camera_frame = "uav_camera_optical_frame"
@@ -51,7 +51,7 @@ def generate_launch_description():
     pkg_prefix = get_package_prefix("uav_bringup")
     script_path = os.path.join(pkg_prefix, "lib", "uav_bringup", "run_px4_gz_uav.sh")
     default_model_name = "uav"
-    default_model_pose = "1.5,0.0,0.3,0,0,0"
+    default_model_pose = "0,0.0,0.3,0,0,0"
     xacro_file = os.path.join(description_share, "urdf", "uav.urdf.xacro")
 
     default_gz_partition = f"uav_{os.getpid()}"
@@ -60,7 +60,6 @@ def generate_launch_description():
     resolved_world_id = LaunchConfiguration("resolved_world_id")
     resolved_world_sdf_path = LaunchConfiguration("resolved_world_sdf_path")
     resolved_gz_world_name = LaunchConfiguration("resolved_gz_world_name")
-    frame = LaunchConfiguration("frame")
     model_name = LaunchConfiguration("model_name")
     pose = LaunchConfiguration("pose")
     headless = LaunchConfiguration("headless")
@@ -73,18 +72,14 @@ def generate_launch_description():
     global_to_uav_map = LaunchConfiguration("global_to_uav_map")
     publish_global_map_tf = LaunchConfiguration("publish_global_map_tf")
     px4_start_delay = LaunchConfiguration("px4_start_delay")
-    use_initial_pose_as_map_origin = LaunchConfiguration("use_initial_pose_as_map_origin")
     use_offboard_bridge = LaunchConfiguration("use_offboard_bridge")
     uxrce_agent_port = LaunchConfiguration("uxrce_agent_port")
     fmu_namespace = LaunchConfiguration("fmu_namespace")
     attach_existing_model = LaunchConfiguration("attach_existing_model")
     use_rviz = LaunchConfiguration("use_rviz")
-    rviz_software_gl = LaunchConfiguration("rviz_software_gl")
     rviz_config = LaunchConfiguration("rviz_config")
     clock_mode = LaunchConfiguration("clock_mode")
     effective_clock_mode = LaunchConfiguration("effective_clock_mode")
-    enable_dynamic_global_alignment = LaunchConfiguration("enable_dynamic_global_alignment")
-    offboard_wait_logged = LaunchConfiguration("offboard_wait_logged")
     offboard_mode_topic = _topic_in_namespace(fmu_namespace, "/in/offboard_control_mode")
     trajectory_setpoint_topic = _topic_in_namespace(fmu_namespace, "/in/trajectory_setpoint")
     vehicle_command_topic = _topic_in_namespace(fmu_namespace, "/in/vehicle_command")
@@ -97,6 +92,12 @@ def generate_launch_description():
     px4_headless = PythonExpression(['"1" if "', headless, '" == "true" else "0"'])
     px4_model_name = PythonExpression(
         ['"', model_name, '" if "', attach_existing_model, '".lower() in ("1", "true", "yes", "on") else ""']
+    )
+    bridge_model_name = PythonExpression(
+        [
+            '"', model_name, '" if "', attach_existing_model,
+            '".lower() in ("1", "true", "yes", "on") else "', model_name, '_0"'
+        ]
     )
     default_rviz_config = os.path.join(bringup_share, "config", "rviz", "sitl_uav.rviz")
 
@@ -146,11 +147,23 @@ def generate_launch_description():
     internal_clock_condition = IfCondition(
         PythonExpression(['"', effective_clock_mode, '" == "internal"'])
     )
-    sim_clock_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(SIM_WORLDS_SHARE, "launch", "sim_clock.launch.py")),
-        launch_arguments={
-            "gz_partition": gz_partition,
-        }.items(),
+    sim_clock_bridge_config = os.path.join(SIM_WORLDS_SHARE, "config", "ros_gz_bridge_clock.yaml")
+    sim_clock_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        name="sim_clock_bridge",
+        namespace="sim_clock",
+        output="screen",
+        parameters=[
+            {
+                "use_sim_time": False,
+                "lazy": False,
+                "config_file": sim_clock_bridge_config,
+            }
+        ],
+        remappings=[
+            ("/sim/clock_raw", "/clock"),
+        ],
         condition=internal_clock_condition,
     )
 
@@ -176,7 +189,7 @@ def generate_launch_description():
             "PX4_GZ_MODEL_POSE": pose,
             "PX4_GZ_WORLD": resolved_gz_world_name,
             "PX4_SIM_MODEL": "gz_uav",
-            "UAV_PX4_FRAME": frame,
+            "UAV_PX4_FRAME": px4_frame,
             "GZ_PARTITION": gz_partition,
             "HEADLESS": px4_headless,
         },
@@ -206,7 +219,7 @@ def generate_launch_description():
             {"base_frame": base_frame},
             {"odom_topic": "/uav/odom"},
             {"publish_odometry": True},
-            {"use_initial_pose_as_map_origin": use_initial_pose_as_map_origin},
+            {"use_initial_pose_as_map_origin": False},
         ],
     )
 
@@ -219,7 +232,7 @@ def generate_launch_description():
             {"use_sim_time": True},
             {"gz_image_topic": gz_image_topic},
             {"gz_world_name": resolved_gz_world_name},
-            {"model_name": model_name},
+            {"model_name": bridge_model_name},
             {"link_name": "base_link"},
             {"sensor_name": "mono_camera"},
             {"ros_image_topic": "/uav/camera/image_raw"},
@@ -235,7 +248,7 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"gz_world_name": resolved_gz_world_name},
-            {"model_name": model_name},
+            {"model_name": bridge_model_name},
             {"link_name": "base_link"},
             {"rgb_sensor_name": "stereo_depth_camera_rgb"},
             {"depth_sensor_name": "stereo_depth_camera_depth"},
@@ -285,6 +298,8 @@ def generate_launch_description():
         condition=IfCondition(use_offboard_bridge),
     )
 
+    offboard_wait_state = {"logged": False}
+
     def launch_offboard_bridge_when_agent_ready(context):
         if not is_true(use_offboard_bridge.perform(context)):
             return []
@@ -310,9 +325,9 @@ def generate_launch_description():
             ]
 
         actions = []
-        if not is_true(offboard_wait_logged.perform(context)):
+        if not offboard_wait_state["logged"]:
+            offboard_wait_state["logged"] = True
             actions.extend([
-                SetLaunchConfiguration("offboard_wait_logged", "true"),
                 LogInfo(msg=f"[uav_sitl] waiting for MicroXRCEAgent UDP port: {port_value}"),
             ])
         actions.append(
@@ -330,9 +345,9 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"gz_world_name": resolved_gz_world_name},
-            {"model_name": model_name},
+            {"model_name": bridge_model_name},
             {"link_name": "base_link"},
-            {"sensor_name": "distance_sensor"},
+            {"sensor_name": "optical_flow_range"},
             {"ros_topic": distance_sensor_topic},
         ],
     )
@@ -345,12 +360,16 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"gz_world_name": resolved_gz_world_name},
-            {"model_name": model_name},
+            {"model_name": bridge_model_name},
             {"link_name": "base_link"},
-            {"sensor_name": "optical_flow"},
+            {"sensor_name": "optical_flow_camera"},
             {"camera_hfov": 0.25},
             {"image_width": 64},
             {"image_height": 64},
+            {"range_sensor_name": "optical_flow_range"},
+            {"range_sample_timeout_ms": 100.0},
+            {"range_min_valid_m": 0.08},
+            {"range_max_valid_m": 8.0},
             {"quality_threshold": 6},
             {"phase_corr_min_response": 0.03},
             {"lk_quality_level": 0.0008},
@@ -367,30 +386,38 @@ def generate_launch_description():
             {"target_marker_id": 0},
         ],
     )
-    robot_description = Command(
-        [
-            "xacro",
-            " ",
-            xacro_file,
-            " ",
-            "prefix:=",
-            frame_prefix,
-            " ",
-            "base_frame:=base_link",
-        ]
-    )
-    robot_state_publisher = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        name="uav_robot_state_publisher",
-        output="screen",
-        parameters=[
-            {"use_sim_time": True},
-            {"robot_description": robot_description},
-        ],
-    )
+    def create_robot_state_publisher(context):
+        if shutil.which("xacro") is None:
+            return [
+                LogInfo(msg="[uav_sitl] xacro executable not found; skipping robot_state_publisher.")
+            ]
 
-    rviz_soft_condition, rviz_hw_condition = create_rviz_conditions(use_rviz, rviz_software_gl)
+        robot_description = Command(
+            [
+                "xacro",
+                " ",
+                xacro_file,
+                " ",
+                "prefix:=",
+                frame_prefix,
+                " ",
+                "base_frame:=base_link",
+            ]
+        )
+        return [
+            Node(
+                package="robot_state_publisher",
+                executable="robot_state_publisher",
+                name="uav_robot_state_publisher",
+                output="screen",
+                parameters=[
+                    {"use_sim_time": True},
+                    {"robot_description": robot_description},
+                ],
+            )
+        ]
+
+    robot_state_publisher_action = OpaqueFunction(function=create_robot_state_publisher)
 
     rviz = Node(
         package="rviz2",
@@ -399,45 +426,18 @@ def generate_launch_description():
         output="screen",
         arguments=["-d", rviz_config],
         parameters=[{"use_sim_time": True}],
-        additional_env={
-            "LIBGL_DRI3_DISABLE": "1",
-            "LIBGL_ALWAYS_SOFTWARE": "1",
-            "MESA_LOADER_DRIVER_OVERRIDE": "llvmpipe",
-            "QT_XCB_GL_INTEGRATION": "none",
-            "QT_OPENGL": "software",
-        },
-        condition=rviz_soft_condition,
-    )
-    rviz_hw = Node(
-        package="rviz2",
-        executable="rviz2",
-        name="rviz2",
-        output="screen",
-        arguments=["-d", rviz_config],
-        parameters=[{"use_sim_time": True}],
-        condition=rviz_hw_condition,
+        condition=IfCondition(use_rviz),
     )
 
     summary_action = create_launch_summary_action(
         "uav_sitl",
         items=[
             ("clock_mode", effective_clock_mode),
+            ("px4_frame", px4_frame),
             ("gz_partition", gz_partition),
             ("world", resolved_world_id),
             ("gz_world", resolved_gz_world_name),
         ],
-    )
-    no_op_alignment_notice = create_true_only_notice_action(
-        "uav_sitl",
-        argument_name="enable_dynamic_global_alignment",
-        argument_value=enable_dynamic_global_alignment,
-        message="The dynamic global alignment hook has no runtime consumer in the current stack.",
-    )
-    initial_pose_notice = create_true_only_notice_action(
-        "uav_sitl",
-        argument_name="use_initial_pose_as_map_origin",
-        argument_value=use_initial_pose_as_map_origin,
-        message="The tf bridge keeps the static map->odom contract and ignores this flag.",
     )
 
     return LaunchDescription(
@@ -450,7 +450,6 @@ def generate_launch_description():
             DeclareLaunchArgument("resolved_world_id", default_value=""),
             DeclareLaunchArgument("resolved_world_sdf_path", default_value=""),
             DeclareLaunchArgument("resolved_gz_world_name", default_value=""),
-            DeclareLaunchArgument("resolved_ground_height", default_value=""),
             DeclareLaunchArgument(
                 "model_name",
                 default_value=default_model_name,
@@ -462,11 +461,6 @@ def generate_launch_description():
                 description="Attach PX4 to an already spawned Gazebo model named by model_name",
             ),
             DeclareLaunchArgument("pose", default_value=default_model_pose),
-            DeclareLaunchArgument(
-                "frame",
-                default_value=EnvironmentVariable("UAV_PX4_FRAME", default_value=frame_default),
-                description="PX4 frame params profile: sim_uav, default, or simple_quad_x",
-            ),
             DeclareLaunchArgument("headless", default_value="false"),
             DeclareLaunchArgument(
                 "launch_gz",
@@ -476,7 +470,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "clock_mode",
                 default_value="",
-                description="Clock ownership mode: internal or external",
+                description="Clock source selection: empty=auto, internal=bridge Gazebo /clock, external=use an existing /clock publisher",
             ),
             DeclareLaunchArgument(
                 "gz_pose_topic",
@@ -505,7 +499,6 @@ def generate_launch_description():
                 default_value="true",
                 description="Whether to publish static transform from global_frame to uav_map_frame",
             ),
-            DeclareLaunchArgument("enable_dynamic_global_alignment", default_value="false"),
             DeclareLaunchArgument(
                 "render_engine",
                 default_value=EnvironmentVariable("GZ_RENDER_ENGINE", default_value="ogre2"),
@@ -515,11 +508,6 @@ def generate_launch_description():
                 "px4_start_delay",
                 default_value="4.0",
                 description="Delay (s) before starting PX4 after Gazebo launch",
-            ),
-            DeclareLaunchArgument(
-                "use_initial_pose_as_map_origin",
-                default_value="false",
-                description="Deprecated compatibility flag (ignored by tf_bridge_node; keep false)",
             ),
             DeclareLaunchArgument(
                 "use_offboard_bridge",
@@ -542,24 +530,15 @@ def generate_launch_description():
                 description="Whether to launch RViz2",
             ),
             DeclareLaunchArgument(
-                "rviz_software_gl",
-                default_value=EnvironmentVariable("UAV_RVIZ_SOFTWARE_GL", default_value="true"),
-                description="Use software OpenGL for RViz2 to improve container GPU compatibility",
-            ),
-            DeclareLaunchArgument(
                 "rviz_config",
                 default_value=default_rviz_config,
                 description="Path to RViz2 config file",
             ),
-            DeclareLaunchArgument("effective_clock_mode", default_value=""),
-            DeclareLaunchArgument("offboard_wait_logged", default_value="false"),
             resolve_world_action,
             resolve_clock_mode_action,
-            no_op_alignment_notice,
-            initial_pose_notice,
             summary_action,
             gz_launch,
-            sim_clock_launch,
+            sim_clock_bridge,
             global_to_uav_map_tf_action,
             gz_pose_tf_bridge,
             mono_camera_bridge,
@@ -570,9 +549,8 @@ def generate_launch_description():
             rangefinder_bridge,
             optical_flow_bridge,
             aruco_detector,
-            robot_state_publisher,
+            robot_state_publisher_action,
             rviz,
-            rviz_hw,
             px4_proc_delayed,
         ]
     )

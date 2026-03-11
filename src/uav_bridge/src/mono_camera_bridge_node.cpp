@@ -1,3 +1,5 @@
+#include <cstdint>
+#include <cstring>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -90,18 +92,66 @@ private:
     return false;
   }
 
-  static std::string ToRosEncoding(gz::msgs::PixelFormatType fmt,
-                                   rclcpp::Logger logger) {
-    if (fmt == gz::msgs::RGB_INT8) {
-      return sensor_msgs::image_encodings::RGB8;
+  static bool FillRosMonoImage(const gz::msgs::Image &gz_msg,
+                               sensor_msgs::msg::Image &ros_msg,
+                               rclcpp::Logger logger) {
+    ros_msg.encoding = sensor_msgs::image_encodings::MONO8;
+    ros_msg.is_bigendian = false;
+    ros_msg.step = ros_msg.width;
+
+    const size_t width = static_cast<size_t>(ros_msg.width);
+    const size_t height = static_cast<size_t>(ros_msg.height);
+    const size_t src_step = static_cast<size_t>(gz_msg.step());
+    const std::string &data = gz_msg.data();
+    const size_t required_bytes = src_step * height;
+
+    if (data.size() < required_bytes) {
+      RCLCPP_WARN(logger,
+                  "Gazebo mono image payload too small: got=%zu need=%zu",
+                  data.size(), required_bytes);
+      return false;
     }
 
-    RCLCPP_FATAL(logger,
-                 "Gazebo mono image PixelFormatType: %d not mapper RGB_INT8",
-                 static_cast<int>(fmt));
+    if (gz_msg.pixel_format_type() == gz::msgs::PixelFormatType::L_INT8) {
+      ros_msg.data.resize(width * height);
+      const uint8_t *src =
+          reinterpret_cast<const uint8_t *>(data.data());
+      uint8_t *dst = ros_msg.data.data();
 
-    throw std::runtime_error(
-        "Gazebo mono image PixelFormatType not mapper RGB_INT8");
+      for (size_t row = 0; row < height; ++row) {
+        std::memcpy(dst + (row * width), src + (row * src_step), width);
+      }
+      return true;
+    }
+
+    if (gz_msg.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8) {
+      ros_msg.data.resize(width * height);
+      const uint8_t *src =
+          reinterpret_cast<const uint8_t *>(data.data());
+      uint8_t *dst = ros_msg.data.data();
+
+      for (size_t row = 0; row < height; ++row) {
+        const uint8_t *src_row = src + (row * src_step);
+        uint8_t *dst_row = dst + (row * width);
+        for (size_t col = 0; col < width; ++col) {
+          const size_t src_idx = col * 3;
+          const uint8_t r = src_row[src_idx + 0];
+          const uint8_t g = src_row[src_idx + 1];
+          const uint8_t b = src_row[src_idx + 2];
+          dst_row[col] = static_cast<uint8_t>(
+              (77u * static_cast<uint32_t>(r) +
+               150u * static_cast<uint32_t>(g) +
+               29u * static_cast<uint32_t>(b) + 128u) >>
+              8u);
+        }
+      }
+      return true;
+    }
+
+    RCLCPP_WARN(logger,
+                "Unsupported Gazebo mono image pixel format: %d",
+                static_cast<int>(gz_msg.pixel_format_type()));
+    return false;
   }
 
   void OnGzImage(const gz::msgs::Image &gz_msg) {
@@ -115,14 +165,9 @@ private:
 
     ros_msg.height = gz_msg.height();
     ros_msg.width = gz_msg.width();
-    ros_msg.encoding =
-        ToRosEncoding(gz_msg.pixel_format_type(), this->get_logger());
-
-    ros_msg.is_bigendian = false;
-    ros_msg.step = gz_msg.step();
-
-    const std::string &data = gz_msg.data();
-    ros_msg.data.assign(data.begin(), data.end());
+    if (!FillRosMonoImage(gz_msg, ros_msg, this->get_logger())) {
+      return;
+    }
 
     this->_image_pub->publish(std::move(ros_msg));
   }

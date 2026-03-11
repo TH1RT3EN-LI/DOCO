@@ -9,12 +9,35 @@
 /src/**/build/
 /src/**/install/
 /src/**/log/
+/src/**/dist/
+/src/**/.eggs/
+/src/**/_skbuild/
 **/CMakeFiles/
 **/CMakeCache.txt
 **/cmake_install.cmake
 **/CTestConfiguration.ini
 **/CTestTestfile.cmake
 **/compile_commands.json
+/src/**/Makefile
+/src/**/install_manifest.txt
+
+# Per-package test / coverage leftovers
+/src/**/Testing/
+/src/**/test_results/
+/src/**/htmlcov/
+/src/**/.cache/
+/src/**/.hypothesis/
+/src/**/.tox/
+/src/**/.nox/
+/src/**/.coverage
+/src/**/.coverage.*
+/src/**/coverage.xml
+/src/**/pytestdebug.log
+/src/**/*.gcda
+/src/**/*.gcno
+/src/**/*.gcov
+/src/**/*.profraw
+/src/**/*.profdata
 
 # Python caches
 **/__pycache__/

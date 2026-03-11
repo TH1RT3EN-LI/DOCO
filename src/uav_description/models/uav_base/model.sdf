@@ -678,6 +678,91 @@
         <always_on>1</always_on>
         <update_rate>30</update_rate>
       </sensor>
+      <visual name="optical_flow_module_visual">
+        <pose>0.005 0 -0.081 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.030 0.015 0.005</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.04 0.04 0.04 1</ambient>
+          <diffuse>0.08 0.08 0.08 1</diffuse>
+          <specular>0.15 0.15 0.15 1</specular>
+        </material>
+      </visual>
+      <visual name="optical_flow_module_lens_window">
+        <pose>0.012 0 -0.0838 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.008 0.008 0.0008</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.02 0.03 0.05 1</ambient>
+          <diffuse>0.04 0.06 0.08 1</diffuse>
+          <specular>0.25 0.25 0.25 1</specular>
+        </material>
+      </visual>
+      <visual name="optical_flow_module_range_window">
+        <pose>-0.008 0 -0.0838 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.0025</radius>
+            <length>0.0008</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.08 0.08 0.08 1</ambient>
+          <diffuse>0.12 0.12 0.12 1</diffuse>
+          <specular>0.20 0.20 0.20 1</specular>
+        </material>
+      </visual>
+      <sensor name="optical_flow_camera" type="camera">
+        <always_on>1</always_on>
+        <update_rate>30</update_rate>
+        <pose>0.005 0 -0.0835 0 1.570796327 0</pose>
+        <camera>
+          <horizontal_fov>0.25</horizontal_fov>
+          <image>
+            <width>64</width>
+            <height>64</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.03</near>
+            <far>20.0</far>
+          </clip>
+        </camera>
+        <visualize>false</visualize>
+      </sensor>
+      <sensor name="optical_flow_range" type="gpu_lidar">
+        <always_on>1</always_on>
+        <update_rate>30</update_rate>
+        <pose>0.005 0 -0.0835 0 -1.570796327 0</pose>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>0.0</min_angle>
+              <max_angle>0.0</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>0.0</min_angle>
+              <max_angle>0.0</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.08</min>
+            <max>8.0</max>
+            <resolution>0.01</resolution>
+          </range>
+        </lidar>
+        <visualize>false</visualize>
+      </sensor>
       <visual name="mono_camera_visual">
         <pose>0.0903 0 0.0098 0 1.570796327 0</pose>
         <geometry>
@@ -700,7 +785,7 @@
           <image>
             <width>1280</width>
             <height>720</height>
-            <format>R8G8B8</format>
+            <format>L8</format>
           </image>
           <clip>
             <near>0.05</near>

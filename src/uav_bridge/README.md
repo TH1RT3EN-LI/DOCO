@@ -20,7 +20,7 @@ Gazebo / 仿真世界
   -> tf_bridge_node
   -> /uav/odom
 
-EGO Planner / 手动控制
+上层规划器 / 手动控制
   -> /uav/planning/position_cmd
   或 /uav/control/pose
   或 /uav/control/nudge
@@ -50,7 +50,7 @@ PX4
 
 ### 2.1 仿真里 PX4 是怎么启动的
 
-`sitl_uav.launch.py` / `sitl_uav_ego.launch.py` 会调用：
+`sitl_uav.launch.py` 会调用：
 
 - `run_px4_gz_uav.sh`
 
@@ -71,7 +71,7 @@ make -C "$PX4_DIR" px4_sitl none
 
 ### 2.2 ROS 2 和 PX4 是怎么打通的
 
-在 `sitl_uav_ego.launch.py` 里还会启动：
+在启用 `use_offboard_bridge:=true` 时，`sitl_uav.launch.py` 里还会启动：
 
 ```bash
 MicroXRCEAgent udp4 -p 8888
@@ -348,20 +348,19 @@ ros2 service call /uav/control/resume_auto std_srvs/srv/Trigger "{}"
 - 放弃内部手动目标
 - 切回 `/uav/planning/position_cmd`
 
-## 6. 当前工程里，这个节点和 EGO Planner 的关系
+## 6. 当前工程里，这个节点和上层规划器的关系
 
-在 `sitl_uav_ego.launch.py` 里：
+当前工程已经移除了原先的规划器包；`offboard_bridge_node` 只保留一个稳定的上层输入接口：
 
-- `ego_planner` 发布 `/uav/planning/bspline`
-- `traj_server` 把轨迹离散成 `/uav/planning/position_cmd`
-- `offboard_bridge_node` 再把它转成 PX4 的 `TrajectorySetpoint`
+- `/uav/planning/position_cmd`
+- 消息类型：`quadrotor_msgs/msg/PositionCommand`
 
-即：
+也就是说，任何上层规划器只要发布这条命令话题，就可以接入当前 PX4 Offboard 控制链路。
+
+现在的关系是：
 
 ```text
-EGO Planner
-  -> /uav/planning/bspline
-traj_server
+上层规划器
   -> /uav/planning/position_cmd
 offboard_bridge_node
   -> /fmu/in/trajectory_setpoint
@@ -369,12 +368,7 @@ PX4
   -> 位置控制器
 ```
 
-所以这个节点不是规划器本身，它是：
-
-- 上层规划器/手动指令
-- 到 PX4 Offboard 控制接口
-
-之间的适配层。
+所以这个节点不是规划器本身，它是上层规划器/手动指令到 PX4 Offboard 控制接口之间的适配层。
 
 ## 7. 仿真和真机共用时，什么必须保持一致
 

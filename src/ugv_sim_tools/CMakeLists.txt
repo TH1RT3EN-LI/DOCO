@@ -106,4 +106,23 @@ install(
   DESTINATION include
 )
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(test_initial_pose_logic
+    test/test_initial_pose_logic.cpp
+  )
+  if(TARGET test_initial_pose_logic)
+    target_link_libraries(test_initial_pose_logic ${PROJECT_NAME}_core)
+    ament_target_dependencies(test_initial_pose_logic geometry_msgs)
+  endif()
+
+  ament_add_gtest(test_odom_to_tf_logic
+    test/test_odom_to_tf_logic.cpp
+  )
+  if(TARGET test_odom_to_tf_logic)
+    target_link_libraries(test_odom_to_tf_logic ${PROJECT_NAME}_core)
+  endif()
+endif()
+
 ament_package()
