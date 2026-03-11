@@ -21,13 +21,13 @@ public:
     this->declare_parameter<std::string>("gz_image_topic", "");
     this->declare_parameter<std::string>("gz_world_name", "test");
     this->declare_parameter<std::string>("model_name", "uav");
-    this->declare_parameter<std::string>("link_name", "base_link");
-    this->declare_parameter<std::string>("sensor_name", "mono_camera");
+    this->declare_parameter<std::string>("link_name", "uav_base_link");
+    this->declare_parameter<std::string>("sensor_name", "uav_mono_camera");
 
     this->declare_parameter<std::string>("ros_image_topic",
                                          "/uav/camera/image_raw");
     this->declare_parameter<std::string>("frame_id",
-                                         "mono_camera_optical_frame");
+                                         "uav_camera_optical_frame");
 
     std::string gz_image_topic =
         this->get_parameter("gz_image_topic").as_string();

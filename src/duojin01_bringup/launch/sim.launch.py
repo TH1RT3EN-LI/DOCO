@@ -26,13 +26,13 @@ from sim_worlds.launch_common import (
 
 
 def generate_launch_description():
-    bringup_share = get_package_share_directory("duojin01_bringup")
     ugv_bringup_share = get_package_share_directory("ugv_bringup")
     uav_bringup_share = get_package_share_directory("uav_bringup")
     sim_worlds_share = get_package_share_directory("sim_worlds")
+    package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     default_gz_partition = f"duojin_{os.getpid()}"
-    default_rviz_config = os.path.join(bringup_share, "config", "rviz", "sim.rviz")
+    default_rviz_config = os.path.join(package_root, "config", "rviz", "sim.rviz")
 
     world = LaunchConfiguration("world")
     resolved_world_id = LaunchConfiguration("resolved_world_id")

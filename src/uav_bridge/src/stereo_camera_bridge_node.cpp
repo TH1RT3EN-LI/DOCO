@@ -25,11 +25,11 @@ public:
     this->declare_parameter<std::string>("gz_points_topic", "");
     this->declare_parameter<std::string>("gz_world_name", "test");
     this->declare_parameter<std::string>("model_name", "uav");
-    this->declare_parameter<std::string>("link_name", "base_link");
+    this->declare_parameter<std::string>("link_name", "uav_base_link");
     this->declare_parameter<std::string>("rgb_sensor_name",
-                                         "stereo_depth_camera_rgb");
+                                         "uav_stereo_depth_camera_rgb");
     this->declare_parameter<std::string>("depth_sensor_name",
-                                         "stereo_depth_camera_depth");
+                                         "uav_stereo_depth_camera_depth");
     this->declare_parameter<std::string>("ros_rgb_topic",
                                          "/uav/stereo/rgb/image_raw");
     this->declare_parameter<std::string>("ros_depth_topic",
@@ -37,7 +37,7 @@ public:
     this->declare_parameter<std::string>("ros_points_topic",
                                          "/uav/stereo/depth/points");
     this->declare_parameter<std::string>("frame_id",
-                                         "stereo_camera_optical_frame");
+                                         "uav_stereo_camera_optical_frame");
     this->declare_parameter<int>("points_downsample_step", 4);
 
     std::string gz_rgb_image_topic =

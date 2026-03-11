@@ -17,7 +17,7 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
-find_package(OpenCV REQUIRED COMPONENTS core imgproc aruco)
+find_package(OpenCV REQUIRED COMPONENTS core imgproc calib3d aruco)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/LandingError.msg"
@@ -27,6 +27,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 ament_export_dependencies(rosidl_default_runtime)
 
+rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
 add_executable(aruco_detector_node
   src/aruco_detector_node.cpp
 )
@@ -35,12 +37,20 @@ ament_target_dependencies(aruco_detector_node
   rclcpp
   sensor_msgs
   geometry_msgs
+  px4_msgs
   std_msgs
   cv_bridge
   image_transport
 )
+target_include_directories(aruco_detector_node PRIVATE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp>"
+)
+add_dependencies(aruco_detector_node
+  ${PROJECT_NAME}
+)
 target_link_libraries(aruco_detector_node
   ${OpenCV_LIBS}
+  "${cpp_typesupport_target}"
 )
 
 add_executable(visual_landing_node
@@ -56,7 +66,6 @@ ament_target_dependencies(visual_landing_node
   std_srvs
 )
 
-rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
 # This target consumes both this package's generated messages and px4_msgs
 # interfaces, so wire the generator/ts targets explicitly to avoid missing
 # include propagation during incremental workspace builds.

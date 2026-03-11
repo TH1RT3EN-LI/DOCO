@@ -26,8 +26,8 @@ public:
     // ---------- parameters ----------
     declare_parameter<std::string>("gz_world_name", "test");
     declare_parameter<std::string>("model_name", "uav");
-    declare_parameter<std::string>("link_name", "base_link");
-    declare_parameter<std::string>("sensor_name", "optical_flow_range");
+    declare_parameter<std::string>("link_name", "uav_base_link");
+    declare_parameter<std::string>("sensor_name", "uav_optical_flow_range");
     declare_parameter<std::string>("gz_topic_override", "");
     declare_parameter<std::string>("ros_topic", "/uav/fmu/in/distance_sensor");
 

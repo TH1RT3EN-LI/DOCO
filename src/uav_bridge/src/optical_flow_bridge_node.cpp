@@ -42,10 +42,10 @@ public:
     // ---------- parameters ----------
     declare_parameter<std::string>("gz_world_name", "test");
     declare_parameter<std::string>("model_name", "uav");
-    declare_parameter<std::string>("link_name", "base_link");
-    declare_parameter<std::string>("sensor_name", "optical_flow_camera");
-    declare_parameter<std::string>("range_sensor_name", "optical_flow_range");
-    declare_parameter<std::string>("imu_sensor_name", "imu_sensor");
+    declare_parameter<std::string>("link_name", "uav_base_link");
+    declare_parameter<std::string>("sensor_name", "uav_optical_flow_camera");
+    declare_parameter<std::string>("range_sensor_name", "uav_optical_flow_range");
+    declare_parameter<std::string>("imu_sensor_name", "uav_imu_sensor");
     declare_parameter<std::string>("gz_topic_override", "");
     declare_parameter<std::string>("gz_range_topic_override", "");
     declare_parameter<std::string>("gz_imu_topic_override", "");

@@ -17,7 +17,12 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, EnvironmentVariable, LaunchConfiguration, PythonExpression
+from launch.substitutions import (
+    Command,
+    EnvironmentVariable,
+    LaunchConfiguration,
+    PythonExpression,
+)
 from launch_ros.actions import Node
 
 from sim_worlds.launch_common import (
@@ -33,18 +38,18 @@ from uav_bringup.profile_defaults import DEFAULT_PX4_FRAME
 SIM_WORLDS_SHARE = get_package_share_directory("sim_worlds")
 
 
-def _topic_in_namespace(namespace_value, suffix):
-    return PythonExpression([
-        '"', namespace_value, '".rstrip("/") + "', suffix, '"'
-    ])
-
-
 def generate_launch_description():
     px4_frame = DEFAULT_PX4_FRAME
     frame_prefix = "uav_"
     base_frame = "uav_base_link"
     mono_camera_frame = "uav_camera_optical_frame"
     stereo_camera_frame = "uav_stereo_camera_optical_frame"
+    mono_camera_sensor = "uav_mono_camera"
+    stereo_rgb_sensor = "uav_stereo_depth_camera_rgb"
+    stereo_depth_sensor = "uav_stereo_depth_camera_depth"
+    optical_flow_sensor = "uav_optical_flow_camera"
+    optical_flow_range_sensor = "uav_optical_flow_range"
+    imu_sensor = "uav_imu_sensor"
 
     bringup_share = get_package_share_directory("uav_bringup")
     description_share = get_package_share_directory("uav_description")
@@ -80,13 +85,14 @@ def generate_launch_description():
     rviz_config = LaunchConfiguration("rviz_config")
     clock_mode = LaunchConfiguration("clock_mode")
     effective_clock_mode = LaunchConfiguration("effective_clock_mode")
-    offboard_mode_topic = _topic_in_namespace(fmu_namespace, "/in/offboard_control_mode")
-    trajectory_setpoint_topic = _topic_in_namespace(fmu_namespace, "/in/trajectory_setpoint")
-    vehicle_command_topic = _topic_in_namespace(fmu_namespace, "/in/vehicle_command")
-    distance_sensor_topic = _topic_in_namespace(fmu_namespace, "/in/distance_sensor")
-    sensor_optical_flow_topic = _topic_in_namespace(fmu_namespace, "/in/sensor_optical_flow")
-    vehicle_local_position_topic = _topic_in_namespace(fmu_namespace, "/out/vehicle_local_position")
-    vehicle_status_topic = _topic_in_namespace(fmu_namespace, "/out/vehicle_status")
+    fmu_topic_prefix = PythonExpression(['"', fmu_namespace, '".rstrip("/")'])
+    offboard_mode_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/in/offboard_control_mode"'])
+    trajectory_setpoint_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/in/trajectory_setpoint"'])
+    vehicle_command_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/in/vehicle_command"'])
+    distance_sensor_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/in/distance_sensor"'])
+    sensor_optical_flow_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/in/sensor_optical_flow"'])
+    vehicle_local_position_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/out/vehicle_local_position"'])
+    vehicle_status_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/out/vehicle_status"'])
     gz_pose_topic = LaunchConfiguration("gz_pose_topic")
     gz_image_topic = LaunchConfiguration("gz_image_topic")
     px4_headless = PythonExpression(['"1" if "', headless, '" == "true" else "0"'])
@@ -233,8 +239,8 @@ def generate_launch_description():
             {"gz_image_topic": gz_image_topic},
             {"gz_world_name": resolved_gz_world_name},
             {"model_name": bridge_model_name},
-            {"link_name": "base_link"},
-            {"sensor_name": "mono_camera"},
+            {"link_name": base_frame},
+            {"sensor_name": mono_camera_sensor},
             {"ros_image_topic": "/uav/camera/image_raw"},
             {"frame_id": mono_camera_frame},
         ],
@@ -249,9 +255,9 @@ def generate_launch_description():
             {"use_sim_time": True},
             {"gz_world_name": resolved_gz_world_name},
             {"model_name": bridge_model_name},
-            {"link_name": "base_link"},
-            {"rgb_sensor_name": "stereo_depth_camera_rgb"},
-            {"depth_sensor_name": "stereo_depth_camera_depth"},
+            {"link_name": base_frame},
+            {"rgb_sensor_name": stereo_rgb_sensor},
+            {"depth_sensor_name": stereo_depth_sensor},
             {"ros_rgb_topic": "/uav/stereo/rgb/image_raw"},
             {"ros_depth_topic": "/uav/stereo/depth/image_raw"},
             {"ros_points_topic": "/uav/stereo/depth/points"},
@@ -346,8 +352,8 @@ def generate_launch_description():
             {"use_sim_time": True},
             {"gz_world_name": resolved_gz_world_name},
             {"model_name": bridge_model_name},
-            {"link_name": "base_link"},
-            {"sensor_name": "optical_flow_range"},
+            {"link_name": base_frame},
+            {"sensor_name": optical_flow_range_sensor},
             {"ros_topic": distance_sensor_topic},
         ],
     )
@@ -361,12 +367,13 @@ def generate_launch_description():
             {"use_sim_time": True},
             {"gz_world_name": resolved_gz_world_name},
             {"model_name": bridge_model_name},
-            {"link_name": "base_link"},
-            {"sensor_name": "optical_flow_camera"},
+            {"link_name": base_frame},
+            {"sensor_name": optical_flow_sensor},
+            {"imu_sensor_name": imu_sensor},
             {"camera_hfov": 0.25},
             {"image_width": 64},
             {"image_height": 64},
-            {"range_sensor_name": "optical_flow_range"},
+            {"range_sensor_name": optical_flow_range_sensor},
             {"range_sample_timeout_ms": 100.0},
             {"range_min_valid_m": 0.08},
             {"range_max_valid_m": 8.0},
@@ -384,7 +391,15 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {"target_marker_id": 0},
+            {"marker_size_m": 0.2},
+            {"landing_error_topic": "/uav/visual_landing/landing_error"},
         ],
+    )
+    visual_landing = Node(
+        package="uav_visual_landing",
+        executable="visual_landing_node",
+        name="visual_landing_node",
+        output="screen",
     )
     def create_robot_state_publisher(context):
         if shutil.which("xacro") is None:
@@ -413,6 +428,9 @@ def generate_launch_description():
                 parameters=[
                     {"use_sim_time": True},
                     {"robot_description": robot_description},
+                ],
+                remappings=[
+                    ("/robot_description", "/uav/robot_description"),
                 ],
             )
         ]
@@ -549,6 +567,7 @@ def generate_launch_description():
             rangefinder_bridge,
             optical_flow_bridge,
             aruco_detector,
+            visual_landing,
             robot_state_publisher_action,
             rviz,
             px4_proc_delayed,
