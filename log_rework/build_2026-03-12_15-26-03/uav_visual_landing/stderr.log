@@ -1,0 +1,12 @@
+/home/th1rt3en/DOCO/ws/src/uav_visual_landing/src/visual_landing_node.cpp: In member function ‘void uav_visual_landing::VisualLandingNode::timerCallback()’:
+/home/th1rt3en/DOCO/ws/src/uav_visual_landing/src/visual_landing_node.cpp:333:29: error: no matching function for call to ‘uav_visual_landing::VisualLandingNode::publishControllerState(bool, std::string&, const bool&, const float&, float, float, float, float, float)’
+  333 |       publishControllerState(false, height_source, range.valid, range.effective_height_m, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+      |       ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/th1rt3en/DOCO/ws/src/uav_visual_landing/src/visual_landing_node.cpp:265:8: note: candidate: ‘void uav_visual_landing::VisualLandingNode::publishControllerState(bool, const string&, bool, float, float, float, float, float)’
+  265 |   void publishControllerState(
+      |        ^~~~~~~~~~~~~~~~~~~~~~
+/home/th1rt3en/DOCO/ws/src/uav_visual_landing/src/visual_landing_node.cpp:265:8: note:   candidate expects 8 arguments, 9 provided
+gmake[2]: *** [CMakeFiles/visual_landing_node.dir/build.make:76: CMakeFiles/visual_landing_node.dir/src/visual_landing_node.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:645: CMakeFiles/visual_landing_node.dir/all] Error 2
+gmake[1]: *** Waiting for unfinished jobs....
+gmake: *** [Makefile:146: all] Error 2

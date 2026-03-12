@@ -1,0 +1,14 @@
+std_msgs/Header header
+bool active
+string phase
+bool target_detected
+float32 observation_age_s
+float32 target_confidence
+string height_source
+float32 current_height_m
+bool range_valid
+float32 range_height_m
+float32 cmd_vx
+float32 cmd_vy
+float32 cmd_vz
+float32 cmd_yaw_rate

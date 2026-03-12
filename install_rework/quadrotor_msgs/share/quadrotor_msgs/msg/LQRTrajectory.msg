@@ -1,0 +1,1 @@
+/home/th1rt3en/DOCO/ws/src/quadrotor_msgs/msg/LQRTrajectory.msg

@@ -24,7 +24,7 @@ public:
   struct Config
   {
     std::string global_frame{"global"};
-    std::string odom_topic{"/uav/odom"};
+    std::string odom_topic{"/uav/state/odometry"};
     double pose_timeout_sec{0.25};
     double velocity_timeout_sec{0.15};
     double buffer_length_sec{2.0};

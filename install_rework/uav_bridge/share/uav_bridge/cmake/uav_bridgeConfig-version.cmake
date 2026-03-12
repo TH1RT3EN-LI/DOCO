@@ -1,0 +1,1 @@
+/home/th1rt3en/DOCO/ws/build_rework/uav_bridge/ament_cmake_core/uav_bridgeConfig-version.cmake

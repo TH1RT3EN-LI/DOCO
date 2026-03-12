@@ -1,0 +1,13 @@
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/AuxCommand.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/Corrections.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/Gains.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/LQRTrajectory.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/OutputData.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/PositionCommand.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/PPROutputData.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/Serial.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/SO3Command.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/StatusData.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/TRPYCommand.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/Odometry.idl
+/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_adapter/quadrotor_msgs:msg/PolynomialTrajectory.idl

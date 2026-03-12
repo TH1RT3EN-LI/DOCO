@@ -6,6 +6,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_gtest REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -20,8 +21,8 @@ find_package(image_transport REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS core imgproc calib3d aruco)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/LandingError.msg"
-  "msg/LandingStatus.msg"
+  "msg/TargetObservation.msg"
+  "msg/LandingControllerState.msg"
   DEPENDENCIES std_msgs
 )
 
@@ -33,11 +34,11 @@ add_executable(aruco_detector_node
   src/aruco_detector_node.cpp
 )
 target_compile_features(aruco_detector_node PUBLIC cxx_std_17)
+target_include_directories(aruco_detector_node PRIVATE include)
 ament_target_dependencies(aruco_detector_node
   rclcpp
   sensor_msgs
   geometry_msgs
-  px4_msgs
   std_msgs
   cv_bridge
   image_transport
@@ -57,6 +58,7 @@ add_executable(visual_landing_node
   src/visual_landing_node.cpp
 )
 target_compile_features(visual_landing_node PUBLIC cxx_std_17)
+target_include_directories(visual_landing_node PRIVATE include)
 ament_target_dependencies(visual_landing_node
   rclcpp
   geometry_msgs
@@ -91,11 +93,23 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(DIRECTORY include/
+  DESTINATION include
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  ament_add_gtest(test_visual_landing_logic
+    test/test_visual_landing_logic.cpp
+  )
+  if(TARGET test_visual_landing_logic)
+    target_compile_features(test_visual_landing_logic PUBLIC cxx_std_17)
+    target_include_directories(test_visual_landing_logic PRIVATE include)
+  endif()
 endif()
 
 ament_package()

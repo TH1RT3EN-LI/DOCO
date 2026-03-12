@@ -16,7 +16,7 @@
 这个需求在当前仓库里已经具备了实现基础，但仍有几个关键空白：
 
 - **联合仿真已有 `global / ugv_map / uav_map` 三层约定**，但 `enable_dynamic_global_alignment` 目前只是兼容参数，还没有运行时消费者；
-- **UAV 仿真已经有 `/uav/odom`**，但 UAV 真机侧还没有统一对外的 `/uav/odom` 归一化出口；
+- **UAV 主状态出口已切换为 `/uav/state/odometry`**，旧 `/uav/odom` 说明仅保留在历史文档中；
 - **UGV 侧有 `/ugv/odom`、`/ugv/odometry/filtered`、`/amcl_pose` 等候选来源**，但不同场景下谁是“全局位置”、谁是“速度来源”尚未被一个模块统一消费；
 - 现有控制与视觉降落栈都还没有消费“带协方差的 UGV 相对 UAV 平面位置估计”。
 
@@ -59,7 +59,7 @@
 ### 3.2 UAV 侧现状
 
 - 仿真 UAV 入口：`ws/src/uav_bringup/launch/sitl_uav.launch.py`
-- 仿真中 `/uav/odom` 现在由 `uav_bridge/px4_odom_adapter_node` 发布，表示 PX4 estimated state；
+- 仿真中 `/uav/state/odometry` 现在由 `uav_bridge/uav_state_bridge_node` 发布，表示 PX4 estimated state；
 - Gazebo 真值通过 `uav_bridge/tf_bridge_node` 旁路输出到 `/uav/sim/ground_truth/odom`，不再占用主控制链；
 - `uav_bridge/px4_planar_state_reader_node` 输出单独的二维派生接口 `/uav/px4/planar_odom`，用于平面对比与协同消费，不再覆盖 `/uav/odom`。
 

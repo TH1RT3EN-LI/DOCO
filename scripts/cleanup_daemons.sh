@@ -148,7 +148,7 @@ fi
 PROCESS_GROUPS=(
   "visual_landing_node|[v]isual_landing_node"
   "uav_visual_landing.sh|[u]av_visual_landing\\.sh"
-  "offboard_bridge_node|[o]ffboard_bridge_node"
+  "uav_control_node|[u]av_control_node"
   "sitl_uav launch|[r]os2 launch .*sitl_uav\\.launch\\.py"
   "duojin sim launch|[r]os2 launch .*duojin01_bringup .*sim\\.launch\\.py"
   "MicroXRCEAgent|[M]icroXRCEAgent"

@@ -1,0 +1,39 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from uav_visual_landing/msg/LandingControllerState.msg
+// generated code does not contain a copyright notice
+
+#include "std_msgs/msg/Header.idl"
+
+module uav_visual_landing {
+  module msg {
+    struct LandingControllerState {
+      std_msgs::msg::Header header;
+
+      boolean active;
+
+      string phase;
+
+      boolean target_detected;
+
+      float observation_age_s;
+
+      float target_confidence;
+
+      string height_source;
+
+      float current_height_m;
+
+      boolean range_valid;
+
+      float range_height_m;
+
+      float cmd_vx;
+
+      float cmd_vy;
+
+      float cmd_vz;
+
+      float cmd_yaw_rate;
+    };
+  };
+};

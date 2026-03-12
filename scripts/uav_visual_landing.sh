@@ -4,7 +4,11 @@ set -euo pipefail
 SCRIPT_NAME="$(basename "$0")"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SETUP_FILE="${WS_DIR}/install/setup.bash"
+if [[ -f "${WS_DIR}/install_rework/setup.bash" ]]; then
+  SETUP_FILE="${WS_DIR}/install_rework/setup.bash"
+else
+  SETUP_FILE="${WS_DIR}/install/setup.bash"
+fi
 DEFAULT_WAIT_TIMEOUT_SEC="${UAV_VL_WAIT_TIMEOUT_SEC:-5}"
 ACTION="start"
 SERVICE_NAME=""
@@ -27,8 +31,8 @@ Options:
   -h, --help          Show this help.
 
 Default services:
-  start -> /uav/visual_landing/start
-  stop  -> /uav/visual_landing/stop
+  start -> /uav/visual_landing/command/start
+  stop  -> /uav/visual_landing/command/stop
 
 Notes:
   - In the current sim stack, these services are provided by
@@ -40,7 +44,7 @@ Examples:
   ./ws/scripts/uav_visual_landing.sh
   ./ws/scripts/uav_visual_landing.sh stop
   ./ws/scripts/uav_visual_landing.sh start --timeout 10
-  ./ws/scripts/uav_visual_landing.sh stop /uav/visual_landing/stop
+  ./ws/scripts/uav_visual_landing.sh stop /uav/visual_landing/command/stop
 EOF_USAGE
 }
 
@@ -82,10 +86,10 @@ done
 
 case "${ACTION}" in
   start)
-    DEFAULT_SERVICE_NAME="/uav/visual_landing/start"
+    DEFAULT_SERVICE_NAME="/uav/visual_landing/command/start"
     ;;
   stop)
-    DEFAULT_SERVICE_NAME="/uav/visual_landing/stop"
+    DEFAULT_SERVICE_NAME="/uav/visual_landing/command/stop"
     ;;
   *)
     echo "[uav_visual_landing] unsupported action: ${ACTION}" >&2

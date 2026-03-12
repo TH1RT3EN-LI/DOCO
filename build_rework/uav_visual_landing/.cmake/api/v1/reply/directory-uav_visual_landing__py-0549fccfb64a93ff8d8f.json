@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "uav_visual_landing__py",
+		"source" : "/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing/uav_visual_landing__py"
+	}
+}

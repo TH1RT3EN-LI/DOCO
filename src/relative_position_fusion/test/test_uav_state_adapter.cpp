@@ -68,7 +68,7 @@ TEST_F(UavStateAdapterTest, BuildsStateFromOdometry)
 {
   UavStateAdapter::Config config;
   config.global_frame = "global";
-  config.odom_topic = "/uav/odom";
+  config.odom_topic = "/uav/state/odometry";
   config.tf_lookup_timeout_sec = 0.0;
   UavStateAdapter adapter(node_.get(), buffer_, config);
 

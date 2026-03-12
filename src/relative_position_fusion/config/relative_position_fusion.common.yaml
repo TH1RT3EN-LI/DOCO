@@ -5,7 +5,7 @@
     uav_body_frame: uav_base_link
     tf_lookup_timeout_sec: 0.03
 
-    uav_odom_topic: /uav/odom
+    uav_odom_topic: /uav/state/odometry
     ugv_amcl_pose_topic: /amcl_pose
     ugv_filtered_odom_topic: /ugv/odometry/filtered
     ugv_odom_topic: /ugv/odom

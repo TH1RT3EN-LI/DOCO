@@ -1,0 +1,296 @@
+[0.000000] (-) TimerEvent: {}
+[0.000079] (-) JobUnselected: {'identifier': 'duojin01_bringup'}
+[0.000094] (-) JobUnselected: {'identifier': 'lslidar_driver'}
+[0.000104] (-) JobUnselected: {'identifier': 'lslidar_msgs'}
+[0.000113] (-) JobUnselected: {'identifier': 'orbbec_camera'}
+[0.000122] (-) JobUnselected: {'identifier': 'orbbec_camera_msgs'}
+[0.000130] (-) JobUnselected: {'identifier': 'orbbec_description'}
+[0.000138] (-) JobUnselected: {'identifier': 'px4_msgs'}
+[0.000146] (-) JobUnselected: {'identifier': 'quadrotor_msgs'}
+[0.000154] (-) JobUnselected: {'identifier': 'relative_position_fusion'}
+[0.000162] (-) JobUnselected: {'identifier': 'sim_worlds'}
+[0.000169] (-) JobUnselected: {'identifier': 'uav_bridge'}
+[0.000177] (-) JobUnselected: {'identifier': 'uav_bringup'}
+[0.000185] (-) JobUnselected: {'identifier': 'uav_description'}
+[0.000193] (-) JobUnselected: {'identifier': 'ugv_base_driver'}
+[0.000200] (-) JobUnselected: {'identifier': 'ugv_bringup'}
+[0.000209] (-) JobUnselected: {'identifier': 'ugv_controller_emulator'}
+[0.000216] (-) JobUnselected: {'identifier': 'ugv_description'}
+[0.000224] (-) JobUnselected: {'identifier': 'ugv_safety_watchdog'}
+[0.000231] (-) JobUnselected: {'identifier': 'ugv_sim_tools'}
+[0.000241] (-) JobUnselected: {'identifier': 'ugv_slam_tools'}
+[0.000249] (-) JobUnselected: {'identifier': 'ugv_teleop'}
+[0.000258] (uav_visual_landing) JobQueued: {'identifier': 'uav_visual_landing', 'dependencies': OrderedDict([('px4_msgs', '/home/th1rt3en/DOCO/ws/install_rework/px4_msgs')])}
+[0.000600] (uav_visual_landing) JobStarted: {'identifier': 'uav_visual_landing'}
+[0.011610] (uav_visual_landing) JobProgress: {'identifier': 'uav_visual_landing', 'progress': 'cmake'}
+[0.012085] (uav_visual_landing) JobProgress: {'identifier': 'uav_visual_landing', 'progress': 'build'}
+[0.012556] (uav_visual_landing) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing', '--', '-j16', '-l16'], 'cwd': '/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/th1rt3en'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('HTTPS_PROXY', 'http://127.0.0.1:7897'), ('CODEX_CI', '1'), ('LANGUAGE', 'en_US:en'), ('USER', 'th1rt3en'), ('LC_TIME', 'zh_CN.UTF-8'), ('CODEX_INTERNAL_ORIGINATOR_OVERRIDE', 'codex_vscode'), ('VSCODE_NLS_CONFIG', '{"userLocale":"zh-cn","osLocale":"en-us","resolvedLanguage":"zh-cn","defaultMessagesFile":"/usr/share/code/resources/app/out/nls.messages.json","languagePack":{"translationsConfigFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/tcf.json","messagesFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/61b3d0ab13be7dda2389f1d3e60a119c7f660cc3/nls.messages.json","corruptMarkerFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/corrupted.info"},"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"260f1e75be0cfbabbd36f02f327e4f1d.zh-cn","_languagePackSupport":true,"_translationsConfigFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/tcf.json","_cacheRoot":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn","_resolvedLanguagePackCoreLocation":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/61b3d0ab13be7dda2389f1d3e60a119c7f660cc3","_corruptedFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/corrupted.info"}'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'x11'), ('DEBUG', 'release'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/th1rt3en'), ('CHROME_DESKTOP', 'code.desktop'), ('OLDPWD', '/home/th1rt3en/DOCO/ws'), ('DESKTOP_SESSION', 'ubuntu-xorg'), ('VSCODE_IPC_HOOK', '/run/user/1000/vscode-a48a504d-1.11-main.sock'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/code.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('SDL_IM_MODULE', 'fcitx'), ('PAGER', 'cat'), ('LC_MONETARY', 'zh_CN.UTF-8'), ('MANAGERPID', '1065'), ('LC_CTYPE', 'C.UTF-8'), ('SYSTEMD_EXEC_PID', '2443'), ('NO_COLOR', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', ''), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '5557'), ('VSCODE_CRASH_REPORTER_PROCESS_TYPE', 'extensionHost'), ('MANDATORY_PATH', '/usr/share/gconf/ubuntu-xorg.mandatory.path'), ('COLCON_PREFIX_PATH', '/home/th1rt3en/DOCO/ws/install_rework'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'fcitx'), ('LOGNAME', 'th1rt3en'), ('JOURNAL_STREAM', '8:19977'), ('_', '/home/th1rt3en/.local/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('DEFAULTS_PATH', '/usr/share/gconf/ubuntu-xorg.default.path'), ('RUST_LOG', 'warn'), ('USERNAME', 'th1rt3en'), ('TERM', 'dumb'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:/home/th1rt3en/.local/bin:/home/th1rt3en/.codex/tmp/arg0/codex-arg0caWxpp:/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:/home/th1rt3en/.local/bin:/opt/ros/humble/bin:/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:/home/th1rt3en/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/opt/xtensa-esp-elf/bin/:/home/th1rt3en/.vscode/extensions/openai.chatgpt-26.304.20706-linux-x64/bin/linux-x86_64'), ('SESSION_MANAGER', 'local/TH1RT3EN-LAB:@/tmp/.ICE-unix/2420,unix/TH1RT3EN-LAB:/tmp/.ICE-unix/2420'), ('INVOCATION_ID', 'ec89444659ec4152a6a5ad88a0b753c9'), ('PAPERSIZE', 'a4'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'zh_CN.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('DISPLAY', ':1'), ('LANG', 'C.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'zh_CN.UTF-8'), ('XMODIFIERS', '@im=fcitx'), ('GH_PAGER', 'cat'), ('XDG_SESSION_DESKTOP', 'ubuntu-xorg'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/th1rt3en/DOCO/ws/install_rework/uav_bringup:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'zh_CN.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('ELECTRON_RUN_AS_NODE', '1'), ('GDMSESSION', 'ubuntu-xorg'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('CODEX_THREAD_ID', '019ce08d-7009-7e71-831a-21fdc3ccc146'), ('LC_MEASUREMENT', 'zh_CN.UTF-8'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('LC_IDENTIFICATION', 'zh_CN.UTF-8'), ('GIT_PAGER', 'cat'), ('QT_IM_MODULE', 'fcitx'), ('PWD', '/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing'), ('CRS_OAI_KEY', 'cr_3723d8ebaa4b7789604815c4e7e09886450e2e3918d2a29ee69d0a7efe3c9574'), ('LC_ALL', 'C.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu-xorg:/etc/xdg'), ('VSCODE_CODE_CACHE_PATH', '/home/th1rt3en/.config/Code/CachedData/61b3d0ab13be7dda2389f1d3e60a119c7f660cc3'), ('XDG_DATA_DIRS', '/usr/share/ubuntu-xorg:/usr/share/gnome:/home/th1rt3en/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('HTTP_PROXY', 'http://127.0.0.1:7897'), ('LC_NUMERIC', 'zh_CN.UTF-8'), ('LC_PAPER', 'zh_CN.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/home/th1rt3en/DOCO/ws/install_rework/uav_bringup:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/opt/ros/humble'), ('VSCODE_PID', '5557')]), 'shell': False}
+[0.064209] (uav_visual_landing) StdoutLine: {'line': b'[ 12%] Built target gtest\n'}
+[0.064371] (uav_visual_landing) StdoutLine: {'line': b'[  6%] Built target uav_visual_landing__cpp\n'}
+[0.064408] (uav_visual_landing) StdoutLine: {'line': b'[ 16%] Built target gtest_main\n'}
+[0.064439] (uav_visual_landing) StdoutLine: {'line': b'[ 18%] Built target uav_visual_landing__rosidl_generator_c\n'}
+[0.073240] (uav_visual_landing) StdoutLine: {'line': b'[ 18%] Built target ament_cmake_python_symlink_uav_visual_landing\n'}
+[0.084548] (uav_visual_landing) StdoutLine: {'line': b'[ 28%] Built target test_visual_landing_logic\n'}
+[0.084711] (uav_visual_landing) StdoutLine: {'line': b'[ 34%] Built target uav_visual_landing__rosidl_typesupport_c\n'}
+[0.084755] (uav_visual_landing) StdoutLine: {'line': b'[ 46%] Built target uav_visual_landing__rosidl_typesupport_introspection_c\n'}
+[0.084801] (uav_visual_landing) StdoutLine: {'line': b'[ 46%] Built target uav_visual_landing__rosidl_typesupport_fastrtps_c\n'}
+[0.085221] (uav_visual_landing) StdoutLine: {'line': b'[ 55%] Built target uav_visual_landing__rosidl_typesupport_introspection_cpp\n'}
+[0.095582] (uav_visual_landing) StdoutLine: {'line': b'[ 71%] Built target uav_visual_landing__rosidl_typesupport_cpp\n'}
+[0.095725] (uav_visual_landing) StdoutLine: {'line': b'[ 71%] Built target uav_visual_landing__rosidl_typesupport_fastrtps_cpp\n'}
+[0.099851] (-) TimerEvent: {}
+[0.118052] (uav_visual_landing) StdoutLine: {'line': b'[ 71%] Built target uav_visual_landing\n'}
+[0.139052] (uav_visual_landing) StdoutLine: {'line': b'[ 73%] Built target uav_visual_landing__py\n'}
+[0.141612] (uav_visual_landing) StdoutLine: {'line': b'[ 77%] Building CXX object CMakeFiles/aruco_detector_node.dir/src/aruco_detector_node.cpp.o\n'}
+[0.141814] (uav_visual_landing) StdoutLine: {'line': b'[ 79%] Built target visual_landing_node\n'}
+[0.163296] (uav_visual_landing) StdoutLine: {'line': b'[ 85%] Built target uav_visual_landing__rosidl_generator_py\n'}
+[0.183874] (uav_visual_landing) StdoutLine: {'line': b'[ 95%] Built target uav_visual_landing__rosidl_typesupport_c__pyext\n'}
+[0.184058] (uav_visual_landing) StdoutLine: {'line': b'[ 95%] Built target uav_visual_landing__rosidl_typesupport_introspection_c__pyext\n'}
+[0.184111] (uav_visual_landing) StdoutLine: {'line': b'[ 97%] Built target uav_visual_landing__rosidl_typesupport_fastrtps_c__pyext\n'}
+[0.199947] (-) TimerEvent: {}
+[0.248781] (uav_visual_landing) StdoutLine: {'line': b'running egg_info\n'}
+[0.249288] (uav_visual_landing) StdoutLine: {'line': b'writing uav_visual_landing.egg-info/PKG-INFO\n'}
+[0.249448] (uav_visual_landing) StdoutLine: {'line': b'writing dependency_links to uav_visual_landing.egg-info/dependency_links.txt\n'}
+[0.249605] (uav_visual_landing) StdoutLine: {'line': b'writing top-level names to uav_visual_landing.egg-info/top_level.txt\n'}
+[0.251300] (uav_visual_landing) StdoutLine: {'line': b"reading manifest file 'uav_visual_landing.egg-info/SOURCES.txt'\n"}
+[0.251690] (uav_visual_landing) StdoutLine: {'line': b"writing manifest file 'uav_visual_landing.egg-info/SOURCES.txt'\n"}
+[0.276936] (uav_visual_landing) StdoutLine: {'line': b'[ 97%] Built target ament_cmake_python_build_uav_visual_landing_egg\n'}
+[0.300059] (-) TimerEvent: {}
+[0.400273] (-) TimerEvent: {}
+[0.500502] (-) TimerEvent: {}
+[0.600698] (-) TimerEvent: {}
+[0.700870] (-) TimerEvent: {}
+[0.801075] (-) TimerEvent: {}
+[0.901310] (-) TimerEvent: {}
+[1.001503] (-) TimerEvent: {}
+[1.101698] (-) TimerEvent: {}
+[1.201855] (-) TimerEvent: {}
+[1.302046] (-) TimerEvent: {}
+[1.402312] (-) TimerEvent: {}
+[1.502588] (-) TimerEvent: {}
+[1.602835] (-) TimerEvent: {}
+[1.703048] (-) TimerEvent: {}
+[1.803278] (-) TimerEvent: {}
+[1.903558] (-) TimerEvent: {}
+[2.003821] (-) TimerEvent: {}
+[2.104051] (-) TimerEvent: {}
+[2.204282] (-) TimerEvent: {}
+[2.304480] (-) TimerEvent: {}
+[2.404693] (-) TimerEvent: {}
+[2.504920] (-) TimerEvent: {}
+[2.605145] (-) TimerEvent: {}
+[2.705365] (-) TimerEvent: {}
+[2.805592] (-) TimerEvent: {}
+[2.905836] (-) TimerEvent: {}
+[3.006071] (-) TimerEvent: {}
+[3.106341] (-) TimerEvent: {}
+[3.206584] (-) TimerEvent: {}
+[3.306822] (-) TimerEvent: {}
+[3.407037] (-) TimerEvent: {}
+[3.507230] (-) TimerEvent: {}
+[3.607448] (-) TimerEvent: {}
+[3.707640] (-) TimerEvent: {}
+[3.807840] (-) TimerEvent: {}
+[3.908034] (-) TimerEvent: {}
+[4.008231] (-) TimerEvent: {}
+[4.108452] (-) TimerEvent: {}
+[4.208669] (-) TimerEvent: {}
+[4.308871] (-) TimerEvent: {}
+[4.409103] (-) TimerEvent: {}
+[4.509356] (-) TimerEvent: {}
+[4.609596] (-) TimerEvent: {}
+[4.709853] (-) TimerEvent: {}
+[4.810075] (-) TimerEvent: {}
+[4.910306] (-) TimerEvent: {}
+[5.010515] (-) TimerEvent: {}
+[5.110732] (-) TimerEvent: {}
+[5.210982] (-) TimerEvent: {}
+[5.311208] (-) TimerEvent: {}
+[5.411421] (-) TimerEvent: {}
+[5.511626] (-) TimerEvent: {}
+[5.611909] (-) TimerEvent: {}
+[5.712190] (-) TimerEvent: {}
+[5.812395] (-) TimerEvent: {}
+[5.912584] (-) TimerEvent: {}
+[6.012838] (-) TimerEvent: {}
+[6.113080] (-) TimerEvent: {}
+[6.213310] (-) TimerEvent: {}
+[6.313527] (-) TimerEvent: {}
+[6.413740] (-) TimerEvent: {}
+[6.513970] (-) TimerEvent: {}
+[6.614192] (-) TimerEvent: {}
+[6.714418] (-) TimerEvent: {}
+[6.814650] (-) TimerEvent: {}
+[6.914870] (-) TimerEvent: {}
+[7.015093] (-) TimerEvent: {}
+[7.115404] (-) TimerEvent: {}
+[7.215621] (-) TimerEvent: {}
+[7.315851] (-) TimerEvent: {}
+[7.416071] (-) TimerEvent: {}
+[7.516269] (-) TimerEvent: {}
+[7.616465] (-) TimerEvent: {}
+[7.716654] (-) TimerEvent: {}
+[7.816883] (-) TimerEvent: {}
+[7.917104] (-) TimerEvent: {}
+[8.017297] (-) TimerEvent: {}
+[8.117485] (-) TimerEvent: {}
+[8.217687] (-) TimerEvent: {}
+[8.317864] (-) TimerEvent: {}
+[8.418067] (-) TimerEvent: {}
+[8.518303] (-) TimerEvent: {}
+[8.618545] (-) TimerEvent: {}
+[8.718786] (-) TimerEvent: {}
+[8.819020] (-) TimerEvent: {}
+[8.919241] (-) TimerEvent: {}
+[9.019453] (-) TimerEvent: {}
+[9.119656] (-) TimerEvent: {}
+[9.219929] (-) TimerEvent: {}
+[9.320218] (-) TimerEvent: {}
+[9.420452] (-) TimerEvent: {}
+[9.520703] (-) TimerEvent: {}
+[9.620931] (-) TimerEvent: {}
+[9.721178] (-) TimerEvent: {}
+[9.821457] (-) TimerEvent: {}
+[9.921734] (-) TimerEvent: {}
+[10.021947] (-) TimerEvent: {}
+[10.122160] (-) TimerEvent: {}
+[10.222426] (-) TimerEvent: {}
+[10.322619] (-) TimerEvent: {}
+[10.422834] (-) TimerEvent: {}
+[10.523057] (-) TimerEvent: {}
+[10.623279] (-) TimerEvent: {}
+[10.723499] (-) TimerEvent: {}
+[10.823729] (-) TimerEvent: {}
+[10.923972] (-) TimerEvent: {}
+[10.964441] (uav_visual_landing) StdoutLine: {'line': b'[100%] Linking CXX executable aruco_detector_node\n'}
+[11.024085] (-) TimerEvent: {}
+[11.124307] (-) TimerEvent: {}
+[11.224512] (-) TimerEvent: {}
+[11.324727] (-) TimerEvent: {}
+[11.424954] (-) TimerEvent: {}
+[11.525160] (-) TimerEvent: {}
+[11.625365] (-) TimerEvent: {}
+[11.725573] (-) TimerEvent: {}
+[11.825783] (-) TimerEvent: {}
+[11.850404] (uav_visual_landing) StdoutLine: {'line': b'[100%] Built target aruco_detector_node\n'}
+[11.862858] (uav_visual_landing) CommandEnded: {'returncode': 0}
+[11.863635] (uav_visual_landing) JobProgress: {'identifier': 'uav_visual_landing', 'progress': 'install'}
+[11.873437] (uav_visual_landing) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing'], 'cwd': '/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/th1rt3en'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('HTTPS_PROXY', 'http://127.0.0.1:7897'), ('CODEX_CI', '1'), ('LANGUAGE', 'en_US:en'), ('USER', 'th1rt3en'), ('LC_TIME', 'zh_CN.UTF-8'), ('CODEX_INTERNAL_ORIGINATOR_OVERRIDE', 'codex_vscode'), ('VSCODE_NLS_CONFIG', '{"userLocale":"zh-cn","osLocale":"en-us","resolvedLanguage":"zh-cn","defaultMessagesFile":"/usr/share/code/resources/app/out/nls.messages.json","languagePack":{"translationsConfigFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/tcf.json","messagesFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/61b3d0ab13be7dda2389f1d3e60a119c7f660cc3/nls.messages.json","corruptMarkerFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/corrupted.info"},"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"260f1e75be0cfbabbd36f02f327e4f1d.zh-cn","_languagePackSupport":true,"_translationsConfigFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/tcf.json","_cacheRoot":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn","_resolvedLanguagePackCoreLocation":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/61b3d0ab13be7dda2389f1d3e60a119c7f660cc3","_corruptedFile":"/home/th1rt3en/.config/Code/clp/260f1e75be0cfbabbd36f02f327e4f1d.zh-cn/corrupted.info"}'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'x11'), ('DEBUG', 'release'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/th1rt3en'), ('CHROME_DESKTOP', 'code.desktop'), ('OLDPWD', '/home/th1rt3en/DOCO/ws'), ('DESKTOP_SESSION', 'ubuntu-xorg'), ('VSCODE_IPC_HOOK', '/run/user/1000/vscode-a48a504d-1.11-main.sock'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/code.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('SDL_IM_MODULE', 'fcitx'), ('PAGER', 'cat'), ('LC_MONETARY', 'zh_CN.UTF-8'), ('MANAGERPID', '1065'), ('LC_CTYPE', 'C.UTF-8'), ('SYSTEMD_EXEC_PID', '2443'), ('NO_COLOR', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', ''), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '5557'), ('VSCODE_CRASH_REPORTER_PROCESS_TYPE', 'extensionHost'), ('MANDATORY_PATH', '/usr/share/gconf/ubuntu-xorg.mandatory.path'), ('COLCON_PREFIX_PATH', '/home/th1rt3en/DOCO/ws/install_rework'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'fcitx'), ('LOGNAME', 'th1rt3en'), ('JOURNAL_STREAM', '8:19977'), ('_', '/home/th1rt3en/.local/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('DEFAULTS_PATH', '/usr/share/gconf/ubuntu-xorg.default.path'), ('RUST_LOG', 'warn'), ('USERNAME', 'th1rt3en'), ('TERM', 'dumb'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:/home/th1rt3en/.local/bin:/home/th1rt3en/.codex/tmp/arg0/codex-arg0caWxpp:/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:/home/th1rt3en/.local/bin:/opt/ros/humble/bin:/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:/home/th1rt3en/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/opt/xtensa-esp-elf/bin/:/home/th1rt3en/.vscode/extensions/openai.chatgpt-26.304.20706-linux-x64/bin/linux-x86_64'), ('SESSION_MANAGER', 'local/TH1RT3EN-LAB:@/tmp/.ICE-unix/2420,unix/TH1RT3EN-LAB:/tmp/.ICE-unix/2420'), ('INVOCATION_ID', 'ec89444659ec4152a6a5ad88a0b753c9'), ('PAPERSIZE', 'a4'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'zh_CN.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('DISPLAY', ':1'), ('LANG', 'C.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'zh_CN.UTF-8'), ('XMODIFIERS', '@im=fcitx'), ('GH_PAGER', 'cat'), ('XDG_SESSION_DESKTOP', 'ubuntu-xorg'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/th1rt3en/DOCO/ws/install_rework/uav_bringup:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'zh_CN.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('ELECTRON_RUN_AS_NODE', '1'), ('GDMSESSION', 'ubuntu-xorg'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('CODEX_THREAD_ID', '019ce08d-7009-7e71-831a-21fdc3ccc146'), ('LC_MEASUREMENT', 'zh_CN.UTF-8'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('LC_IDENTIFICATION', 'zh_CN.UTF-8'), ('GIT_PAGER', 'cat'), ('QT_IM_MODULE', 'fcitx'), ('PWD', '/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing'), ('CRS_OAI_KEY', 'cr_3723d8ebaa4b7789604815c4e7e09886450e2e3918d2a29ee69d0a7efe3c9574'), ('LC_ALL', 'C.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu-xorg:/etc/xdg'), ('VSCODE_CODE_CACHE_PATH', '/home/th1rt3en/.config/Code/CachedData/61b3d0ab13be7dda2389f1d3e60a119c7f660cc3'), ('XDG_DATA_DIRS', '/usr/share/ubuntu-xorg:/usr/share/gnome:/home/th1rt3en/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('HTTP_PROXY', 'http://127.0.0.1:7897'), ('LC_NUMERIC', 'zh_CN.UTF-8'), ('LC_PAPER', 'zh_CN.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/home/th1rt3en/DOCO/ws/install_rework/uav_bringup:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/opt/ros/humble'), ('VSCODE_PID', '5557')]), 'shell': False}
+[11.881488] (uav_visual_landing) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[11.881801] (uav_visual_landing) StdoutLine: {'line': b'-- Execute custom install script\n'}
+[11.881985] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/ament_index/resource_index/rosidl_interfaces/uav_visual_landing\n'}
+[11.882367] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__functions.h\n'}
+[11.882629] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__struct.h\n'}
+[11.882774] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__type_support.h\n'}
+[11.882869] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__functions.h\n'}
+[11.882907] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__struct.h\n'}
+[11.883115] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__type_support.h\n'}
+[11.883226] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/landing_controller_state.h\n'}
+[11.883319] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/rosidl_generator_c__visibility_control.h\n'}
+[11.883357] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/target_observation.h\n'}
+[11.883390] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/environment/library_path.sh\n'}
+[11.883429] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/environment/library_path.dsv\n'}
+[11.883686] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__rosidl_typesupport_fastrtps_c.h\n'}
+[11.883836] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__rosidl_typesupport_fastrtps_c.h\n'}
+[11.883903] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/rosidl_typesupport_fastrtps_c__visibility_control.h\n'}
+[11.884091] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__builder.hpp\n'}
+[11.884160] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__struct.hpp\n'}
+[11.884248] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__traits.hpp\n'}
+[11.884330] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__type_support.hpp\n'}
+[11.884411] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__builder.hpp\n'}
+[11.884480] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__struct.hpp\n'}
+[11.884564] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__traits.hpp\n'}
+[11.884646] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__type_support.hpp\n'}
+[11.884724] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/landing_controller_state.hpp\n'}
+[11.884801] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/rosidl_generator_cpp__visibility_control.hpp\n'}
+[11.884879] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/target_observation.hpp\n'}
+[11.885218] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[11.885302] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[11.885371] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h\n'}
+[11.885631] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__rosidl_typesupport_introspection_c.h\n'}
+[11.885731] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__rosidl_typesupport_introspection_c.h\n'}
+[11.885844] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/rosidl_typesupport_introspection_c__visibility_control.h\n'}
+[11.886028] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/landing_controller_state__rosidl_typesupport_introspection_cpp.hpp\n'}
+[11.886112] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/uav_visual_landing/msg/detail/target_observation__rosidl_typesupport_introspection_cpp.hpp\n'}
+[11.886185] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/environment/pythonpath.sh\n'}
+[11.886275] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/environment/pythonpath.dsv\n'}
+[11.886477] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing-0.0.0-py3.10.egg-info/PKG-INFO\n'}
+[11.886552] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing-0.0.0-py3.10.egg-info/SOURCES.txt\n'}
+[11.886638] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing-0.0.0-py3.10.egg-info/dependency_links.txt\n'}
+[11.886714] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing-0.0.0-py3.10.egg-info/top_level.txt\n'}
+[11.887216] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/__init__.py\n'}
+[11.887310] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/_uav_visual_landing_s.ep.rosidl_typesupport_c.c\n'}
+[11.887381] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/_uav_visual_landing_s.ep.rosidl_typesupport_fastrtps_c.c\n'}
+[11.887470] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/_uav_visual_landing_s.ep.rosidl_typesupport_introspection_c.c\n'}
+[11.887621] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/libuav_visual_landing__rosidl_generator_py.so\n'}
+[11.887708] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/msg/__init__.py\n'}
+[11.887757] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/msg/_landing_controller_state.py\n'}
+[11.887864] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/msg/_landing_controller_state_s.c\n'}
+[11.887947] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/msg/_target_observation.py\n'}
+[11.888028] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/msg/_target_observation_s.c\n'}
+[11.888095] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/uav_visual_landing_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\n'}
+[11.888172] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/uav_visual_landing_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\n'}
+[11.888246] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/uav_visual_landing_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\n'}
+[11.888412] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/uav_visual_landing_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\n'}
+[11.888648] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/uav_visual_landing_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\n'}
+[11.888853] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/uav_visual_landing_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\n'}
+[11.889017] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/msg/TargetObservation.idl\n'}
+[11.889169] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/msg/LandingControllerState.idl\n'}
+[11.889283] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/msg/TargetObservation.msg\n'}
+[11.889371] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/msg/LandingControllerState.msg\n'}
+[11.889550] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/uav_visual_landing/aruco_detector_node\n'}
+[11.889649] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/uav_visual_landing/visual_landing_node\n'}
+[11.889938] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/config/visual_landing_stable.yaml\n'}
+[11.890182] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/include/uav_visual_landing/visual_landing_logic.hpp\n'}
+[11.890311] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/ament_index/resource_index/package_run_dependencies/uav_visual_landing\n'}
+[11.890439] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/ament_index/resource_index/parent_prefix_path/uav_visual_landing\n'}
+[11.890543] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/environment/ament_prefix_path.sh\n'}
+[11.890651] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/environment/ament_prefix_path.dsv\n'}
+[11.890771] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/environment/path.sh\n'}
+[11.890902] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/environment/path.dsv\n'}
+[11.891019] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/local_setup.bash\n'}
+[11.891171] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/local_setup.sh\n'}
+[11.891293] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/local_setup.zsh\n'}
+[11.891409] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/local_setup.dsv\n'}
+[11.891481] (uav_visual_landing) StdoutLine: {'line': b'-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/package.dsv\n'}
+[11.901043] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/ament_index/resource_index/packages/uav_visual_landing\n'}
+[11.901346] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/rosidl_cmake-extras.cmake\n'}
+[11.901427] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/ament_cmake_export_dependencies-extras.cmake\n'}
+[11.901468] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/ament_cmake_export_include_directories-extras.cmake\n'}
+[11.901506] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/ament_cmake_export_libraries-extras.cmake\n'}
+[11.901593] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/ament_cmake_export_targets-extras.cmake\n'}
+[11.901625] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake\n'}
+[11.901692] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake\n'}
+[11.901782] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landingConfig.cmake\n'}
+[11.901875] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landingConfig-version.cmake\n'}
+[11.902003] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/package.xml\n'}
+[11.902251] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/libuav_visual_landing__rosidl_generator_c.so\n'}
+[11.902457] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/libuav_visual_landing__rosidl_typesupport_fastrtps_c.so\n'}
+[11.902666] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/libuav_visual_landing__rosidl_typesupport_fastrtps_cpp.so\n'}
+[11.902881] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/libuav_visual_landing__rosidl_typesupport_introspection_c.so\n'}
+[11.903109] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/libuav_visual_landing__rosidl_typesupport_c.so\n'}
+[11.903359] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/libuav_visual_landing__rosidl_typesupport_introspection_cpp.so\n'}
+[11.903554] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/libuav_visual_landing__rosidl_typesupport_cpp.so\n'}
+[11.925882] (-) TimerEvent: {}
+[11.929121] (uav_visual_landing) StdoutLine: {'line': b"Listing '/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing'...\n"}
+[11.929353] (uav_visual_landing) StdoutLine: {'line': b"Listing '/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/local/lib/python3.10/dist-packages/uav_visual_landing/msg'...\n"}
+[11.933911] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib/libuav_visual_landing__rosidl_generator_py.so\n'}
+[11.934184] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/export_uav_visual_landing__rosidl_generator_cExport.cmake\n'}
+[11.934325] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/export_uav_visual_landing__rosidl_generator_cExport-noconfig.cmake\n'}
+[11.934480] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/export_uav_visual_landing__rosidl_typesupport_fastrtps_cExport.cmake\n'}
+[11.934997] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/export_uav_visual_landing__rosidl_typesupport_fastrtps_cExport-noconfig.cmake\n'}
+[11.935091] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/export_uav_visual_landing__rosidl_generator_cppExport.cmake\n'}
+[11.935160] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/export_uav_visual_landing__rosidl_typesupport_fastrtps_cppExport.cmake\n'}
+[11.935236] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/export_uav_visual_landing__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake\n'}
+[11.935297] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landing__rosidl_typesupport_introspection_cExport.cmake\n'}
+[11.935436] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landing__rosidl_typesupport_introspection_cExport-noconfig.cmake\n'}
+[11.935520] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landing__rosidl_typesupport_cExport.cmake\n'}
+[11.935585] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landing__rosidl_typesupport_cExport-noconfig.cmake\n'}
+[11.935618] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landing__rosidl_typesupport_introspection_cppExport.cmake\n'}
+[11.935655] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landing__rosidl_typesupport_introspection_cppExport-noconfig.cmake\n'}
+[11.935693] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landing__rosidl_typesupport_cppExport.cmake\n'}
+[11.935722] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/uav_visual_landing__rosidl_typesupport_cppExport-noconfig.cmake\n'}
+[11.935748] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/export_uav_visual_landing__rosidl_generator_pyExport.cmake\n'}
+[11.935775] (uav_visual_landing) StdoutLine: {'line': b'-- Up-to-date: /home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/share/uav_visual_landing/cmake/export_uav_visual_landing__rosidl_generator_pyExport-noconfig.cmake\n'}
+[11.936995] (uav_visual_landing) CommandEnded: {'returncode': 0}
+[11.953311] (uav_visual_landing) JobEnded: {'identifier': 'uav_visual_landing', 'rc': 0}
+[11.953770] (-) EventReactorShutdown: {}

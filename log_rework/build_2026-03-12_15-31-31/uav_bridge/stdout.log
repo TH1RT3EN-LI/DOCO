@@ -1,0 +1,58 @@
+Consolidate compiler generated dependencies of target uav_control_node
+[ 24%] Built target rangefinder_bridge_node
+[ 24%] Built target stereo_camera_bridge_node
+[ 24%] Built target optical_flow_bridge_node
+[ 24%] Built target uav_bridge_px4_odom_adapter_logic
+[ 24%] Built target gtest_main
+[ 29%] Built target fmu_topic_namespace_bridge_node
+[ 34%] Built target uav_bridge_uav_state_bridge_logic
+[ 51%] Built target px4_planar_state_reader_node
+[ 53%] Built target mono_camera_bridge_node
+[ 51%] Built target tf_bridge_node
+[ 53%] Built target gtest
+[ 68%] Built target offboard_bridge_node
+[ 70%] Building CXX object CMakeFiles/uav_control_node.dir/src/uav_control_node.cpp.o
+[ 90%] Built target test_uav_control_logic
+[ 90%] Built target px4_odom_adapter_node
+[ 90%] Built target test_px4_odom_adapter_logic
+[ 90%] Built target test_uav_state_bridge_logic
+[ 95%] Built target uav_state_bridge_node
+[ 97%] Linking CXX executable uav_control_node
+[100%] Built target uav_control_node
+-- Install configuration: ""
+-- Execute custom install script
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/libuav_bridge_px4_odom_adapter_logic.a
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/mono_camera_bridge_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/stereo_camera_bridge_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/tf_bridge_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/offboard_bridge_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/rangefinder_bridge_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/optical_flow_bridge_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/px4_planar_state_reader_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/px4_odom_adapter_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/uav_state_bridge_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/uav_control_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/fmu_topic_namespace_bridge_node
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/flight_mode_manager.hpp
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/frame_aligner.hpp
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/gz_topic_utils.hpp
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/math_utils.hpp
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/px4_commander.hpp
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/px4_odom_adapter_logic.hpp
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/uav_control_logic.hpp
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/uav_state_bridge_logic.hpp
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/ament_index/resource_index/package_run_dependencies/uav_bridge
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/ament_index/resource_index/parent_prefix_path/uav_bridge
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/environment/ament_prefix_path.sh
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/environment/ament_prefix_path.dsv
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/environment/path.sh
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/environment/path.dsv
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/local_setup.bash
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/local_setup.sh
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/local_setup.zsh
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/local_setup.dsv
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/package.dsv
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/ament_index/resource_index/packages/uav_bridge
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/cmake/uav_bridgeConfig.cmake
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/cmake/uav_bridgeConfig-version.cmake
+-- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/package.xml

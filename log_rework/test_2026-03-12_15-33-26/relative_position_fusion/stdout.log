@@ -1,0 +1,152 @@
+UpdateCTestConfiguration  from :/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/CTestConfiguration.ini
+Parse Config file:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/CTestConfiguration.ini
+   Site: TH1RT3EN-LAB
+   Build name: (empty)
+ Add coverage exclude regular expressions.
+Create new tag: 20260312-0733 - Experimental
+UpdateCTestConfiguration  from :/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/CTestConfiguration.ini
+Parse Config file:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/CTestConfiguration.ini
+Test project /home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: test_relative_position_filter
+
+1: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relative_position_filter.gtest.xml" "--package-name" "relative_position_fusion" "--output-file" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/ament_cmake_gtest/test_relative_position_filter.txt" "--command" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_relative_position_filter" "--gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relative_position_filter.gtest.xml"
+1: Test timeout computed to be: 60
+1: -- run_test.py: invoking following command in '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion':
+1:  - /home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_relative_position_filter --gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relative_position_filter.gtest.xml
+1: Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+1: [==========] Running 5 tests from 1 test suite.
+1: [----------] Global test environment set-up.
+1: [----------] 5 tests from RelativePositionFilterTest
+1: [ RUN      ] RelativePositionFilterTest.PredictMatchesConstantVelocityModel
+1: [       OK ] RelativePositionFilterTest.PredictMatchesConstantVelocityModel (0 ms)
+1: [ RUN      ] RelativePositionFilterTest.CovarianceGrowsWithoutMeasurement
+1: [       OK ] RelativePositionFilterTest.CovarianceGrowsWithoutMeasurement (0 ms)
+1: [ RUN      ] RelativePositionFilterTest.GateRejectsLargeJump
+1: [       OK ] RelativePositionFilterTest.GateRejectsLargeJump (0 ms)
+1: [ RUN      ] RelativePositionFilterTest.UpdatePullsStateTowardMeasurement
+1: [       OK ] RelativePositionFilterTest.UpdatePullsStateTowardMeasurement (0 ms)
+1: [ RUN      ] RelativePositionFilterTest.RhoUsesSquareRootOfMaxEigenvalue
+1: [       OK ] RelativePositionFilterTest.RhoUsesSquareRootOfMaxEigenvalue (0 ms)
+1: [----------] 5 tests from RelativePositionFilterTest (0 ms total)
+1: 
+1: [----------] Global test environment tear-down
+1: [==========] 5 tests from 1 test suite ran. (0 ms total)
+1: [  PASSED  ] 5 tests.
+1: -- run_test.py: return code 0
+1: -- run_test.py: inject classname prefix into gtest result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relative_position_filter.gtest.xml'
+1: -- run_test.py: verify result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relative_position_filter.gtest.xml'
+1/5 Test #1: test_relative_position_filter ....   Passed    0.06 sec
+test 2
+    Start 2: test_relocalization_monitor
+
+2: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relocalization_monitor.gtest.xml" "--package-name" "relative_position_fusion" "--output-file" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/ament_cmake_gtest/test_relocalization_monitor.txt" "--command" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_relocalization_monitor" "--gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relocalization_monitor.gtest.xml"
+2: Test timeout computed to be: 60
+2: -- run_test.py: invoking following command in '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion':
+2:  - /home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_relocalization_monitor --gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relocalization_monitor.gtest.xml
+2: Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+2: [==========] Running 4 tests from 1 test suite.
+2: [----------] Global test environment set-up.
+2: [----------] 4 tests from RelocalizationMonitorTest
+2: [ RUN      ] RelocalizationMonitorTest.RequestsWhileUninitialized
+2: [       OK ] RelocalizationMonitorTest.RequestsWhileUninitialized (0 ms)
+2: [ RUN      ] RelocalizationMonitorTest.UsesEnterHoldCycles
+2: [       OK ] RelocalizationMonitorTest.UsesEnterHoldCycles (0 ms)
+2: [ RUN      ] RelocalizationMonitorTest.UsesExitHoldCycles
+2: [       OK ] RelocalizationMonitorTest.UsesExitHoldCycles (0 ms)
+2: [ RUN      ] RelocalizationMonitorTest.GateRejectsCanForceRequest
+2: [       OK ] RelocalizationMonitorTest.GateRejectsCanForceRequest (0 ms)
+2: [----------] 4 tests from RelocalizationMonitorTest (0 ms total)
+2: 
+2: [----------] Global test environment tear-down
+2: [==========] 4 tests from 1 test suite ran. (0 ms total)
+2: [  PASSED  ] 4 tests.
+2: -- run_test.py: return code 0
+2: -- run_test.py: inject classname prefix into gtest result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relocalization_monitor.gtest.xml'
+2: -- run_test.py: verify result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relocalization_monitor.gtest.xml'
+2/5 Test #2: test_relocalization_monitor ......   Passed    0.07 sec
+test 3
+    Start 3: test_time_alignment_buffer
+
+3: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_time_alignment_buffer.gtest.xml" "--package-name" "relative_position_fusion" "--output-file" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/ament_cmake_gtest/test_time_alignment_buffer.txt" "--command" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_time_alignment_buffer" "--gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_time_alignment_buffer.gtest.xml"
+3: Test timeout computed to be: 60
+3: -- run_test.py: invoking following command in '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion':
+3:  - /home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_time_alignment_buffer --gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_time_alignment_buffer.gtest.xml
+3: Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+3: [==========] Running 2 tests from 1 test suite.
+3: [----------] Global test environment set-up.
+3: [----------] 2 tests from TimeAlignmentBufferTest
+3: [ RUN      ] TimeAlignmentBufferTest.ReturnsLatestFreshSamples
+3: [       OK ] TimeAlignmentBufferTest.ReturnsLatestFreshSamples (1 ms)
+3: [ RUN      ] TimeAlignmentBufferTest.EstimatesVelocityFromPoseHistory
+3: [       OK ] TimeAlignmentBufferTest.EstimatesVelocityFromPoseHistory (0 ms)
+3: [----------] 2 tests from TimeAlignmentBufferTest (1 ms total)
+3: 
+3: [----------] Global test environment tear-down
+3: [==========] 2 tests from 1 test suite ran. (1 ms total)
+3: [  PASSED  ] 2 tests.
+3: -- run_test.py: return code 0
+3: -- run_test.py: inject classname prefix into gtest result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_time_alignment_buffer.gtest.xml'
+3: -- run_test.py: verify result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_time_alignment_buffer.gtest.xml'
+3/5 Test #3: test_time_alignment_buffer .......   Passed    0.07 sec
+test 4
+    Start 4: test_uav_state_adapter
+
+4: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_uav_state_adapter.gtest.xml" "--package-name" "relative_position_fusion" "--output-file" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/ament_cmake_gtest/test_uav_state_adapter.txt" "--command" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_uav_state_adapter" "--gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_uav_state_adapter.gtest.xml"
+4: Test timeout computed to be: 60
+4: -- run_test.py: invoking following command in '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion':
+4:  - /home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_uav_state_adapter --gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_uav_state_adapter.gtest.xml
+4: Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+4: [==========] Running 2 tests from 1 test suite.
+4: [----------] Global test environment set-up.
+4: [----------] 2 tests from UavStateAdapterTest
+4: [ RUN      ] UavStateAdapterTest.BuildsStateFromOdometry
+4: [       OK ] UavStateAdapterTest.BuildsStateFromOdometry (21 ms)
+4: [ RUN      ] UavStateAdapterTest.FallsBackToPoseDifferentiationForVelocity
+4: [       OK ] UavStateAdapterTest.FallsBackToPoseDifferentiationForVelocity (6 ms)
+4: [----------] 2 tests from UavStateAdapterTest (27 ms total)
+4: 
+4: [----------] Global test environment tear-down
+4: [==========] 2 tests from 1 test suite ran. (37 ms total)
+4: [  PASSED  ] 2 tests.
+4: -- run_test.py: return code 0
+4: -- run_test.py: inject classname prefix into gtest result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_uav_state_adapter.gtest.xml'
+4: -- run_test.py: verify result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_uav_state_adapter.gtest.xml'
+4/5 Test #4: test_uav_state_adapter ...........   Passed    0.21 sec
+test 5
+    Start 5: test_ugv_state_adapter
+
+5: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_ugv_state_adapter.gtest.xml" "--package-name" "relative_position_fusion" "--output-file" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/ament_cmake_gtest/test_ugv_state_adapter.txt" "--command" "/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_ugv_state_adapter" "--gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_ugv_state_adapter.gtest.xml"
+5: Test timeout computed to be: 60
+5: -- run_test.py: invoking following command in '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion':
+5:  - /home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_ugv_state_adapter --gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_ugv_state_adapter.gtest.xml
+5: Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+5: [==========] Running 2 tests from 1 test suite.
+5: [----------] Global test environment set-up.
+5: [----------] 2 tests from UgvStateAdapterTest
+5: [ RUN      ] UgvStateAdapterTest.PrefersAmclPoseAndFilteredVelocity
+5: [       OK ] UgvStateAdapterTest.PrefersAmclPoseAndFilteredVelocity (13 ms)
+5: [ RUN      ] UgvStateAdapterTest.FallsBackToOdomPoseWhenEnabled
+5: [       OK ] UgvStateAdapterTest.FallsBackToOdomPoseWhenEnabled (7 ms)
+5: [----------] 2 tests from UgvStateAdapterTest (20 ms total)
+5: 
+5: [----------] Global test environment tear-down
+5: [==========] 2 tests from 1 test suite ran. (26 ms total)
+5: [  PASSED  ] 2 tests.
+5: -- run_test.py: return code 0
+5: -- run_test.py: inject classname prefix into gtest result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_ugv_state_adapter.gtest.xml'
+5: -- run_test.py: verify result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_ugv_state_adapter.gtest.xml'
+5/5 Test #5: test_ugv_state_adapter ...........   Passed    0.21 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Label Time Summary:
+gtest    =   0.63 sec*proc (5 tests)
+
+Total Test time (real) =   0.63 sec

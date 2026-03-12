@@ -1,0 +1,1 @@
+ament_cmake_symlink_install_targets("TARGET_FILES" "/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing/aruco_detector_node" "/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing/visual_landing_node" "TARGETS" "aruco_detector_node" "visual_landing_node" "DESTINATION" "lib/uav_visual_landing")

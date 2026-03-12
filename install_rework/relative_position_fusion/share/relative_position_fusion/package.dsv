@@ -1,0 +1,8 @@
+source;share/relative_position_fusion/hook/cmake_prefix_path.ps1
+source;share/relative_position_fusion/hook/cmake_prefix_path.dsv
+source;share/relative_position_fusion/hook/cmake_prefix_path.sh
+source;share/relative_position_fusion/local_setup.bash
+source;share/relative_position_fusion/local_setup.dsv
+source;share/relative_position_fusion/local_setup.ps1
+source;share/relative_position_fusion/local_setup.sh
+source;share/relative_position_fusion/local_setup.zsh

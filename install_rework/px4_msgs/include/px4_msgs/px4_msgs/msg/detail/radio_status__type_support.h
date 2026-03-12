@@ -1,0 +1,1 @@
+/home/th1rt3en/DOCO/ws/build_rework/px4_msgs/rosidl_generator_c/px4_msgs/msg/detail/radio_status__type_support.h

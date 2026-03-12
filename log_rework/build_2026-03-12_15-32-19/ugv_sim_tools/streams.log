@@ -1,0 +1,110 @@
+[0.011s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/ugv_sim_tools -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools
+[0.056s] -- The C compiler identification is GNU 11.4.0
+[0.101s] -- The CXX compiler identification is GNU 11.4.0
+[0.106s] -- Detecting C compiler ABI info
+[0.167s] -- Detecting C compiler ABI info - done
+[0.171s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.171s] -- Detecting C compile features
+[0.172s] -- Detecting C compile features - done
+[0.174s] -- Detecting CXX compiler ABI info
+[0.242s] -- Detecting CXX compiler ABI info - done
+[0.247s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.248s] -- Detecting CXX compile features
+[0.248s] -- Detecting CXX compile features - done
+[0.250s] -- Found ament_cmake: 1.3.13 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.364s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.410s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.434s] -- Found geometry_msgs: 4.9.1 (/opt/ros/humble/share/geometry_msgs/cmake)
+[0.466s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.470s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.476s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.485s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.496s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.522s] -- Found nav_msgs: 4.9.1 (/opt/ros/humble/share/nav_msgs/cmake)
+[0.544s] -- Found rclcpp: 16.0.18 (/opt/ros/humble/share/rclcpp/cmake)
+[0.560s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.562s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[0.644s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[0.675s] -- Found FastRTPS: /opt/ros/humble/include  
+[0.715s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[0.722s] -- Looking for pthread.h
+[0.796s] -- Looking for pthread.h - found
+[0.796s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[0.862s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[0.862s] -- Found Threads: TRUE  
+[0.890s] -- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)
+[0.902s] -- Found tf2_ros: 0.25.19 (/opt/ros/humble/share/tf2_ros/cmake)
+[0.980s] -- Found ament_cmake_gtest: 1.3.13 (/opt/ros/humble/share/ament_cmake_gtest/cmake)
+[0.984s] -- Found gtest sources under '/opt/ros/humble/src/gtest_vendor': C++ tests using 'Google Test' will be built
+[1.048s] -- Configuring done
+[1.073s] -- Generating done
+[1.083s] -- Build files have been written to: /home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools
+[1.096s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/ugv_sim_tools -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools
+[1.098s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools -- -j16 -l16
+[1.147s] [ 20%] Building CXX object gtest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
+[1.147s] [ 20%] Building CXX object CMakeFiles/ugv_sim_tools_core.dir/src/clock_guard_logic.cpp.o
+[1.147s] [ 24%] Building CXX object CMakeFiles/ugv_sim_tools_core.dir/src/odom_to_tf_logic.cpp.o
+[1.148s] [ 20%] Building CXX object gtest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o
+[1.148s] [ 20%] Building CXX object CMakeFiles/ugv_sim_tools_core.dir/src/point_cloud_utils.cpp.o
+[1.148s] [ 24%] Building CXX object CMakeFiles/ugv_sim_tools_core.dir/src/initial_pose_logic.cpp.o
+[1.645s] [ 28%] Linking CXX static library libugv_sim_tools_core.a
+[1.714s] [ 28%] Built target ugv_sim_tools_core
+[1.737s] [ 48%] Building CXX object CMakeFiles/joint_state_stamp_fix_node.dir/src/joint_state_stamp_fix_node.cpp.o
+[1.737s] [ 48%] Building CXX object CMakeFiles/odom_to_tf_node.dir/src/odom_to_tf_node.cpp.o
+[1.737s] [ 48%] Building CXX object CMakeFiles/clock_guard_node.dir/src/clock_guard_node.cpp.o
+[1.737s] [ 48%] Building CXX object CMakeFiles/scan_frame_rewriter.dir/src/scan_frame_rewriter_node.cpp.o
+[1.737s] [ 48%] Building CXX object CMakeFiles/initial_pose_publisher.dir/src/initial_pose_publisher_node.cpp.o
+[1.737s] [ 52%] Building CXX object CMakeFiles/orbbec_topic_compat_node.dir/src/orbbec_topic_compat_node.cpp.o
+[1.888s] [ 56%] Linking CXX static library libgtest_main.a
+[1.965s] [ 56%] Built target gtest_main
+[3.769s] [ 60%] Linking CXX static library libgtest.a
+[3.866s] [ 60%] Built target gtest
+[3.887s] [ 68%] Building CXX object CMakeFiles/test_odom_to_tf_logic.dir/test/test_odom_to_tf_logic.cpp.o
+[3.887s] [ 68%] Building CXX object CMakeFiles/test_initial_pose_logic.dir/test/test_initial_pose_logic.cpp.o
+[4.867s] [ 72%] Linking CXX executable test_initial_pose_logic
+[4.894s] [ 76%] Linking CXX executable test_odom_to_tf_logic
+[5.043s] [ 76%] Built target test_odom_to_tf_logic
+[5.058s] [ 76%] Built target test_initial_pose_logic
+[9.413s] [ 80%] Linking CXX executable clock_guard_node
+[9.451s] [ 84%] Linking CXX executable scan_frame_rewriter
+[9.459s] [ 88%] Linking CXX executable joint_state_stamp_fix_node
+[9.644s] [ 92%] Linking CXX executable initial_pose_publisher
+[9.749s] [ 96%] Linking CXX executable odom_to_tf_node
+[9.871s] [ 96%] Built target clock_guard_node
+[9.926s] [ 96%] Built target scan_frame_rewriter
+[9.952s] [ 96%] Built target joint_state_stamp_fix_node
+[10.125s] [ 96%] Built target initial_pose_publisher
+[10.246s] [ 96%] Built target odom_to_tf_node
+[14.672s] [100%] Linking CXX executable orbbec_topic_compat_node
+[15.206s] [100%] Built target orbbec_topic_compat_node
+[15.217s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools -- -j16 -l16
+[15.218s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools
+[15.225s] -- Install configuration: ""
+[15.226s] -- Execute custom install script
+[15.226s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/lib/libugv_sim_tools_core.a
+[15.235s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/lib/ugv_sim_tools/joint_state_stamp_fix_node
+[15.245s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/lib/ugv_sim_tools/scan_frame_rewriter
+[15.254s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/lib/ugv_sim_tools/odom_to_tf_node
+[15.263s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/lib/ugv_sim_tools/initial_pose_publisher
+[15.273s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/lib/ugv_sim_tools/clock_guard_node
+[15.283s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/lib/ugv_sim_tools/orbbec_topic_compat_node
+[15.294s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/include/ugv_sim_tools/clock_guard_logic.hpp
+[15.304s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/include/ugv_sim_tools/initial_pose_logic.hpp
+[15.313s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/include/ugv_sim_tools/odom_to_tf_logic.hpp
+[15.321s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/include/ugv_sim_tools/point_cloud_utils.hpp
+[15.331s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ament_index/resource_index/package_run_dependencies/ugv_sim_tools
+[15.340s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ament_index/resource_index/parent_prefix_path/ugv_sim_tools
+[15.350s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/environment/ament_prefix_path.sh
+[15.359s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/environment/ament_prefix_path.dsv
+[15.368s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/environment/path.sh
+[15.379s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/environment/path.dsv
+[15.389s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/local_setup.bash
+[15.398s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/local_setup.sh
+[15.407s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/local_setup.zsh
+[15.416s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/local_setup.dsv
+[15.425s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/package.dsv
+[15.435s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ament_index/resource_index/packages/ugv_sim_tools
+[15.445s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/cmake/ugv_sim_toolsConfig.cmake
+[15.455s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/cmake/ugv_sim_toolsConfig-version.cmake
+[15.463s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools/share/ugv_sim_tools/package.xml
+[15.475s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools

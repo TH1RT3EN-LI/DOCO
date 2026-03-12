@@ -1,0 +1,308 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-11d7bfc5abd3d6b93a02.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						5,
+						6,
+						7,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22
+					]
+				},
+				{
+					"build" : "uav_visual_landing__py",
+					"jsonFile" : "directory-uav_visual_landing__py-0549fccfb64a93ff8d8f.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing/uav_visual_landing__py",
+					"targetIndexes" : 
+					[
+						8
+					]
+				},
+				{
+					"build" : "gtest",
+					"jsonFile" : "directory-gtest-a2408fe1a73b92c5e636.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "/opt/ros/humble/src/gtest_vendor",
+					"targetIndexes" : 
+					[
+						3,
+						4
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "uav_visual_landing",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2
+					],
+					"name" : "gtest",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						3,
+						4
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_build_uav_visual_landing_egg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_build_uav_visual_landing_egg-9ccab316a4d7b3d35b95.json",
+					"name" : "ament_cmake_python_build_uav_visual_landing_egg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_symlink_uav_visual_landing::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_symlink_uav_visual_landing-a9b8a16eca24b05fb913.json",
+					"name" : "ament_cmake_python_symlink_uav_visual_landing",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "aruco_detector_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-aruco_detector_node-742f970b7c17c6dd0890.json",
+					"name" : "aruco_detector_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "gtest::@0af4add9fe94340e763e",
+					"jsonFile" : "target-gtest-8ec13b7cdad346c7a3a7.json",
+					"name" : "gtest",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "gtest_main::@0af4add9fe94340e763e",
+					"jsonFile" : "target-gtest_main-cd8122a4ec080d3324b6.json",
+					"name" : "gtest_main",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_visual_landing_logic::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_visual_landing_logic-f9b31f9b56e2dbd769f2.json",
+					"name" : "test_visual_landing_logic",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing-834f9c27b2f235e9bb8b.json",
+					"name" : "uav_visual_landing",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__cpp-933c8468f47c10eab431.json",
+					"name" : "uav_visual_landing__cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "uav_visual_landing__py::@b7822af4224e8cc146d7",
+					"jsonFile" : "target-uav_visual_landing__py-21d6584dc3e7153e1a2f.json",
+					"name" : "uav_visual_landing__py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_generator_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_generator_c-09e32af4d493707177aa.json",
+					"name" : "uav_visual_landing__rosidl_generator_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_generator_py::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_generator_py-40d57e491c99d84c372f.json",
+					"name" : "uav_visual_landing__rosidl_generator_py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_typesupport_c-69c4dd957d01e7d62d8c.json",
+					"name" : "uav_visual_landing__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_typesupport_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_typesupport_c__pyext-08d4bcbc62f6ea44f66e.json",
+					"name" : "uav_visual_landing__rosidl_typesupport_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_typesupport_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_typesupport_cpp-f3e313d5348863efe498.json",
+					"name" : "uav_visual_landing__rosidl_typesupport_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_typesupport_fastrtps_c-defc3268e9fab4610b75.json",
+					"name" : "uav_visual_landing__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_typesupport_fastrtps_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_typesupport_fastrtps_c__pyext-11ba67b24bca5c500b61.json",
+					"name" : "uav_visual_landing__rosidl_typesupport_fastrtps_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_typesupport_fastrtps_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_typesupport_fastrtps_cpp-5ac49bc47b159480f230.json",
+					"name" : "uav_visual_landing__rosidl_typesupport_fastrtps_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_typesupport_introspection_c-562b7edcaeea7c7aa466.json",
+					"name" : "uav_visual_landing__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_typesupport_introspection_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_typesupport_introspection_c__pyext-5bd270dd22d0b36c50fe.json",
+					"name" : "uav_visual_landing__rosidl_typesupport_introspection_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing__rosidl_typesupport_introspection_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing__rosidl_typesupport_introspection_cpp-57556b497339a2c55db6.json",
+					"name" : "uav_visual_landing__rosidl_typesupport_introspection_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_visual_landing_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_visual_landing_uninstall-38b66567a9a4d1d0d2a6.json",
+					"name" : "uav_visual_landing_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-d8cd32afdbfc9409de53.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "visual_landing_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-visual_landing_node-b4cbcd720f619c7b9af5.json",
+					"name" : "visual_landing_node",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing",
+		"source" : "/home/th1rt3en/DOCO/ws/src/uav_visual_landing"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

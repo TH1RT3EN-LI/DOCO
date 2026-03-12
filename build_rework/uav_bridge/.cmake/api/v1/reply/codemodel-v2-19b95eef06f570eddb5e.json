@@ -1,0 +1,274 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-09e5ce9a8a8a2e296ed3.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.2"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20
+					]
+				},
+				{
+					"build" : "gtest",
+					"jsonFile" : "directory-gtest-a2408fe1a73b92c5e636.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "/opt/ros/humble/src/gtest_vendor",
+					"targetIndexes" : 
+					[
+						1,
+						2
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "uav_bridge",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "gtest",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "fmu_topic_namespace_bridge_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-fmu_topic_namespace_bridge_node-6974e86ef61f885d04bd.json",
+					"name" : "fmu_topic_namespace_bridge_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "gtest::@0af4add9fe94340e763e",
+					"jsonFile" : "target-gtest-6d1c3012872dcb4eecc4.json",
+					"name" : "gtest",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "gtest_main::@0af4add9fe94340e763e",
+					"jsonFile" : "target-gtest_main-ad64cff466679378b79d.json",
+					"name" : "gtest_main",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mono_camera_bridge_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mono_camera_bridge_node-7c757e947ee6b5820c88.json",
+					"name" : "mono_camera_bridge_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mono_camera_source_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mono_camera_source_node-a57ad6a6cf5a75863b73.json",
+					"name" : "mono_camera_source_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "offboard_bridge_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-offboard_bridge_node-8583c0e4559c60984c0c.json",
+					"name" : "offboard_bridge_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "optical_flow_bridge_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-optical_flow_bridge_node-6e74d18b3b46aa348d5d.json",
+					"name" : "optical_flow_bridge_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "px4_odom_adapter_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-px4_odom_adapter_node-10c06c45fc5ae9f7dbdf.json",
+					"name" : "px4_odom_adapter_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "px4_planar_state_reader_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-px4_planar_state_reader_node-34e3827bf2a7b89c9d01.json",
+					"name" : "px4_planar_state_reader_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "rangefinder_bridge_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-rangefinder_bridge_node-fcb2bb9c40d29231880d.json",
+					"name" : "rangefinder_bridge_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "stereo_camera_bridge_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-stereo_camera_bridge_node-a96fd9dceb49fbeb8813.json",
+					"name" : "stereo_camera_bridge_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_px4_odom_adapter_logic::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_px4_odom_adapter_logic-a27dc43097a1f1dcc28f.json",
+					"name" : "test_px4_odom_adapter_logic",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_uav_control_logic::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_uav_control_logic-051e0f6df4e177e18a52.json",
+					"name" : "test_uav_control_logic",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_uav_state_bridge_logic::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_uav_state_bridge_logic-81b7535ef3f86ef0f8a4.json",
+					"name" : "test_uav_state_bridge_logic",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tf_bridge_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tf_bridge_node-9553e5708c5ff09c57f3.json",
+					"name" : "tf_bridge_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_bridge_px4_odom_adapter_logic::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_bridge_px4_odom_adapter_logic-01f850f944ef24e3377f.json",
+					"name" : "uav_bridge_px4_odom_adapter_logic",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_bridge_uav_state_bridge_logic::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_bridge_uav_state_bridge_logic-1e29583f30ed7d14ddff.json",
+					"name" : "uav_bridge_uav_state_bridge_logic",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_bridge_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_bridge_uninstall-c96cdfd684ab8e1456e7.json",
+					"name" : "uav_bridge_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_control_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_control_node-5b726278693d8bf6558d.json",
+					"name" : "uav_control_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uav_state_bridge_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uav_state_bridge_node-4c2a6e0e12e08fb1cbdf.json",
+					"name" : "uav_state_bridge_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-b9482d551998d080c6c0.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/th1rt3en/DOCO/ws/build_rework/uav_bridge",
+		"source" : "/home/th1rt3en/DOCO/ws/src/uav_bridge"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

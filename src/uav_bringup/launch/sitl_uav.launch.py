@@ -276,16 +276,16 @@ def generate_launch_description():
         ],
     )
 
-    px4_odom_adapter = Node(
+    uav_state_bridge = Node(
         package="uav_bridge",
-        executable="px4_odom_adapter_node",
-        name="px4_odom_adapter",
+        executable="uav_state_bridge_node",
+        name="uav_state_bridge",
         output="screen",
         parameters=[
             {"use_sim_time": True},
             {"vehicle_local_position_topic": vehicle_local_position_topic},
             {"vehicle_odometry_topic": vehicle_odometry_topic},
-            {"output_odom_topic": "/uav/odom"},
+            {"output_odometry_topic": "/uav/state/odometry"},
             {"map_frame_id": uav_map_frame},
             {"odom_frame_id": uav_odom_frame},
             {"base_frame_id": base_frame},
@@ -327,7 +327,9 @@ def generate_launch_description():
             {"link_name": base_frame},
             {"sensor_name": mono_camera_sensor},
             {"ros_image_topic": "/uav/camera/image_raw"},
+            {"ros_camera_info_topic": "/uav/camera/camera_info"},
             {"frame_id": mono_camera_frame},
+            {"camera_hfov_rad": 1.3962634},
         ],
     )
 
@@ -363,10 +365,10 @@ def generate_launch_description():
         ],
     )
 
-    offboard_bridge = Node(
+    uav_control = Node(
         package="uav_bridge",
-        executable="offboard_bridge_node",
-        name="offboard_bridge",
+        executable="uav_control_node",
+        name="uav_control",
         output="screen",
         parameters=[
             {"use_sim_time": True},
@@ -377,7 +379,6 @@ def generate_launch_description():
             {"vehicle_command_topic": vehicle_command_topic},
             {"px4_local_position_topic": vehicle_local_position_topic},
             {"vehicle_status_topic": vehicle_status_topic},
-            {"command_frame_id": uav_map_frame},
         ],
         condition=IfCondition(use_offboard_bridge),
     )
@@ -405,14 +406,14 @@ def generate_launch_description():
             ).stdout
         except FileNotFoundError:
             return [
-                LogInfo(msg="[uav_sitl] 'ss' unavailable; starting offboard bridge without UDP readiness check."),
-                offboard_bridge,
+                LogInfo(msg="[uav_sitl] 'ss' unavailable; starting UAV control without UDP readiness check."),
+                uav_control,
             ]
 
         if f":{port_value} " in socket_listeners or socket_listeners.rstrip().endswith(f":{port_value}"):
             return [
-                LogInfo(msg=f"[uav_sitl] MicroXRCEAgent UDP port ready on {port_value}; starting offboard bridge."),
-                offboard_bridge,
+                LogInfo(msg=f"[uav_sitl] MicroXRCEAgent UDP port ready on {port_value}; starting UAV control."),
+                uav_control,
             ]
 
         actions = []
@@ -475,9 +476,10 @@ def generate_launch_description():
         name="aruco_detector_node",
         output="screen",
         parameters=[
+            {"use_sim_time": True},
             {"target_marker_id": 0},
             {"marker_size_m": 0.2},
-            {"landing_error_topic": "/uav/visual_landing/landing_error"},
+            {"target_observation_topic": "/uav/visual_landing/target_observation"},
         ],
     )
     visual_landing = Node(
@@ -485,7 +487,10 @@ def generate_launch_description():
         executable="visual_landing_node",
         name="visual_landing_node",
         output="screen",
-        parameters=[visual_landing_config],
+        parameters=[
+            {"use_sim_time": True},
+            visual_landing_config,
+        ],
     )
     def create_robot_state_publisher(context):
         if shutil.which("xacro") is None:
@@ -696,7 +701,7 @@ def generate_launch_description():
             sim_clock_bridge,
             global_to_uav_map_tf_action,
             gz_ground_truth_bridge,
-            px4_odom_adapter,
+            uav_state_bridge,
             px4_planar_state_reader,
             mono_camera_bridge,
             stereo_camera_bridge,

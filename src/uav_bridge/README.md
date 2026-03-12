@@ -1,5 +1,8 @@
 # `uav_bridge` 与 PX4 连接说明
 
+> 注意：本文大部分章节描述的是旧 `offboard_bridge_node` / `/uav/odom` 链路。
+> 当前工作区主状态与控制链已经切换到 `uav_state_bridge_node`、`uav_control_node`、`/uav/state/odometry`。
+
 本文档说明当前工程里 `uav_bridge` 包，尤其是 `offboard_bridge_node`，在整套 UAV 仿真/控制链路中的作用。
 
 重点回答 4 个问题：

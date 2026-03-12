@@ -1,0 +1,1 @@
+/home/th1rt3en/DOCO/ws/src/uav_bringup/scripts/run_px4_gz_uav.sh

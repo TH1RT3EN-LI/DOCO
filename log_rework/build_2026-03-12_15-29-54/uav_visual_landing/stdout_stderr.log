@@ -1,0 +1,45 @@
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_generator_c
+Consolidate compiler generated dependencies of target gtest_main
+Consolidate compiler generated dependencies of target gtest
+[  4%] Built target gtest_main
+[ 12%] Built target uav_visual_landing__rosidl_generator_c
+[ 16%] Built target ament_cmake_python_symlink_uav_visual_landing
+[ 16%] Built target uav_visual_landing__cpp
+[ 18%] Built target gtest
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_typesupport_c
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_typesupport_introspection_c
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_typesupport_fastrtps_c
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_typesupport_introspection_cpp
+Consolidate compiler generated dependencies of target test_visual_landing_logic
+[ 26%] Built target uav_visual_landing__rosidl_typesupport_c
+[ 34%] Built target uav_visual_landing__rosidl_typesupport_introspection_c
+[ 42%] Built target uav_visual_landing__rosidl_typesupport_fastrtps_c
+[ 46%] Built target test_visual_landing_logic
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_typesupport_cpp
+[ 55%] Built target uav_visual_landing__rosidl_typesupport_introspection_cpp
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_typesupport_fastrtps_cpp
+[ 63%] Built target uav_visual_landing__rosidl_typesupport_cpp
+[ 71%] Built target uav_visual_landing__rosidl_typesupport_fastrtps_cpp
+[ 71%] Built target uav_visual_landing
+Consolidate compiler generated dependencies of target visual_landing_node
+Consolidate compiler generated dependencies of target aruco_detector_node
+[ 73%] Built target uav_visual_landing__py
+[ 77%] Built target aruco_detector_node
+[ 79%] Building CXX object CMakeFiles/visual_landing_node.dir/src/visual_landing_node.cpp.o
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_generator_py
+[ 85%] Built target uav_visual_landing__rosidl_generator_py
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_typesupport_fastrtps_c__pyext
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_typesupport_introspection_c__pyext
+Consolidate compiler generated dependencies of target uav_visual_landing__rosidl_typesupport_c__pyext
+[ 97%] Built target uav_visual_landing__rosidl_typesupport_introspection_c__pyext
+[ 97%] Built target uav_visual_landing__rosidl_typesupport_fastrtps_c__pyext
+[ 97%] Built target uav_visual_landing__rosidl_typesupport_c__pyext
+running egg_info
+writing uav_visual_landing.egg-info/PKG-INFO
+writing dependency_links to uav_visual_landing.egg-info/dependency_links.txt
+writing top-level names to uav_visual_landing.egg-info/top_level.txt
+reading manifest file 'uav_visual_landing.egg-info/SOURCES.txt'
+writing manifest file 'uav_visual_landing.egg-info/SOURCES.txt'
+[ 97%] Built target ament_cmake_python_build_uav_visual_landing_egg
+[100%] Linking CXX executable visual_landing_node
+[100%] Built target visual_landing_node

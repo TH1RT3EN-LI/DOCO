@@ -1,0 +1,27 @@
+-- run_test.py: invoking following command in '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion':
+ - /home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_relative_position_filter --gtest_output=xml:/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relative_position_filter.gtest.xml
+
+Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from RelativePositionFilterTest
+[ RUN      ] RelativePositionFilterTest.PredictMatchesConstantVelocityModel
+[       OK ] RelativePositionFilterTest.PredictMatchesConstantVelocityModel (0 ms)
+[ RUN      ] RelativePositionFilterTest.CovarianceGrowsWithoutMeasurement
+[       OK ] RelativePositionFilterTest.CovarianceGrowsWithoutMeasurement (0 ms)
+[ RUN      ] RelativePositionFilterTest.GateRejectsLargeJump
+[       OK ] RelativePositionFilterTest.GateRejectsLargeJump (0 ms)
+[ RUN      ] RelativePositionFilterTest.UpdatePullsStateTowardMeasurement
+[       OK ] RelativePositionFilterTest.UpdatePullsStateTowardMeasurement (0 ms)
+[ RUN      ] RelativePositionFilterTest.RhoUsesSquareRootOfMaxEigenvalue
+[       OK ] RelativePositionFilterTest.RhoUsesSquareRootOfMaxEigenvalue (0 ms)
+[----------] 5 tests from RelativePositionFilterTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 5 tests.
+
+
+-- run_test.py: return code 0
+-- run_test.py: inject classname prefix into gtest result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relative_position_filter.gtest.xml'
+-- run_test.py: verify result file '/home/th1rt3en/DOCO/ws/build_rework/relative_position_fusion/test_results/relative_position_fusion/test_relative_position_filter.gtest.xml'

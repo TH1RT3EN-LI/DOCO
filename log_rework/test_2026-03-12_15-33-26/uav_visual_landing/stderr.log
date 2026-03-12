@@ -1,0 +1,3 @@
+Errors while running CTest
+Output from these tests are in: /home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

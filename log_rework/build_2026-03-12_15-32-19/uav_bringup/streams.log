@@ -1,0 +1,76 @@
+[0.013s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bringup': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/uav_bringup -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/uav_bringup
+[0.063s] -- The C compiler identification is GNU 11.4.0
+[0.109s] -- The CXX compiler identification is GNU 11.4.0
+[0.114s] -- Detecting C compiler ABI info
+[0.181s] -- Detecting C compiler ABI info - done
+[0.186s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.186s] -- Detecting C compile features
+[0.186s] -- Detecting C compile features - done
+[0.188s] -- Detecting CXX compiler ABI info
+[0.262s] -- Detecting CXX compiler ABI info - done
+[0.266s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.266s] -- Detecting CXX compile features
+[0.267s] -- Detecting CXX compile features - done
+[0.270s] -- Found ament_cmake: 1.3.13 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.389s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.437s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.585s] -- Configuring done
+[0.588s] -- Generating done
+[0.589s] -- Build files have been written to: /home/th1rt3en/DOCO/ws/build_rework/uav_bringup
+[0.594s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bringup' returned '0': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/uav_bringup -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/uav_bringup
+[0.595s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bringup': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/uav_bringup -- -j16 -l16
+[0.653s] Built target ament_cmake_python_symlink_uav_bringup
+[0.823s] running egg_info
+[0.823s] creating uav_bringup.egg-info
+[0.824s] writing uav_bringup.egg-info/PKG-INFO
+[0.824s] writing dependency_links to uav_bringup.egg-info/dependency_links.txt
+[0.824s] writing top-level names to uav_bringup.egg-info/top_level.txt
+[0.824s] writing manifest file 'uav_bringup.egg-info/SOURCES.txt'
+[0.825s] reading manifest file 'uav_bringup.egg-info/SOURCES.txt'
+[0.826s] writing manifest file 'uav_bringup.egg-info/SOURCES.txt'
+[0.851s] Built target ament_cmake_python_build_uav_bringup_egg
+[0.864s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bringup' returned '0': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/uav_bringup -- -j16 -l16
+[0.865s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bringup': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/uav_bringup
+[0.873s] -- Install configuration: ""
+[0.874s] -- Execute custom install script
+[0.874s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/environment/pythonpath.sh
+[0.884s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/environment/pythonpath.dsv
+[0.893s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages/uav_bringup-0.1.0-py3.10.egg-info/PKG-INFO
+[0.902s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages/uav_bringup-0.1.0-py3.10.egg-info/SOURCES.txt
+[0.914s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages/uav_bringup-0.1.0-py3.10.egg-info/dependency_links.txt
+[0.923s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages/uav_bringup-0.1.0-py3.10.egg-info/top_level.txt
+[0.934s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages/uav_bringup/__init__.py
+[0.944s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages/uav_bringup/profile_defaults.py
+[0.953s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/lib/uav_bringup/run_px4_gz_uav.sh
+[0.965s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/launch/__pycache__/gz_sim.launch.cpython-310.pyc
+[0.974s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/launch/__pycache__/profile_defaults.cpython-310.pyc
+[0.983s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/launch/__pycache__/sitl_uav.launch.cpython-310.pyc
+[0.993s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/launch/__pycache__/sitl_uav_ego.launch.cpython-310.pyc
+[1.001s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/launch/gz_sim.launch.py
+[1.012s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/launch/profile_defaults.py
+[1.020s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/launch/px4_planar_odom.launch.py
+[1.030s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/launch/sitl_uav.launch.py
+[1.039s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/config/px4/airframes/4901_gz_uav
+[1.049s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/config/px4/rc/frames/hw_uav.params
+[1.058s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/config/px4/rc/px4-rc.params
+[1.069s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/config/rviz/sitl_uav.rviz
+[1.078s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/config/sim/uav.env
+[1.087s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/ament_index/resource_index/package_run_dependencies/uav_bringup
+[1.096s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/ament_index/resource_index/parent_prefix_path/uav_bringup
+[1.105s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/environment/ament_prefix_path.sh
+[1.115s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/environment/ament_prefix_path.dsv
+[1.124s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/environment/path.sh
+[1.133s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/environment/path.dsv
+[1.141s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/local_setup.bash
+[1.151s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/local_setup.sh
+[1.162s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/local_setup.zsh
+[1.174s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/local_setup.dsv
+[1.185s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/package.dsv
+[1.196s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/ament_index/resource_index/packages/uav_bringup
+[1.209s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/cmake/uav_bringupConfig.cmake
+[1.219s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/cmake/uav_bringupConfig-version.cmake
+[1.231s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bringup/share/uav_bringup/package.xml
+[1.266s] Listing '/home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages/uav_bringup'...
+[1.267s] Compiling '/home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages/uav_bringup/__init__.py'...
+[1.267s] Compiling '/home/th1rt3en/DOCO/ws/install_rework/uav_bringup/local/lib/python3.10/dist-packages/uav_bringup/profile_defaults.py'...
+[1.272s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bringup' returned '0': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/uav_bridge:/home/th1rt3en/DOCO/ws/install_rework/sim_worlds:/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/home/th1rt3en/DOCO/ws/install_rework/uav_description:/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing:/home/th1rt3en/DOCO/ws/install_rework/relative_position_fusion:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/uav_visual_landing/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/uav_bringup

@@ -83,7 +83,7 @@ private:
     this->declare_parameter<std::string>("uav_body_frame", "uav_base_link");
     this->declare_parameter<double>("tf_lookup_timeout_sec", 0.03);
 
-    this->declare_parameter<std::string>("uav_odom_topic", "/uav/odom");
+    this->declare_parameter<std::string>("uav_odom_topic", "/uav/state/odometry");
     this->declare_parameter<std::string>("ugv_amcl_pose_topic", "/amcl_pose");
     this->declare_parameter<std::string>("ugv_filtered_odom_topic", "/ugv/odometry/filtered");
     this->declare_parameter<std::string>("ugv_odom_topic", "/ugv/odom");

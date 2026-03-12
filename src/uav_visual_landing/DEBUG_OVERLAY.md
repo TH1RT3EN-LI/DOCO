@@ -1,5 +1,8 @@
 # `uav_visual_landing` Debug Overlay 说明
 
+> 注意：本文描述的是旧版 debug overlay 与旧 `LandingError` / `LandingStatus` 契约。
+> 当前实现已切换到 `TargetObservation` / `LandingControllerState`，本文内容仅可作为历史参考。
+
 本文说明 `aruco_detector_node` 发布的 debug 图像里“现在都显示了什么”、每一项的含义、以及它们各自来自哪里。
 
 ## 1. Debug 图像是怎么生成的

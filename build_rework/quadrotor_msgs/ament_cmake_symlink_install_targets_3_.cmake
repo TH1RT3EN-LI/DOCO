@@ -1,0 +1,1 @@
+ament_cmake_symlink_install_targets("TARGET_FILES" "/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/libdecode_msgs.so" "/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/libencode_msgs.so" "TARGETS" "decode_msgs" "encode_msgs" "DESTINATION" "lib")
