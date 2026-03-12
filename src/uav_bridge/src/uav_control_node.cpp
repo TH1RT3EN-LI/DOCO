@@ -70,6 +70,7 @@ public:
     this->declare_parameter<double>("velocity_mode_max_acc_xy_mps2", 1.0);
     this->declare_parameter<double>("velocity_mode_max_acc_z_mps2", 0.6);
     this->declare_parameter<double>("velocity_mode_max_acc_yaw_radps2", 1.5);
+    this->declare_parameter<double>("state_timeout_s", 0.20);
     this->declare_parameter<std::string>("base_frame_id", "uav_base_link");
     this->declare_parameter<std::string>("px4_timestamp_source", "system");
     this->declare_parameter<std::string>("gz_world_name", "test");
@@ -100,6 +101,7 @@ public:
     velocity_mode_max_acc_xy_mps2_ = static_cast<float>(this->get_parameter("velocity_mode_max_acc_xy_mps2").as_double());
     velocity_mode_max_acc_z_mps2_ = static_cast<float>(this->get_parameter("velocity_mode_max_acc_z_mps2").as_double());
     velocity_mode_max_acc_yaw_radps2_ = static_cast<float>(this->get_parameter("velocity_mode_max_acc_yaw_radps2").as_double());
+    state_timeout_s_ = this->get_parameter("state_timeout_s").as_double();
     base_frame_id_ = this->get_parameter("base_frame_id").as_string();
     gz_world_name_ = this->get_parameter("gz_world_name").as_string();
     gz_clock_topic_ = this->get_parameter("gz_clock_topic").as_string();
@@ -121,8 +123,11 @@ public:
     trajectory_setpoint_pub_ = this->create_publisher<px4_msgs::msg::TrajectorySetpoint>(trajectory_setpoint_topic_, 10);
     vehicle_command_pub_ = this->create_publisher<px4_msgs::msg::VehicleCommand>(vehicle_command_topic_, 10);
 
+    auto velocity_body_qos = rclcpp::SensorDataQoS();
+    velocity_body_qos.keep_last(1);
+
     velocity_body_sub_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
-      velocity_body_topic_, 10,
+      velocity_body_topic_, velocity_body_qos,
       [this](const geometry_msgs::msg::TwistStamped::SharedPtr msg)
       {
         handleVelocityBodyTarget(*msg);
@@ -132,6 +137,8 @@ public:
       state_topic_, rclcpp::SensorDataQoS(),
       [this](const nav_msgs::msg::Odometry::SharedPtr msg)
       {
+        const bool has_stamp =
+          (msg->header.stamp.sec != 0) || (msg->header.stamp.nanosec != 0);
         current_position_enu_ = {
           static_cast<float>(msg->pose.pose.position.x),
           static_cast<float>(msg->pose.pose.position.y),
@@ -143,6 +150,7 @@ public:
           msg->pose.pose.orientation.z,
           msg->pose.pose.orientation.w);
         current_orientation_enu_flu_.normalize();
+        last_state_time_ = has_stamp ? rclcpp::Time(msg->header.stamp) : this->now();
         has_state_ = true;
       });
 
@@ -163,8 +171,10 @@ public:
         is_armed_ = msg->arming_state == px4_msgs::msg::VehicleStatus::ARMING_STATE_ARMED;
         is_offboard_mode_ = msg->nav_state == px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD;
         if (!is_armed_ && mode_tracker_.mode() == UavControlMode::Landing) {
+          clearPostLandingCommands();
           mode_tracker_.onLandingComplete();
           resetWarmup();
+          RCLCPP_INFO(this->get_logger(), "landing complete, control mode -> HOLD (targets cleared)");
         }
       });
 
@@ -221,6 +231,15 @@ private:
     setpoint_counter_ = 0;
   }
 
+  void clearPostLandingCommands()
+  {
+    has_velocity_body_cmd_ = false;
+    velocity_mode_rate_limit_initialized_ = false;
+    last_velocity_mode_ned_ = {0.0f, 0.0f, 0.0f};
+    last_velocity_mode_yawspeed_ned_ = 0.0f;
+    hold_target_valid_ = false;
+  }
+
   void logModeChange(UavControlMode previous, const char * reason)
   {
     if (previous != mode_tracker_.mode()) {
@@ -261,12 +280,22 @@ private:
 
   bool isPx4ExecutionReady() const
   {
-    return has_local_position_ && has_state_;
+    return has_local_position_ && has_state_ && stateFresh();
   }
 
   bool isPx4VelocityExecutionReady() const
   {
     return isPx4ExecutionReady() && has_local_velocity_;
+  }
+
+  bool stateFresh() const
+  {
+    if (!has_state_ || last_state_time_.nanoseconds() == 0) {
+      return false;
+    }
+
+    const double age_s = (this->now() - last_state_time_).seconds();
+    return std::isfinite(age_s) && age_s >= 0.0 && age_s <= state_timeout_s_;
   }
 
   void publishVehicleCommand(uint32_t command, float param1, float param2)
@@ -569,7 +598,7 @@ private:
     if (!isPx4VelocityExecutionReady()) {
       RCLCPP_WARN_THROTTLE(
         this->get_logger(), *this->get_clock(), 1000,
-        "PX4 local velocity estimate lost during velocity mode, switching to hold");
+        "PX4 state or local velocity estimate lost during velocity mode, switching to hold");
       has_velocity_body_cmd_ = false;
       std::string ignored;
       handleHoldRequest(ignored);
@@ -650,6 +679,7 @@ private:
   float velocity_mode_max_acc_xy_mps2_{1.0f};
   float velocity_mode_max_acc_z_mps2_{0.6f};
   float velocity_mode_max_acc_yaw_radps2_{1.5f};
+  double state_timeout_s_{0.20};
   Px4TimestampSource px4_timestamp_source_{Px4TimestampSource::System};
   gz::transport::Node gz_node_;
   std::atomic<uint64_t> latest_gz_clock_us_{0};
@@ -671,6 +701,7 @@ private:
   std::array<float, 3> hold_target_position_enu_{0.0f, 0.0f, 0.0f};
   float hold_target_yaw_enu_{0.0f};
   bool hold_target_valid_{false};
+  rclcpp::Time last_state_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time takeoff_reached_since_{0, 0, RCL_ROS_TIME};
   int setpoint_counter_{0};
   bool land_command_sent_{false};

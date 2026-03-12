@@ -93,6 +93,7 @@ struct MetricLateralError
 struct RelativeTarget3D
 {
   bool valid{false};
+  bool yaw_valid{false};
   float x_m{0.0f};
   float y_m{0.0f};
   float z_m{0.0f};
@@ -186,10 +187,31 @@ inline MetricLateralError computeMetricLateralError(
   return error;
 }
 
+inline bool hasFreshTrackingObservation(
+  bool has_valid_observation,
+  double observation_age_s,
+  double observation_timeout_s,
+  int consecutive_miss_count,
+  int observation_miss_frames)
+{
+  if (!has_valid_observation || !std::isfinite(observation_age_s) ||
+    !std::isfinite(observation_timeout_s) || observation_age_s < 0.0 ||
+    observation_age_s > observation_timeout_s)
+  {
+    return false;
+  }
+
+  if (observation_miss_frames <= 0) {
+    return true;
+  }
+  return consecutive_miss_count < observation_miss_frames;
+}
+
 inline RelativeTarget3D computeRelativeTarget3D(
   float err_u_norm,
   float err_v_norm,
   float depth_m,
+  bool yaw_valid,
   float yaw_err_rad)
 {
   RelativeTarget3D target;
@@ -203,7 +225,8 @@ inline RelativeTarget3D computeRelativeTarget3D(
   target.x_m = depth_m * err_u_norm;
   target.y_m = depth_m * err_v_norm;
   target.z_m = depth_m;
-  target.yaw_err_rad = std::isfinite(yaw_err_rad) ? yaw_err_rad : 0.0f;
+  target.yaw_valid = yaw_valid && std::isfinite(yaw_err_rad);
+  target.yaw_err_rad = target.yaw_valid ? yaw_err_rad : 0.0f;
   return target;
 }
 
@@ -226,17 +249,36 @@ inline bool advanceRelativeTarget(
   float body_vx_mps,
   float body_vy_mps,
   float body_vz_mps,
+  float body_yaw_rate_radps,
   float dt_s)
 {
   if (!target.valid || !std::isfinite(body_vx_mps) || !std::isfinite(body_vy_mps) ||
-    !std::isfinite(body_vz_mps) || !std::isfinite(dt_s) || dt_s <= 1.0e-6f)
+    !std::isfinite(body_vz_mps) || !std::isfinite(body_yaw_rate_radps) ||
+    !std::isfinite(dt_s) || dt_s <= 1.0e-6f)
   {
     return false;
   }
 
+  const float yaw_delta_rad = body_yaw_rate_radps * dt_s;
+  const float cos_yaw = std::cos(yaw_delta_rad);
+  const float sin_yaw = std::sin(yaw_delta_rad);
+  const float rotated_x_m = (cos_yaw * target.x_m) - (sin_yaw * target.y_m);
+  const float rotated_y_m = (sin_yaw * target.x_m) + (cos_yaw * target.y_m);
+
+  target.x_m = rotated_x_m;
+  target.y_m = rotated_y_m;
   target.x_m += body_vy_mps * dt_s;
   target.y_m += body_vx_mps * dt_s;
   target.z_m = std::max(0.0f, target.z_m + (body_vz_mps * dt_s));
+  if (target.yaw_valid) {
+    target.yaw_err_rad += yaw_delta_rad;
+    while (target.yaw_err_rad > static_cast<float>(M_PI)) {
+      target.yaw_err_rad -= static_cast<float>(2.0 * M_PI);
+    }
+    while (target.yaw_err_rad < -static_cast<float>(M_PI)) {
+      target.yaw_err_rad += static_cast<float>(2.0 * M_PI);
+    }
+  }
   target.valid = std::isfinite(target.x_m) && std::isfinite(target.y_m) &&
     std::isfinite(target.z_m);
   return target.valid;
@@ -244,12 +286,20 @@ inline bool advanceRelativeTarget(
 
 inline bool isAligned(
   const MetricLateralError & lateral_error,
+  bool yaw_valid,
   float yaw_err_rad,
   bool in_window,
   const AlignmentConfig & config)
 {
-  if (!lateral_error.valid || !std::isfinite(yaw_err_rad)) {
+  if (!lateral_error.valid) {
     return false;
+  }
+
+  if (!yaw_valid || !std::isfinite(yaw_err_rad)) {
+    if (in_window) {
+      return lateral_error.norm_m <= config.align_exit_lateral_m;
+    }
+    return lateral_error.norm_m <= config.align_enter_lateral_m;
   }
 
   const float yaw_abs = std::abs(yaw_err_rad);
@@ -306,6 +356,19 @@ inline bool computeLimitedRate(
   }
   out_rate = clamp((current_value - previous_value) / dt_s, max_abs_rate);
   return true;
+}
+
+inline int updateConsecutiveConditionCount(int current_count, bool condition)
+{
+  return condition ? (std::max(0, current_count) + 1) : 0;
+}
+
+inline bool meetsConsecutiveConditionCount(int current_count, int required_count)
+{
+  if (required_count <= 1) {
+    return current_count > 0;
+  }
+  return current_count >= required_count;
 }
 
 inline void applyBodyRateLimit(

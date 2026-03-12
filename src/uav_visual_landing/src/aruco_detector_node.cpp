@@ -59,8 +59,10 @@ public:
     tag_params_ = cv::aruco::DetectorParameters::create();
     tag_params_->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
 
+    auto observation_qos = rclcpp::SensorDataQoS();
+    observation_qos.keep_last(1);
     observation_pub_ = this->create_publisher<uav_visual_landing::msg::TargetObservation>(
-      target_observation_topic_, 10);
+      target_observation_topic_, observation_qos);
     debug_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>(
       debug_image_topic_, rclcpp::SensorDataQoS());
     camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
@@ -76,7 +78,9 @@ public:
       {
         telemetry_.phase = msg->phase;
         telemetry_.height_source = msg->height_source;
+        telemetry_.terminal_trigger_source = msg->terminal_trigger_source;
         telemetry_.height_valid = msg->height_valid;
+        telemetry_.raw_flow_fresh = msg->raw_flow_fresh;
         telemetry_.height_measurement_m = msg->height_measurement_m;
         telemetry_.control_height_m = msg->control_height_m;
         telemetry_.err_u_norm_filtered = msg->err_u_norm_filtered;
@@ -128,7 +132,9 @@ private:
   {
     std::string phase{"READY"};
     std::string height_source{"ODOM"};
+    std::string terminal_trigger_source{"NONE"};
     bool height_valid{false};
+    bool raw_flow_fresh{false};
     float height_measurement_m{0.0f};
     float control_height_m{0.0f};
     float err_u_norm_filtered{0.0f};
@@ -440,9 +446,11 @@ private:
         telemetry_.height_source.c_str()));
     drawLine(
       cv::format(
-        "FLOW=%.2f valid=%s",
+        "FLOW=%.2f valid=%s fresh=%s",
         telemetry_.height_measurement_m,
-        telemetry_.height_valid ? "Y" : "N"));
+        telemetry_.height_valid ? "Y" : "N",
+        telemetry_.raw_flow_fresh ? "Y" : "N"));
+    drawLine("TERM: " + telemetry_.terminal_trigger_source);
     drawLine(cv::format("ERR n=(%.4f, %.4f)", observation.err_u_norm, observation.err_v_norm));
     drawLine(
       cv::format(

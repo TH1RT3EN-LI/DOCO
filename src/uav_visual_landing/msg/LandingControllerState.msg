@@ -5,8 +5,10 @@ bool target_detected
 float32 observation_age_s
 float32 target_confidence
 string height_source
+string terminal_trigger_source
 float32 odom_height_m
 bool height_valid
+bool raw_flow_fresh
 float32 height_measurement_m
 float32 control_height_m
 bool tag_depth_valid

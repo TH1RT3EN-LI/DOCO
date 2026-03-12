@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include <gtest/gtest.h>
 
 #include "uav_visual_landing/visual_landing_logic.hpp"
@@ -71,20 +73,22 @@ TEST(VisualLandingLogic, MetricAlignmentUsesHysteresisThresholds)
   aligned_error.valid = true;
   aligned_error.norm_m = 0.07f;
 
-  EXPECT_TRUE(isAligned(aligned_error, 0.05f, false, config));
+  EXPECT_TRUE(isAligned(aligned_error, true, 0.05f, false, config));
 
   MetricLateralError hold_error;
   hold_error.valid = true;
   hold_error.norm_m = 0.06f;
-  EXPECT_FALSE(isAligned(hold_error, 0.05f, true, config));
-  EXPECT_FALSE(isAligned(aligned_error, 0.09f, false, config));
+  EXPECT_FALSE(isAligned(hold_error, true, 0.05f, true, config));
+  EXPECT_FALSE(isAligned(aligned_error, true, 0.09f, false, config));
+  EXPECT_TRUE(isAligned(aligned_error, false, 0.50f, false, config));
 }
 
 TEST(VisualLandingLogic, RelativeTargetUsesDepthToBuild3DMemory)
 {
-  const auto target = computeRelativeTarget3D(0.10f, -0.20f, 2.0f, 0.08f);
+  const auto target = computeRelativeTarget3D(0.10f, -0.20f, 2.0f, true, 0.08f);
 
   EXPECT_TRUE(target.valid);
+  EXPECT_TRUE(target.yaw_valid);
   EXPECT_NEAR(target.x_m, 0.20f, 1.0e-5f);
   EXPECT_NEAR(target.y_m, -0.40f, 1.0e-5f);
   EXPECT_NEAR(target.z_m, 2.0f, 1.0e-5f);
@@ -93,18 +97,55 @@ TEST(VisualLandingLogic, RelativeTargetUsesDepthToBuild3DMemory)
 
 TEST(VisualLandingLogic, RelativeTargetCanAdvanceWithBodyMotion)
 {
-  auto target = computeRelativeTarget3D(0.10f, 0.20f, 1.5f, -0.05f);
+  auto target = computeRelativeTarget3D(0.10f, 0.20f, 1.5f, true, -0.05f);
   ASSERT_TRUE(target.valid);
 
-  EXPECT_TRUE(advanceRelativeTarget(target, -0.4f, 0.2f, -0.1f, 0.5f));
+  EXPECT_TRUE(advanceRelativeTarget(target, -0.4f, 0.2f, -0.1f, 0.0f, 0.5f));
   EXPECT_NEAR(target.x_m, 0.25f, 1.0e-5f);
   EXPECT_NEAR(target.y_m, 0.10f, 1.0e-5f);
   EXPECT_NEAR(target.z_m, 1.45f, 1.0e-5f);
 }
 
+TEST(VisualLandingLogic, RelativeTargetCanAdvanceWithPureYaw)
+{
+  RelativeTarget3D target;
+  target.valid = true;
+  target.yaw_valid = true;
+  target.x_m = 0.0f;
+  target.y_m = -1.0f;
+  target.z_m = 1.0f;
+  target.yaw_err_rad = 0.0f;
+
+  EXPECT_TRUE(
+    advanceRelativeTarget(
+      target, 0.0f, 0.0f, 0.0f, static_cast<float>(M_PI_2), 1.0f));
+  EXPECT_NEAR(target.x_m, 1.0f, 1.0e-5f);
+  EXPECT_NEAR(target.y_m, 0.0f, 1.0e-5f);
+  EXPECT_NEAR(target.yaw_err_rad, static_cast<float>(M_PI_2), 1.0e-5f);
+}
+
+TEST(VisualLandingLogic, RelativeTargetCanAdvanceWithYawAndTranslation)
+{
+  RelativeTarget3D target;
+  target.valid = true;
+  target.yaw_valid = true;
+  target.x_m = 0.0f;
+  target.y_m = -1.0f;
+  target.z_m = 1.0f;
+  target.yaw_err_rad = 0.1f;
+
+  EXPECT_TRUE(
+    advanceRelativeTarget(
+      target, 0.2f, 0.3f, -0.1f, static_cast<float>(M_PI_2), 1.0f));
+  EXPECT_NEAR(target.x_m, 1.3f, 1.0e-5f);
+  EXPECT_NEAR(target.y_m, 0.2f, 1.0e-5f);
+  EXPECT_NEAR(target.z_m, 0.9f, 1.0e-5f);
+  EXPECT_NEAR(target.yaw_err_rad, 0.1f + static_cast<float>(M_PI_2), 1.0e-5f);
+}
+
 TEST(VisualLandingLogic, RelativeTargetConvertsBackToMetricError)
 {
-  const auto target = computeRelativeTarget3D(-0.05f, 0.15f, 2.0f, 0.0f);
+  const auto target = computeRelativeTarget3D(-0.05f, 0.15f, 2.0f, false, 0.0f);
   const auto error = lateralErrorFromRelativeTarget(target);
 
   EXPECT_TRUE(error.valid);
@@ -144,6 +185,35 @@ TEST(VisualLandingLogic, BodyRateLimitConstrainsStepChange)
   EXPECT_NEAR(vy, 0.0f, 1.0e-5f);
   EXPECT_NEAR(vz, -0.05f, 1.0e-5f);
   EXPECT_NEAR(yaw_rate, 0.2f, 1.0e-5f);
+}
+
+TEST(VisualLandingLogic, TrackingObservationAllowsShortMissBurst)
+{
+  EXPECT_TRUE(hasFreshTrackingObservation(true, 0.05, 0.30, 0, 3));
+  EXPECT_TRUE(hasFreshTrackingObservation(true, 0.05, 0.30, 1, 3));
+  EXPECT_TRUE(hasFreshTrackingObservation(true, 0.05, 0.30, 2, 3));
+  EXPECT_FALSE(hasFreshTrackingObservation(true, 0.05, 0.30, 3, 3));
+}
+
+TEST(VisualLandingLogic, TrackingObservationRejectsStaleAge)
+{
+  EXPECT_FALSE(hasFreshTrackingObservation(true, 0.31, 0.30, 0, 3));
+  EXPECT_FALSE(hasFreshTrackingObservation(false, 0.05, 0.30, 0, 3));
+}
+
+TEST(VisualLandingLogic, ConsecutiveConditionTracksTerminalEntry)
+{
+  int count = 0;
+  count = updateConsecutiveConditionCount(count, false);
+  EXPECT_EQ(count, 0);
+  count = updateConsecutiveConditionCount(count, true);
+  EXPECT_EQ(count, 1);
+  EXPECT_FALSE(meetsConsecutiveConditionCount(count, 2));
+  count = updateConsecutiveConditionCount(count, true);
+  EXPECT_EQ(count, 2);
+  EXPECT_TRUE(meetsConsecutiveConditionCount(count, 2));
+  count = updateConsecutiveConditionCount(count, false);
+  EXPECT_EQ(count, 0);
 }
 
 }  // namespace

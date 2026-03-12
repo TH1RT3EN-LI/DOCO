@@ -64,9 +64,7 @@ public:
     this->declare_parameter<double>("search_height_m", 1.0);
     this->declare_parameter<double>("search_height_tolerance_m", 0.10);
     this->declare_parameter<double>("descend_speed", 0.12);
-    this->declare_parameter<double>("terminal_descend_speed", 0.06);
     this->declare_parameter<double>("terminal_entry_height_m", 0.40);
-    this->declare_parameter<double>("land_height_m", 0.12);
     this->declare_parameter<double>("z_hold_kp", 1.20);
     this->declare_parameter<double>("z_hold_max_vz", 0.18);
     this->declare_parameter<double>("z_descend_kp", 1.30);
@@ -75,11 +73,11 @@ public:
     this->declare_parameter<double>("z_terminal_max_vz", 0.12);
     this->declare_parameter<double>("vel_damping_z", 0.18);
 
-    this->declare_parameter<double>("max_acc_xy", 0.80);
-    this->declare_parameter<double>("max_acc_z", 0.50);
-    this->declare_parameter<double>("max_acc_yaw", 1.20);
     this->declare_parameter<double>("observation_timeout_s", 0.30);
-    this->declare_parameter<double>("target_memory_timeout_s", 1.5);
+    this->declare_parameter<int>("observation_miss_frames", 3);
+    this->declare_parameter<double>("state_timeout_s", 0.20);
+    this->declare_parameter<int>("terminal_entry_consecutive_samples", 2);
+    this->declare_parameter<double>("target_memory_timeout_s", 0.50);
     this->declare_parameter<double>("range_timeout_s", 0.15);
     this->declare_parameter<double>("range_min_m", 0.05);
     this->declare_parameter<double>("range_max_m", 5.0);
@@ -129,11 +127,8 @@ public:
     search_height_tolerance_m_ =
       static_cast<float>(this->get_parameter("search_height_tolerance_m").as_double());
     descend_speed_ = static_cast<float>(this->get_parameter("descend_speed").as_double());
-    terminal_descend_speed_ =
-      static_cast<float>(this->get_parameter("terminal_descend_speed").as_double());
     terminal_entry_height_m_ =
       static_cast<float>(this->get_parameter("terminal_entry_height_m").as_double());
-    land_height_m_ = static_cast<float>(this->get_parameter("land_height_m").as_double());
     z_hold_kp_ = static_cast<float>(this->get_parameter("z_hold_kp").as_double());
     z_hold_max_vz_ = static_cast<float>(this->get_parameter("z_hold_max_vz").as_double());
     z_descend_kp_ = static_cast<float>(this->get_parameter("z_descend_kp").as_double());
@@ -142,14 +137,11 @@ public:
     z_terminal_max_vz_ = static_cast<float>(this->get_parameter("z_terminal_max_vz").as_double());
     vel_damping_z_ = static_cast<float>(this->get_parameter("vel_damping_z").as_double());
 
-    command_rate_limit_.max_acc_xy_mps2 =
-      static_cast<float>(this->get_parameter("max_acc_xy").as_double());
-    command_rate_limit_.max_acc_z_mps2 =
-      static_cast<float>(this->get_parameter("max_acc_z").as_double());
-    command_rate_limit_.max_acc_yaw_radps2 =
-      static_cast<float>(this->get_parameter("max_acc_yaw").as_double());
-
     observation_timeout_s_ = this->get_parameter("observation_timeout_s").as_double();
+    observation_miss_frames_ = this->get_parameter("observation_miss_frames").as_int();
+    state_timeout_s_ = this->get_parameter("state_timeout_s").as_double();
+    terminal_entry_consecutive_samples_ =
+      this->get_parameter("terminal_entry_consecutive_samples").as_int();
     target_memory_timeout_s_ = this->get_parameter("target_memory_timeout_s").as_double();
     height_config_.timeout_s = this->get_parameter("range_timeout_s").as_double();
     height_config_.min_m = static_cast<float>(this->get_parameter("range_min_m").as_double());
@@ -163,16 +155,21 @@ public:
       1.0e-6 ? static_cast<float>(1.0 / control_rate_hz) : (1.0f / 30.0f);
     status_period_s_ = status_rate_hz > 1.0e-6 ? (1.0 / status_rate_hz) : 0.2;
 
+    auto velocity_qos = rclcpp::SensorDataQoS();
+    velocity_qos.keep_last(1);
+    auto observation_qos = rclcpp::SensorDataQoS();
+    observation_qos.keep_last(1);
+
     velocity_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(
       velocity_body_topic_,
-      10);
+      velocity_qos);
     controller_state_pub_ = this->create_publisher<uav_visual_landing::msg::LandingControllerState>(
       controller_state_topic_, rclcpp::QoS(1).reliable().transient_local());
     hold_client_ = this->create_client<Trigger>(hold_service_);
     land_client_ = this->create_client<Trigger>(land_service_);
 
     observation_sub_ = this->create_subscription<uav_visual_landing::msg::TargetObservation>(
-      target_observation_topic_, 10,
+      target_observation_topic_, observation_qos,
       [this](const uav_visual_landing::msg::TargetObservation::SharedPtr msg)
       {
         onObservation(*msg);
@@ -182,11 +179,14 @@ public:
       state_topic_, rclcpp::SensorDataQoS(),
       [this](const nav_msgs::msg::Odometry::SharedPtr msg)
       {
+        const bool has_stamp =
+        (msg->header.stamp.sec != 0) || (msg->header.stamp.nanosec != 0);
         odom_height_m_ = static_cast<float>(msg->pose.pose.position.z);
         current_body_vx_ = static_cast<float>(msg->twist.twist.linear.x);
         current_body_vy_ = static_cast<float>(msg->twist.twist.linear.y);
         current_body_vz_ = static_cast<float>(msg->twist.twist.linear.z);
         current_yaw_rate_ = static_cast<float>(msg->twist.twist.angular.z);
+        last_state_time_ = has_stamp ? rclcpp::Time(msg->header.stamp) : this->now();
         has_state_ = true;
       });
 
@@ -239,6 +239,7 @@ private:
     active_ = true;
     land_requested_ = false;
     initial_search_completed_ = false;
+    clearObservationTrackingState();
     clearVisionTrackingState();
     clearTargetMemory();
     transitionTo(ControllerPhase::HoldWait, true);
@@ -251,6 +252,7 @@ private:
     active_ = false;
     land_requested_ = false;
     initial_search_completed_ = false;
+    clearObservationTrackingState();
     clearVisionTrackingState();
     clearTargetMemory();
     transitionTo(ControllerPhase::Ready, true);
@@ -272,6 +274,17 @@ private:
     z_target_initialized_ = false;
   }
 
+  void clearObservationTrackingState()
+  {
+    has_observation_ = false;
+    current_observation_detected_ = false;
+    new_valid_observation_ = false;
+    consecutive_observation_miss_count_ = 0;
+    last_observation_time_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
+    prev_observation_stamp_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
+    last_observation_ = uav_visual_landing::msg::TargetObservation{};
+  }
+
   void clearTargetMemory()
   {
     target_memory_ = RelativeTarget3D{};
@@ -281,17 +294,28 @@ private:
 
   void onObservation(const uav_visual_landing::msg::TargetObservation & msg)
   {
-    last_observation_ = msg;
     const bool has_stamp = (msg.header.stamp.sec != 0) || (msg.header.stamp.nanosec != 0);
     const rclcpp::Time stamp = has_stamp ? rclcpp::Time(msg.header.stamp) : this->now();
-    last_observation_time_ = stamp;
-    has_observation_ = true;
+    const bool observation_valid =
+      msg.detected && std::isfinite(msg.err_u_norm) && std::isfinite(msg.err_v_norm);
 
-    if (!msg.detected || !std::isfinite(msg.err_u_norm) || !std::isfinite(msg.err_v_norm) ||
-      !std::isfinite(msg.yaw_err_rad))
-    {
+    current_observation_detected_ = observation_valid;
+    new_valid_observation_ = observation_valid;
+    if (!observation_valid) {
+      if (has_observation_) {
+        ++consecutive_observation_miss_count_;
+      }
       return;
     }
+
+    last_observation_ = msg;
+    if (!std::isfinite(last_observation_.yaw_err_rad)) {
+      last_observation_.yaw_err_rad = 0.0f;
+      last_observation_.pose_valid = false;
+    }
+    last_observation_time_ = stamp;
+    has_observation_ = true;
+    consecutive_observation_miss_count_ = 0;
 
     if (!filter_initialized_) {
       err_u_f_ = msg.err_u_norm;
@@ -353,16 +377,36 @@ private:
     land_client_->async_send_request(req);
   }
 
+  void finishAfterLandRequest()
+  {
+    active_ = false;
+    clearObservationTrackingState();
+    clearVisionTrackingState();
+    clearTargetMemory();
+    align_hold_started_ = false;
+    terminal_entry_consecutive_count_ = 0;
+    terminal_trigger_source_ = "NONE";
+    raw_flow_fresh_ = false;
+    xy_control_mode_ = "idle";
+    phase_ = ControllerPhase::Ready;
+  }
+
   void transitionTo(ControllerPhase phase, bool invoke_hold)
   {
     if (phase_ == phase) {
       return;
     }
+
+    const ControllerPhase previous_phase = phase_;
     phase_ = phase;
-    phase_entered_time_ = this->now();
     align_hold_started_ = false;
     if (phase == ControllerPhase::Terminal) {
       z_target_initialized_ = false;
+    }
+    if (phase == ControllerPhase::DescendTrack || phase == ControllerPhase::Terminal ||
+      phase == ControllerPhase::Land)
+    {
+      clearTargetMemory();
     }
     if (phase == ControllerPhase::Ready || phase == ControllerPhase::HoldWait) {
       clearVisionTrackingState();
@@ -375,16 +419,33 @@ private:
     }
     if (phase == ControllerPhase::Land) {
       requestLand();
+      finishAfterLandRequest();
+      RCLCPP_INFO(
+        this->get_logger(),
+        "[visual_landing] phase -> %s -> %s",
+        phaseName(previous_phase), phaseName(phase_));
+      return;
     }
     RCLCPP_INFO(this->get_logger(), "[visual_landing] phase -> %s", phaseName(phase));
   }
 
   bool observationFresh() const
   {
-    if (!has_observation_ || !last_observation_.detected) {
+    const double age_s =
+      has_observation_ ? (this->now() - last_observation_time_).seconds() : -1.0;
+    return hasFreshTrackingObservation(
+      has_observation_, age_s, observation_timeout_s_,
+      consecutive_observation_miss_count_, observation_miss_frames_);
+  }
+
+  bool stateFresh() const
+  {
+    if (!has_state_ || last_state_time_.nanoseconds() == 0) {
       return false;
     }
-    return (this->now() - last_observation_time_).seconds() <= observation_timeout_s_;
+
+    const double age_s = (this->now() - last_state_time_).seconds();
+    return std::isfinite(age_s) && age_s >= 0.0 && age_s <= state_timeout_s_;
   }
 
   bool targetMemoryFresh() const
@@ -406,15 +467,15 @@ private:
     const float err_u_norm = filter_initialized_ ? err_u_f_ : last_observation_.err_u_norm;
     const float err_v_norm = filter_initialized_ ? err_v_f_ : last_observation_.err_v_norm;
     const RelativeTarget3D target = computeRelativeTarget3D(
-      err_u_norm, err_v_norm, depth_m, last_observation_.yaw_err_rad);
+      err_u_norm, err_v_norm, depth_m,
+      last_observation_.pose_valid, last_observation_.yaw_err_rad);
     if (!target.valid) {
       return;
     }
 
     target_memory_ = target;
-    const rclcpp::Time now = this->now();
-    target_memory_observed_time_ = now;
-    target_memory_updated_time_ = now;
+    target_memory_observed_time_ = last_observation_time_;
+    target_memory_updated_time_ = this->now();
   }
 
   void propagateTargetMemory()
@@ -432,6 +493,7 @@ private:
     const float dt_s = static_cast<float>((now - target_memory_updated_time_).seconds());
     advanceRelativeTarget(
       target_memory_, current_body_vx_, current_body_vy_, current_body_vz_,
+      current_yaw_rate_,
       dt_s);
     target_memory_updated_time_ = now;
   }
@@ -451,7 +513,8 @@ private:
       return false;
     }
     return isAligned(
-      lateral_error, last_observation_.yaw_err_rad, align_in_window_,
+      lateral_error, last_observation_.pose_valid, last_observation_.yaw_err_rad,
+      align_in_window_,
       alignment_config_);
   }
 
@@ -483,11 +546,6 @@ private:
 
   void publishVelocityBody(float vx, float vy, float vz, float yaw_rate)
   {
-    applyBodyRateLimit(
-      vx, vy, vz, yaw_rate,
-      last_cmd_vx_, last_cmd_vy_, last_cmd_vz_, last_cmd_yaw_rate_,
-      control_dt_s_, command_rate_limit_);
-
     geometry_msgs::msg::TwistStamped msg;
     msg.header.stamp = this->now();
     msg.header.frame_id = "uav_base_link";
@@ -523,13 +581,16 @@ private:
     msg.header.stamp = now;
     msg.active = active_;
     msg.phase = phaseName(phase_);
-    msg.target_detected = has_observation_ && last_observation_.detected;
+    msg.target_detected = current_observation_detected_ && has_observation_ &&
+      ((now - last_observation_time_).seconds() <= observation_timeout_s_);
     msg.observation_age_s =
       has_observation_ ? static_cast<float>((now - last_observation_time_).seconds()) : -1.0f;
     msg.target_confidence = has_observation_ ? last_observation_.confidence : 0.0f;
     msg.height_source = heightSourceName(height_decision.height_source);
+    msg.terminal_trigger_source = terminal_trigger_source_;
     msg.odom_height_m = odom_height_m_;
     msg.height_valid = height_decision.height_valid;
+    msg.raw_flow_fresh = raw_flow_fresh_;
     msg.height_measurement_m = has_height_measurement_ ? height_measurement_m_ : 0.0f;
     msg.control_height_m = control_height_m;
     msg.tag_depth_valid = has_observation_ && last_observation_.tag_depth_valid;
@@ -563,6 +624,7 @@ private:
 
   void computeTrackingCommand(
     const MetricLateralError & lateral_error,
+    bool yaw_valid,
     float yaw_err_rad,
     float & vx,
     float & vy,
@@ -581,7 +643,7 @@ private:
       }
     }
 
-    if (std::abs(yaw_err_rad) < yaw_deadband_rad_) {
+    if (!yaw_valid || !std::isfinite(yaw_err_rad) || std::abs(yaw_err_rad) < yaw_deadband_rad_) {
       yaw_rate = 0.0f;
     } else {
       yaw_rate = clamp(
@@ -616,18 +678,37 @@ private:
   {
     const HeightDecision height_decision = heightDecision();
     const float control_height_m = height_decision.height_m;
+    const bool state_fresh = stateFresh();
+    float raw_flow_height_m = 0.0f;
+    raw_flow_fresh_ = flowHeightFresh(raw_flow_height_m);
     const bool fresh_observation = observationFresh();
     const MetricLateralError lateral_error = (fresh_observation && filter_initialized_) ?
       computeMetricLateralError(err_u_f_, err_v_f_, derr_u_f_, derr_v_f_, control_height_m) :
       MetricLateralError{};
-    if (fresh_observation) {
-      updateTargetMemory(control_height_m);
-    } else {
-      propagateTargetMemory();
+    if (!initial_search_completed_) {
+      if (fresh_observation && new_valid_observation_) {
+        updateTargetMemory(control_height_m);
+      } else {
+        propagateTargetMemory();
+      }
     }
+    new_valid_observation_ = false;
+
     const bool currently_aligned = fresh_observation && aligned(lateral_error);
     align_in_window_ = currently_aligned;
     xy_control_mode_ = "idle";
+
+    if (phase_ == ControllerPhase::DescendTrack) {
+      terminal_entry_consecutive_count_ = updateConsecutiveConditionCount(
+        terminal_entry_consecutive_count_,
+        raw_flow_fresh_ && raw_flow_height_m < terminal_entry_height_m_);
+      terminal_trigger_source_ = meetsConsecutiveConditionCount(
+        terminal_entry_consecutive_count_, terminal_entry_consecutive_samples_) ?
+        "FLOW_RANGE" : "NONE";
+    } else if (phase_ != ControllerPhase::Terminal) {
+      terminal_entry_consecutive_count_ = 0;
+      terminal_trigger_source_ = "NONE";
+    }
 
     float cmd_vx = 0.0f;
     float cmd_vy = 0.0f;
@@ -635,6 +716,17 @@ private:
     float cmd_yaw_rate = 0.0f;
 
     if (!active_ || !has_state_) {
+      publishControllerState(
+        false, height_decision, control_height_m, lateral_error, 0.0f, 0.0f,
+        0.0f, 0.0f);
+      return;
+    }
+
+    if (!state_fresh) {
+      if (phase_ != ControllerPhase::HoldWait && phase_ != ControllerPhase::Ready) {
+        transitionTo(ControllerPhase::HoldWait, true);
+      }
+      xy_control_mode_ = "state_stale";
       publishControllerState(
         false, height_decision, control_height_m, lateral_error, 0.0f, 0.0f,
         0.0f, 0.0f);
@@ -655,11 +747,12 @@ private:
             control_height_m, current_body_vz_, z_target_height_m_, z_hold_kp_,
             z_hold_max_vz_);
         }
-        if (targetMemoryFresh()) {
+        if (!initial_search_completed_ && targetMemoryFresh()) {
           const MetricLateralError memory_error = lateralErrorFromRelativeTarget(target_memory_);
           if (memory_error.valid) {
             computeTrackingCommand(
-              memory_error, target_memory_.yaw_err_rad, cmd_vx, cmd_vy, cmd_yaw_rate);
+              memory_error, target_memory_.yaw_valid, target_memory_.yaw_err_rad,
+              cmd_vx, cmd_vy, cmd_yaw_rate);
             xy_control_mode_ = "memory_search_pd";
             publishVelocityBody(cmd_vx, cmd_vy, cmd_vz, cmd_yaw_rate);
             break;
@@ -675,16 +768,23 @@ private:
           transitionTo(nextPhaseOnTargetLoss(phase_), true);
           break;
         }
-        setZTarget(search_height_m_);
+        if (!initial_search_completed_) {
+          setZTarget(search_height_m_);
+        } else if (!z_target_initialized_) {
+          setZTarget(control_height_m);
+        }
         computeTrackingCommand(
-          lateral_error, last_observation_.yaw_err_rad, cmd_vx, cmd_vy,
+          lateral_error, last_observation_.pose_valid, last_observation_.yaw_err_rad,
+          cmd_vx, cmd_vy,
           cmd_yaw_rate);
         cmd_vz = computeZCommand(
           control_height_m, current_body_vz_, z_target_height_m_, z_hold_kp_,
           z_hold_max_vz_);
         xy_control_mode_ = "vision_pd_metric";
         publishVelocityBody(cmd_vx, cmd_vy, cmd_vz, cmd_yaw_rate);
-        if (currently_aligned && nearSearchHeight(control_height_m)) {
+        if (currently_aligned &&
+          (initial_search_completed_ || nearSearchHeight(control_height_m)))
+        {
           transitionTo(ControllerPhase::HoldVerify, false);
         }
         break;
@@ -693,13 +793,20 @@ private:
           transitionTo(nextPhaseOnTargetLoss(phase_), true);
           break;
         }
-        if (!currently_aligned || !nearSearchHeight(control_height_m)) {
+        if (!currently_aligned ||
+          (!initial_search_completed_ && !nearSearchHeight(control_height_m)))
+        {
           transitionTo(ControllerPhase::TrackAlign, false);
           break;
         }
-        setZTarget(search_height_m_);
+        if (!initial_search_completed_) {
+          setZTarget(search_height_m_);
+        } else if (!z_target_initialized_) {
+          setZTarget(control_height_m);
+        }
         computeTrackingCommand(
-          lateral_error, last_observation_.yaw_err_rad, cmd_vx, cmd_vy,
+          lateral_error, last_observation_.pose_valid, last_observation_.yaw_err_rad,
+          cmd_vx, cmd_vy,
           cmd_yaw_rate);
         cmd_vz = computeZCommand(
           control_height_m, current_body_vz_, z_target_height_m_, z_hold_kp_,
@@ -711,6 +818,7 @@ private:
           align_hold_since_ = this->now();
         } else if ((this->now() - align_hold_since_).seconds() >= hold_verify_s_) {
           initial_search_completed_ = true;
+          clearTargetMemory();
           transitionTo(ControllerPhase::DescendTrack, false);
         }
         break;
@@ -719,17 +827,18 @@ private:
           transitionTo(nextPhaseOnTargetLoss(phase_), true);
           break;
         }
+        if (meetsConsecutiveConditionCount(
+            terminal_entry_consecutive_count_, terminal_entry_consecutive_samples_))
         {
-          float flow_height_m = 0.0f;
-          const bool fresh_flow_height = flowHeightFresh(flow_height_m);
-          if (fresh_flow_height && flow_height_m <= terminal_entry_height_m_) {
-            transitionTo(ControllerPhase::Terminal, false);
-            break;
-          }
-          if (control_height_m <= terminal_entry_height_m_ && !fresh_flow_height) {
-            transitionTo(ControllerPhase::HoldWait, true);
-            break;
-          }
+          terminal_trigger_source_ = "FLOW_RANGE";
+          transitionTo(ControllerPhase::Terminal, false);
+          break;
+        }
+        if (control_height_m <= terminal_entry_height_m_ && !raw_flow_fresh_) {
+          terminal_entry_consecutive_count_ = 0;
+          terminal_trigger_source_ = "NONE";
+          transitionTo(ControllerPhase::HoldWait, true);
+          break;
         }
         if (!z_target_initialized_) {
           setZTarget(control_height_m);
@@ -737,7 +846,8 @@ private:
         z_target_height_m_ =
           std::max(terminal_entry_height_m_, z_target_height_m_ - (descend_speed_ * control_dt_s_));
         computeTrackingCommand(
-          lateral_error, last_observation_.yaw_err_rad, cmd_vx, cmd_vy,
+          lateral_error, last_observation_.pose_valid, last_observation_.yaw_err_rad,
+          cmd_vx, cmd_vy,
           cmd_yaw_rate);
         cmd_vz = computeZCommand(
           control_height_m, current_body_vz_, z_target_height_m_,
@@ -747,14 +857,15 @@ private:
         break;
       case ControllerPhase::Terminal:
         if (!fresh_observation) {
-          transitionTo(ControllerPhase::HoldWait, true);
+          transitionTo(ControllerPhase::Land, false);
           break;
         }
         if (!z_target_initialized_) {
           setZTarget(control_height_m);
         }
         computeTrackingCommand(
-          lateral_error, last_observation_.yaw_err_rad, cmd_vx, cmd_vy,
+          lateral_error, last_observation_.pose_valid, last_observation_.yaw_err_rad,
+          cmd_vx, cmd_vy,
           cmd_yaw_rate);
         cmd_vz = computeZCommand(
           control_height_m, current_body_vz_, z_target_height_m_,
@@ -808,9 +919,7 @@ private:
   float search_height_m_{1.0f};
   float search_height_tolerance_m_{0.10f};
   float descend_speed_{0.12f};
-  float terminal_descend_speed_{0.06f};
   float terminal_entry_height_m_{0.40f};
-  float land_height_m_{0.12f};
   float z_hold_kp_{1.2f};
   float z_hold_max_vz_{0.18f};
   float z_descend_kp_{1.3f};
@@ -818,19 +927,24 @@ private:
   float z_terminal_kp_{1.1f};
   float z_terminal_max_vz_{0.12f};
   float vel_damping_z_{0.18f};
-  CommandRateLimitConfig command_rate_limit_{};
   double observation_timeout_s_{0.30};
-  double target_memory_timeout_s_{1.5};
+  int observation_miss_frames_{3};
+  double state_timeout_s_{0.20};
+  int terminal_entry_consecutive_samples_{2};
+  double target_memory_timeout_s_{0.50};
   bool active_{false};
   ControllerPhase phase_{ControllerPhase::Ready};
   bool align_in_window_{false};
   bool align_hold_started_{false};
   bool land_requested_{false};
   bool initial_search_completed_{false};
+  bool current_observation_detected_{false};
+  bool new_valid_observation_{false};
   bool has_observation_{false};
   bool has_state_{false};
   bool has_height_measurement_{false};
   bool filter_initialized_{false};
+  bool raw_flow_fresh_{false};
   float odom_height_m_{0.0f};
   float current_body_vx_{0.0f};
   float current_body_vy_{0.0f};
@@ -852,12 +966,15 @@ private:
   float control_dt_s_{1.0f / 30.0f};
   double status_period_s_{0.2};
   bool status_initialized_{false};
+  int consecutive_observation_miss_count_{0};
+  int terminal_entry_consecutive_count_{0};
   std::string xy_control_mode_{"idle"};
+  std::string terminal_trigger_source_{"NONE"};
   rclcpp::Time last_status_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time last_observation_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time prev_observation_stamp_{0, 0, RCL_ROS_TIME};
+  rclcpp::Time last_state_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time height_measurement_stamp_{0, 0, RCL_ROS_TIME};
-  rclcpp::Time phase_entered_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time align_hold_since_{0, 0, RCL_ROS_TIME};
   rclcpp::Time target_memory_observed_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time target_memory_updated_time_{0, 0, RCL_ROS_TIME};

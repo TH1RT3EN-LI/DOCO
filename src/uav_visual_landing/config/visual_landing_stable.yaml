@@ -33,9 +33,7 @@ visual_landing_node:
     search_height_m: 1.0
     search_height_tolerance_m: 0.10
     descend_speed: 0.12
-    terminal_descend_speed: 0.06
     terminal_entry_height_m: 0.40
-    land_height_m: 0.12
 
     z_hold_kp: 1.20
     z_hold_max_vz: 0.18
@@ -45,12 +43,11 @@ visual_landing_node:
     z_terminal_max_vz: 0.12
     vel_damping_z: 0.18
 
-    max_acc_xy: 1.40
-    max_acc_z: 0.50
-    max_acc_yaw: 1.20
-
     observation_timeout_s: 0.30
-    target_memory_timeout_s: 1.5
+    observation_miss_frames: 3
+    state_timeout_s: 0.20
+    terminal_entry_consecutive_samples: 2
+    target_memory_timeout_s: 0.5
     range_timeout_s: 0.15
     range_min_m: 0.05
     range_max_m: 5.0
