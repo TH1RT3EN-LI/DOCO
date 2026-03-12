@@ -120,7 +120,7 @@ param set MPC_MAN_Y_MAX 150.000000
 param set MPC_MAN_Y_TAU 0.080000
 param set MPC_POS_MODE 4
 param set MPC_THR_CURVE 0
-param set MPC_THR_HOVER 0.500000
+param set MPC_THR_HOVER 0.530000
 param set MPC_THR_MAX 1.000000
 param set MPC_THR_MIN 0.120000
 param set MPC_THR_XY_MARG 0.300000

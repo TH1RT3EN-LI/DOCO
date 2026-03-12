@@ -363,7 +363,7 @@ v1 固定发布以下 5 类输出。
 
 | 项目 | 话题 | 说明 |
 |---|---|---|
-| UAV pose/vel/cov | `/uav/odom` | 由 `tf_bridge_node` 提供 |
+| UAV pose/vel/cov | `/uav/odom` | 由 `px4_odom_adapter_node` 提供，表示 PX4 estimated state |
 | UGV pose | `/ugv/odom` | 作为仿真回退全局位姿 |
 | UGV velocity | `/ugv/odom` | 车体系速度，需旋转 |
 
@@ -403,17 +403,18 @@ v1 固定发布以下 5 类输出。
 
 | 项目 | 话题 | 说明 |
 |---|---|---|
-| UAV pose/vel/cov | `/uav/odom` | 由 `px4_planar_state_reader_node` 归一化输出 |
+| UAV pose/vel/cov | `/uav/odom` | 应由标准 3D odom adapter 提供 |
 | UGV pose | `/amcl_pose` | 全局位姿 |
 | UGV velocity | `/ugv/odometry/filtered` | 全局定位链配套速度来源 |
 | UGV velocity fallback | `/ugv/odom` | 回退 |
 
 ### 关键要求
 
-- UAV 真机 launch 中必须实例化 `px4_planar_state_reader_node`
-- 并明确配置：
-  - `output_odom_topic=/uav/odom`
-  - `world_frame_id=uav_map`
+- UAV 真机 launch 中必须保证存在标准 `/uav/odom` 输出
+- `px4_planar_state_reader_node` 只应作为二维派生接口使用
+- 若启用该节点，建议明确配置：
+  - `output_odom_topic=/uav/px4/planar_odom`
+  - `world_frame_id=uav_odom`
   - `base_frame_id=uav_base_link`
 
 ---

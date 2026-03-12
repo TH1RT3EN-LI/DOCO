@@ -15,6 +15,9 @@ visual_landing_node:
     align_enter_yaw: 0.12
     align_exit_yaw: 0.09
     align_hold_s: 0.5
+    align_yaw_rate_scale: 1.8
+    align_min_vxy_mps: 0.10
+    align_xy_curve_power: 1.5
     align_z_kp: 0.40
     align_z_max_vz: 0.04
     align_z_deadband_m: 0.02

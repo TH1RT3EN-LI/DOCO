@@ -59,9 +59,9 @@
 ### 3.2 UAV 侧现状
 
 - 仿真 UAV 入口：`ws/src/uav_bringup/launch/sitl_uav.launch.py`
-- 仿真中已有 `uav_bridge/tf_bridge_node` 发布 `/uav/odom`；
-- `uav_bridge/px4_planar_state_reader_node` 已能把 PX4 的 `vehicle_local_position` + `vehicle_odometry` 归一化为平面 `nav_msgs/Odometry`；
-- 该节点当前默认输出 `/uav/px4/planar_odom`，尚未被纳入统一 launch，也尚未作为真机标准 `/uav/odom` 出口使用。
+- 仿真中 `/uav/odom` 现在由 `uav_bridge/px4_odom_adapter_node` 发布，表示 PX4 estimated state；
+- Gazebo 真值通过 `uav_bridge/tf_bridge_node` 旁路输出到 `/uav/sim/ground_truth/odom`，不再占用主控制链；
+- `uav_bridge/px4_planar_state_reader_node` 输出单独的二维派生接口 `/uav/px4/planar_odom`，用于平面对比与协同消费，不再覆盖 `/uav/odom`。
 
 ### 3.3 UGV 侧现状
 

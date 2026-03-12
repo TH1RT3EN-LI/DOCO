@@ -21,6 +21,16 @@ find_package(OpenCV REQUIRED COMPONENTS core imgproc video)
 find_package(gz-transport13 REQUIRED)
 find_package(gz-msgs10 REQUIRED)
 
+add_library(${PROJECT_NAME}_px4_odom_adapter_logic
+  src/px4_odom_adapter_logic.cpp
+)
+target_compile_features(${PROJECT_NAME}_px4_odom_adapter_logic PUBLIC cxx_std_17)
+target_include_directories(${PROJECT_NAME}_px4_odom_adapter_logic PUBLIC include)
+ament_target_dependencies(${PROJECT_NAME}_px4_odom_adapter_logic
+  px4_msgs
+  tf2
+)
+
 add_executable(mono_camera_bridge_node
   src/mono_camera_bridge_node.cpp
 )
@@ -129,6 +139,23 @@ ament_target_dependencies(px4_planar_state_reader_node
   px4_msgs
 )
 
+add_executable(px4_odom_adapter_node
+  src/px4_odom_adapter_node.cpp
+)
+target_compile_features(px4_odom_adapter_node PUBLIC cxx_std_17)
+target_include_directories(px4_odom_adapter_node PRIVATE include)
+ament_target_dependencies(px4_odom_adapter_node
+  geometry_msgs
+  nav_msgs
+  px4_msgs
+  rclcpp
+  tf2
+  tf2_ros
+)
+target_link_libraries(px4_odom_adapter_node
+  ${PROJECT_NAME}_px4_odom_adapter_logic
+)
+
 add_executable(fmu_topic_namespace_bridge_node
   src/fmu_topic_namespace_bridge_node.cpp
 )
@@ -139,6 +166,7 @@ ament_target_dependencies(fmu_topic_namespace_bridge_node
 )
 
 install(TARGETS
+  ${PROJECT_NAME}_px4_odom_adapter_logic
   mono_camera_bridge_node
   stereo_camera_bridge_node
   tf_bridge_node
@@ -146,6 +174,7 @@ install(TARGETS
   rangefinder_bridge_node
   optical_flow_bridge_node
   px4_planar_state_reader_node
+  px4_odom_adapter_node
   fmu_topic_namespace_bridge_node
   DESTINATION lib/${PROJECT_NAME}
 )
@@ -155,6 +184,7 @@ install(DIRECTORY include/
 )
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # comment the line when a copyright and license is added to all source files
@@ -164,6 +194,14 @@ if(BUILD_TESTING)
   # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  ament_add_gtest(test_px4_odom_adapter_logic
+    test/test_px4_odom_adapter_logic.cpp
+  )
+  if(TARGET test_px4_odom_adapter_logic)
+    target_link_libraries(test_px4_odom_adapter_logic ${PROJECT_NAME}_px4_odom_adapter_logic)
+    ament_target_dependencies(test_px4_odom_adapter_logic px4_msgs tf2)
+  endif()
 endif()
 
 ament_package()

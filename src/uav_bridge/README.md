@@ -18,7 +18,15 @@
 ```text
 Gazebo / 仿真世界
   -> tf_bridge_node
+  -> /uav/sim/ground_truth/odom
+
+PX4 / uXRCE-DDS
+  -> px4_odom_adapter_node
   -> /uav/odom
+
+PX4 / uXRCE-DDS
+  -> px4_planar_state_reader_node
+  -> /uav/px4/planar_odom
 
 上层规划器 / 手动控制
   -> /uav/planning/position_cmd
@@ -89,19 +97,31 @@ MicroXRCEAgent udp4 -p 8888
 
 ### 2.3 仿真中谁提供 `/uav/odom`
 
-在仿真里，`/uav/odom` 不是 PX4 给的，而是 `tf_bridge_node` 根据 Gazebo 模型位姿发布的。
+现在的 SITL 里，`/uav/odom` 由 `px4_odom_adapter_node` 根据 PX4 的 `vehicle_local_position` + `vehicle_odometry` 发布。
+
+Gazebo 真值仍然保留，但只通过独立的旁路接口输出到：
+
+- `/uav/sim/ground_truth/odom`
+
+因此当前仿真已经不再把 Gazebo 真值直接当作主控制状态。
 
 这点很重要，因为：
 
 - 上层规划器和手动控制都用 `/uav/odom`
 - `offboard_bridge_node` 也用 `/uav/odom` 和 PX4 的本地位置做坐标对齐
 
-所以当前链路是：
+所以当前主链路是：
 
 ```text
-Gazebo 位姿 -> tf_bridge_node -> /uav/odom
+PX4 estimated state -> px4_odom_adapter_node -> /uav/odom
 PX4 本地状态 -> /fmu/out/vehicle_local_position
 offboard_bridge_node 同时订阅两者并做对齐
+```
+
+同时保留一条调试/评估旁路：
+
+```text
+Gazebo 位姿 -> tf_bridge_node -> /uav/sim/ground_truth/odom
 ```
 
 ## 3. `offboard_bridge_node` 的职责
@@ -392,9 +412,17 @@ PX4
 - 3D 位姿和速度
 - 与你上层规划和手动控制使用的世界系一致
 
-仿真里这个话题由 `tf_bridge_node` 提供。
+当前 SITL 里这个话题由 `px4_odom_adapter_node` 提供。
 
-真机上如果你要复用这套控制逻辑，就需要用：
+真机上如果你要复用这套控制逻辑，就需要继续保证这个接口语义成立。
+
+当前仓库里单独保留了一个二维派生接口：
+
+- `/uav/px4/planar_odom`
+
+它只用于平面对比或协同消费，不应替代 `/uav/odom`。
+
+如果你要接其他状态源，也应该用：
 
 - VIO
 - SLAM

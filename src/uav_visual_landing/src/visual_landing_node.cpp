@@ -68,6 +68,9 @@ public:
     this->declare_parameter<double>("align_enter_yaw", 0.10);
     this->declare_parameter<double>("align_exit_yaw", 0.07);
     this->declare_parameter<double>("align_hold_s", 0.8);
+    this->declare_parameter<double>("align_yaw_rate_scale", 1.8);
+    this->declare_parameter<double>("align_min_vxy_mps", 0.10);
+    this->declare_parameter<double>("align_xy_curve_power", 1.5);
     this->declare_parameter<double>("align_z_kp", 0.80);
     this->declare_parameter<double>("align_z_max_vz", 0.08);
     this->declare_parameter<double>("align_z_deadband_m", 0.02);
@@ -127,6 +130,9 @@ public:
     align_enter_yaw_ = static_cast<float>(this->get_parameter("align_enter_yaw").as_double());
     align_exit_yaw_ = static_cast<float>(this->get_parameter("align_exit_yaw").as_double());
     align_hold_s_ = this->get_parameter("align_hold_s").as_double();
+    align_yaw_rate_scale_ = static_cast<float>(this->get_parameter("align_yaw_rate_scale").as_double());
+    align_min_vxy_mps_ = static_cast<float>(this->get_parameter("align_min_vxy_mps").as_double());
+    align_xy_curve_power_ = static_cast<float>(this->get_parameter("align_xy_curve_power").as_double());
     align_z_kp_ = static_cast<float>(this->get_parameter("align_z_kp").as_double());
     align_z_max_vz_ = static_cast<float>(this->get_parameter("align_z_max_vz").as_double());
     align_z_deadband_m_ = static_cast<float>(this->get_parameter("align_z_deadband_m").as_double());
@@ -175,6 +181,9 @@ public:
     align_exit_error_ = std::max(0.0f, std::min(align_exit_error_, align_enter_error_));
     align_enter_yaw_ = std::max(0.0f, align_enter_yaw_);
     align_exit_yaw_ = std::max(0.0f, std::min(align_exit_yaw_, align_enter_yaw_));
+    align_yaw_rate_scale_ = std::max(0.0f, align_yaw_rate_scale_);
+    align_min_vxy_mps_ = std::max(0.0f, align_min_vxy_mps_);
+    align_xy_curve_power_ = std::max(1.0f, align_xy_curve_power_);
     align_z_kp_ = std::max(0.0f, align_z_kp_);
     align_z_max_vz_ = std::max(0.0f, align_z_max_vz_);
     align_z_deadband_m_ = std::max(0.0f, align_z_deadband_m_);
@@ -343,7 +352,7 @@ public:
       this->get_logger(),
       "[visual_landing] Ready. kp_xy=%.2f kp_yaw=%.2f vxy<=%.2f vyaw<=%.2f "
       "speed_scale=(xy=%.2f yaw=%.2f z=%.2f) "
-      "align_enter=(%.3f,%.3frad) align_exit=(%.3f,%.3frad) hold=%.2fs z_hold=(kp=%.2f vmax=%.2f db=%.2f) "
+      "align_enter=(%.3f,%.3frad) align_exit=(%.3f,%.3frad) hold=%.2fs yaw_scale=%.2f min_vxy=%.2f curve_pow=%.2f z_hold=(kp=%.2f vmax=%.2f db=%.2f) "
       "filter=(alpha_xy=%.2f yaw_alpha=%.2f yaw_beta=%.2f) "
       "yaw_gate=(base=%.2f conf_scale=%.2f state_limit=%.2f) "
       "acc=(xy=%.2f yaw=%.2f) damp=(xy=%.2f yaw=%.2f) "
@@ -357,6 +366,7 @@ public:
       kp_xy_, kp_yaw_, max_vxy_, max_vyaw_,
       speed_scale_xy_, speed_scale_yaw_, speed_scale_z_,
       align_enter_error_, align_enter_yaw_, align_exit_error_, align_exit_yaw_, align_hold_s_,
+      align_yaw_rate_scale_, align_min_vxy_mps_, align_xy_curve_power_,
       align_z_kp_, align_z_max_vz_, align_z_deadband_m_,
       alpha_xy_, yaw_filter_alpha_, yaw_filter_beta_,
       yaw_innovation_base_rad_, yaw_innovation_conf_scale_, yaw_rate_state_limit_,
@@ -535,6 +545,7 @@ private:
   {
     state_ = s;
     align_height_ref_initialized_ = false;
+    align_height_ref_using_range_ = false;
     if (s != State::ALIGN) {
       align_hold_timer_started_ = false;
       align_in_window_ = false;
@@ -570,8 +581,8 @@ private:
   HeightEstimate getHeightEstimate()
   {
     HeightEstimate out;
-    out.effective_m = current_height_;
-    out.source_valid = std::isfinite(current_height_);
+    out.effective_m = range_height_m_;
+    out.source_valid = false;
     out.range_available = has_range_height_;
     out.range_signal_quality = range_signal_quality_;
     out.range_m = range_height_m_;
@@ -602,13 +613,9 @@ private:
     }
     out.range_consistent = range_consistent;
 
-    if (!range_fresh || !range_in_bounds || !range_consistent) {
-      return out;
-    }
+    out.source_valid = range_fresh && range_in_bounds;
+    out.using_range = out.source_valid;
 
-    out.effective_m = range_height_m_;
-    out.source_valid = true;
-    out.using_range = true;
     return out;
   }
 
@@ -647,7 +654,7 @@ private:
     clearAlignmentTracking();
     resetReacquireCandidate();
     const HeightEstimate height_est = getHeightEstimate();
-    const float search_ref_height = height_est.source_valid ? height_est.effective_m : current_height_;
+    const float search_ref_height = height_est.effective_m;
 
     if (!landing_start_height_initialized_) {
       landing_start_height_ = search_ref_height;
@@ -715,20 +722,39 @@ private:
     return align_z_max_vz_ * speed_scale_z_;
   }
 
+  float effectiveAlignMinVXY() const
+  {
+    return std::min(std::max(0.0f, align_min_vxy_mps_), effectiveMaxVXY());
+  }
+
+  float computeAlignXYCurveScale(float err_norm) const
+  {
+    if (err_norm <= align_exit_error_) {
+      return 0.0f;
+    }
+
+    const float span = std::max(align_enter_error_ - align_exit_error_, 1.0e-4f);
+    const float normalized = clamp01((err_norm - align_exit_error_) / span);
+    return std::pow(normalized, align_xy_curve_power_);
+  }
+
   float effectiveSearchRiseSpeed() const
   {
     return search_rise_speed_mps_ * speed_scale_z_;
   }
 
-  float computeAlignVzCommand(float effective_height)
+  float computeAlignVzCommand(const HeightEstimate & height_est)
   {
-    if (!std::isfinite(effective_height)) {
+    if (!height_est.source_valid || !std::isfinite(height_est.effective_m)) {
       return 0.0f;
     }
 
-    if (!align_height_ref_initialized_) {
+    const float effective_height = height_est.effective_m;
+    const bool using_range = height_est.using_range;
+    if (!align_height_ref_initialized_ || align_height_ref_using_range_ != using_range) {
       align_height_ref_m_ = effective_height;
       align_height_ref_initialized_ = true;
+      align_height_ref_using_range_ = using_range;
       return 0.0f;
     }
 
@@ -740,7 +766,7 @@ private:
     return clamp(effectiveAlignZKp() * err_h, effectiveAlignMaxVz());
   }
 
-  float computeYawRateCommand() const
+  float computeYawRateCommand(float yaw_rate_scale = 1.0f) const
   {
     const float effective_limit = effectiveMaxVYaw();
     if (effective_limit <= 0.0f) {
@@ -752,7 +778,8 @@ private:
       return 0.0f;
     }
 
-    const float yaw_cmd = (-effectiveKpYaw() * err_yaw_f_) - (vel_damping_yaw_ * current_yaw_rate_);
+    const float yaw_cmd = (-(effectiveKpYaw() * yaw_rate_scale) * err_yaw_f_) -
+      (vel_damping_yaw_ * current_yaw_rate_);
     return clamp(yaw_cmd, effective_limit);
   }
 
@@ -891,30 +918,59 @@ private:
     const float err_u = clamp(err_u_f_, max_error_norm_);
     const float err_v = clamp(err_v_f_, max_error_norm_);
     const HeightEstimate height_est = getHeightEstimate();
-    const float ctrl_height = height_est.source_valid ? height_est.effective_m : current_height_;
+    const float ctrl_height = height_est.effective_m;
+    const bool align_mode = state_ == State::ALIGN;
     const float height_for_xy = std::max(ctrl_height, min_height_for_xy_);
-    const float kp_xy = effectiveKpXY();
     const float max_vxy = effectiveMaxVXY();
+    const float err_norm = std::sqrt((err_u * err_u) + (err_v * err_v));
+    const float align_xy_curve_scale = align_mode ? computeAlignXYCurveScale(err_norm) : 1.0f;
 
-    const float vx_body = clamp(yaw_xy_scale * (-kp_xy * err_v * height_for_xy), max_vxy);
-    const float vy_body = clamp(yaw_xy_scale * (-kp_xy * err_u * height_for_xy), max_vxy);
+    const float vx_body = clamp(
+      align_xy_curve_scale * yaw_xy_scale * (-effectiveKpXY() * err_v * height_for_xy),
+      max_vxy);
+    const float vy_body = clamp(
+      align_xy_curve_scale * yaw_xy_scale * (-effectiveKpXY() * err_u * height_for_xy),
+      max_vxy);
 
     const float cos_yaw = std::cos(current_yaw_);
     const float sin_yaw = std::sin(current_yaw_);
-    vx_out = (cos_yaw * vx_body) - (sin_yaw * vy_body);
-    vy_out = (sin_yaw * vx_body) + (cos_yaw * vy_body);
+    const float vx_cmd = (cos_yaw * vx_body) - (sin_yaw * vy_body);
+    const float vy_cmd = (sin_yaw * vx_body) + (cos_yaw * vy_body);
+    vx_out = vx_cmd;
+    vy_out = vy_cmd;
 
     vx_out -= vel_damping_xy_ * current_vx_world_;
     vy_out -= vel_damping_xy_ * current_vy_world_;
 
-    const float vxy_norm = std::sqrt((vx_out * vx_out) + (vy_out * vy_out));
+    float vxy_norm = std::sqrt((vx_out * vx_out) + (vy_out * vy_out));
+    if (align_mode && yaw_xy_scale > 0.0f) {
+      const float align_min_vxy = effectiveAlignMinVXY() * align_xy_curve_scale;
+      if (align_min_vxy > 0.0f && err_norm > align_exit_error_ && vxy_norm < align_min_vxy) {
+        float ref_vx = vx_cmd;
+        float ref_vy = vy_cmd;
+        float ref_norm = std::sqrt((ref_vx * ref_vx) + (ref_vy * ref_vy));
+        if (ref_norm < 1.0e-6f) {
+          ref_vx = vx_out;
+          ref_vy = vy_out;
+          ref_norm = vxy_norm;
+        }
+        if (ref_norm > 1.0e-6f) {
+          const float scale = align_min_vxy / ref_norm;
+          vx_out = ref_vx * scale;
+          vy_out = ref_vy * scale;
+          vxy_norm = align_min_vxy;
+        }
+      }
+    }
+
     if (vxy_norm > max_vxy && vxy_norm > 1.0e-6f) {
       const float scale = max_vxy / vxy_norm;
       vx_out *= scale;
       vy_out *= scale;
     }
 
-    vyaw_out = computeYawRateCommand();
+    const float align_yaw_rate_scale = state_ == State::ALIGN ? align_yaw_rate_scale_ : 1.0f;
+    vyaw_out = computeYawRateCommand(align_yaw_rate_scale);
   }
 
   bool isAligned()
@@ -948,9 +1004,9 @@ private:
     }
 
     const HeightEstimate height_est = getHeightEstimate();
-    const float effective_height = height_est.source_valid ? height_est.effective_m : current_height_;
+    const float effective_height = height_est.effective_m;
 
-    if (!landing_start_height_initialized_) {
+    if (!landing_start_height_initialized_ && height_est.source_valid) {
       landing_start_height_ = effective_height;
       landing_start_height_initialized_ = true;
     }
@@ -970,12 +1026,16 @@ private:
       case State::ALIGN:
       {
         if (targetLost()) {
+          if (!height_est.source_valid) {
+            publishHover();
+            break;
+          }
           beginSearchRise();
           break;
         }
 
         resetReacquireCandidate();
-        const float vz_align = computeAlignVzCommand(effective_height);
+        const float vz_align = computeAlignVzCommand(height_est);
         if (!has_filtered_error_) {
           publishVelocityLimited(0.0f, 0.0f, vz_align, 0.0f);
           break;
@@ -996,7 +1056,7 @@ private:
                   this->get_logger(),
                   "[visual_landing] terminal ALIGN satisfied, switching to LAND");
                 transitionTo(State::LAND);
-              } else {
+              } else if (height_est.source_valid) {
                 transitionTo(State::DESCEND);
               }
             }
@@ -1023,6 +1083,11 @@ private:
           break;
         }
 
+        if (!height_est.source_valid) {
+          publishHover();
+          break;
+        }
+
         const double search_elapsed = (this->now() - search_started_time_).seconds();
         if (search_elapsed >= search_timeout_s_) {
           RCLCPP_WARN(this->get_logger(), "[visual_landing] search timeout %.1fs, entering IDLE hover", search_timeout_s_);
@@ -1042,6 +1107,11 @@ private:
 
       case State::DESCEND:
       {
+        if (!height_est.source_valid) {
+          publishHover();
+          break;
+        }
+
         if (height_est.source_valid && effective_height <= terminal_entry_height_m_) {
           terminal_align_pending_ = true;
           RCLCPP_INFO(
@@ -1169,11 +1239,15 @@ private:
   float align_enter_yaw_{0.0f};
   float align_exit_yaw_{0.0f};
   double align_hold_s_{0.0};
+  float align_yaw_rate_scale_{1.8f};
+  float align_min_vxy_mps_{0.10f};
+  float align_xy_curve_power_{1.5f};
   float align_z_kp_{0.0f};
   float align_z_max_vz_{0.0f};
   float align_z_deadband_m_{0.0f};
   float align_height_ref_m_{0.0f};
   bool align_height_ref_initialized_{false};
+  bool align_height_ref_using_range_{false};
 
   float alpha_xy_{0.0f};
   float max_acc_xy_{0.0f};

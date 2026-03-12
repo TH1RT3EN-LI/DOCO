@@ -15,8 +15,6 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <image_transport/image_transport.hpp>
-#include <px4_msgs/msg/distance_sensor.hpp>
-#include <px4_msgs/msg/sensor_optical_flow.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
@@ -42,8 +40,6 @@ public:
     this->declare_parameter<std::string>("landing_error_topic", "/uav/visual_landing/landing_error");
     this->declare_parameter<std::string>("status_topic", "/uav/visual_landing/status");
     this->declare_parameter<std::string>("velocity_topic", "/uav/control/velocity");
-    this->declare_parameter<std::string>("height_distance_topic", "/uav/fmu/in/distance_sensor");
-    this->declare_parameter<std::string>("optical_flow_topic", "/uav/fmu/in/sensor_optical_flow");
     this->declare_parameter<int>("target_marker_id", -1);
     this->declare_parameter<double>("camera_fx", 320.0);
     this->declare_parameter<double>("camera_fy", 320.0);
@@ -71,8 +67,6 @@ public:
     landing_error_topic_ = this->get_parameter("landing_error_topic").as_string();
     status_topic_ = this->get_parameter("status_topic").as_string();
     velocity_topic_ = this->get_parameter("velocity_topic").as_string();
-    height_distance_topic_ = this->get_parameter("height_distance_topic").as_string();
-    optical_flow_topic_ = this->get_parameter("optical_flow_topic").as_string();
     target_marker_id_ = this->get_parameter("target_marker_id").as_int();
     always_publish_debug_ = this->get_parameter("always_publish_debug").as_bool();
     const double debug_publish_rate_hz = this->get_parameter("debug_publish_rate_hz").as_double();
@@ -129,10 +123,8 @@ public:
         landing_status_.err_v_norm_filtered = msg->err_v_norm_filtered;
         landing_status_.yaw_err_rad_filtered = msg->yaw_err_rad_filtered;
         landing_status_.detection_confidence = msg->detection_confidence;
-        landing_status_.range_available = msg->range_available;
         landing_status_.range_fresh = msg->range_fresh;
         landing_status_.range_in_bounds = msg->range_in_bounds;
-        landing_status_.range_consistent = msg->range_consistent;
         landing_status_.height_using_range = msg->height_using_range;
         landing_status_.range_height_m = msg->range_height_m;
         landing_status_.range_age_s = msg->range_age_s;
@@ -149,27 +141,6 @@ public:
         velocity_cmd_.vy = static_cast<float>(msg->linear.y);
         velocity_cmd_.vz = static_cast<float>(msg->linear.z);
         velocity_cmd_.yaw_rate = static_cast<float>(msg->angular.z);
-      });
-
-    range_sub_ = this->create_subscription<px4_msgs::msg::DistanceSensor>(
-      height_distance_topic_, rclcpp::SensorDataQoS(),
-      [this](const px4_msgs::msg::DistanceSensor::SharedPtr msg)
-      {
-        range_telemetry_.received = true;
-        range_telemetry_.stamp = this->now();
-        range_telemetry_.current_distance_m = msg->current_distance;
-        range_telemetry_.signal_quality = msg->signal_quality;
-      });
-
-    optical_flow_sub_ = this->create_subscription<px4_msgs::msg::SensorOpticalFlow>(
-      optical_flow_topic_, rclcpp::SensorDataQoS(),
-      [this](const px4_msgs::msg::SensorOpticalFlow::SharedPtr msg)
-      {
-        flow_telemetry_.received = true;
-        flow_telemetry_.stamp = this->now();
-        flow_telemetry_.quality = msg->quality;
-        flow_telemetry_.min_ground_distance = msg->min_ground_distance;
-        flow_telemetry_.max_ground_distance = msg->max_ground_distance;
       });
 
     camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
@@ -195,9 +166,8 @@ public:
       landing_error_topic_.c_str(), pixel_error_topic_.c_str(), detected_topic_.c_str(),
       debug_image_topic_.c_str());
     RCLCPP_INFO(this->get_logger(),
-      "[apriltag_detector] debug overlay: status=%s cmd=%s range=%s flow=%s scale=%.1f panel=%d",
-      status_topic_.c_str(), velocity_topic_.c_str(), height_distance_topic_.c_str(),
-      optical_flow_topic_.c_str(), debug_render_scale_, debug_panel_width_px_);
+      "[apriltag_detector] debug overlay: status=%s cmd=%s z_summary=enabled scale=%.1f panel=%d",
+      status_topic_.c_str(), velocity_topic_.c_str(), debug_render_scale_, debug_panel_width_px_);
     RCLCPP_INFO(this->get_logger(),
       "[apriltag_detector] fallback intrinsics: fx=%.1f fy=%.1f cx=%.1f cy=%.1f",
       fx_, fy_, cx_, cy_);
@@ -254,10 +224,8 @@ private:
     float err_v_norm_filtered{0.0f};
     float yaw_err_rad_filtered{0.0f};
     float detection_confidence{0.0f};
-    bool range_available{false};
     bool range_fresh{false};
     bool range_in_bounds{false};
-    bool range_consistent{false};
     bool height_using_range{false};
     float range_height_m{0.0f};
     float range_age_s{-1.0f};
@@ -272,23 +240,6 @@ private:
     float vy{0.0f};
     float vz{0.0f};
     float yaw_rate{0.0f};
-  };
-
-  struct RangeTelemetry
-  {
-    bool received{false};
-    rclcpp::Time stamp{0, 0, RCL_ROS_TIME};
-    float current_distance_m{0.0f};
-    int8_t signal_quality{-1};
-  };
-
-  struct FlowTelemetry
-  {
-    bool received{false};
-    rclcpp::Time stamp{0, 0, RCL_ROS_TIME};
-    uint8_t quality{0U};
-    float min_ground_distance{0.0f};
-    float max_ground_distance{0.0f};
   };
 
   static float clamp01(float value)
@@ -662,11 +613,29 @@ private:
     return std::max(0.0, (this->now() - stamp).seconds());
   }
 
-  static void drawPanelText(cv::Mat & image, int x, int y, const std::string & text, double scale)
+  static void drawOverlayText(
+    cv::Mat & image, int x, int y, const std::string & text, double scale, int thickness = 1)
   {
+    constexpr int kFontFace = cv::FONT_HERSHEY_SIMPLEX;
+
+    int baseline = 0;
+    const cv::Size text_size = cv::getTextSize(text, kFontFace, scale, thickness, &baseline);
+    const int padding = std::max(4, thickness * 2 + 2);
+    const int left = std::max(0, x - padding);
+    const int top = std::max(0, y - text_size.height - padding);
+    const int right = std::min(image.cols, x + text_size.width + padding);
+    const int bottom = std::min(image.rows, y + baseline + padding);
+
+    if (left >= right || top >= bottom) {
+      return;
+    }
+
+    cv::Mat roi = image(cv::Rect(left, top, right - left, bottom - top));
+    cv::Mat mask(roi.size(), CV_8UC1, cv::Scalar(0));
     cv::putText(
-      image, text, cv::Point(x, y), cv::FONT_HERSHEY_SIMPLEX,
-      scale, cv::Scalar(235), 1, cv::LINE_AA);
+      mask, text, cv::Point(x - left, y - top), kFontFace,
+      scale, cv::Scalar(255), thickness, cv::LINE_AA);
+    cv::bitwise_not(roi, roi, mask);
   }
 
   cv::Mat composeDebugDisplay(const cv::Mat & annotated_image, const DetectionEstimate & estimate) const
@@ -687,8 +656,6 @@ private:
     char buffer[256];
     const double status_age_s = sampleAgeSec(landing_status_.stamp, landing_status_.received);
     const double cmd_age_s = sampleAgeSec(velocity_cmd_.stamp, velocity_cmd_.received);
-    const double range_age_s = sampleAgeSec(range_telemetry_.stamp, range_telemetry_.received);
-    const double flow_age_s = sampleAgeSec(flow_telemetry_.stamp, flow_telemetry_.received);
 
     std::snprintf(
       buffer, sizeof(buffer),
@@ -722,24 +689,65 @@ private:
 
       std::snprintf(
         buffer, sizeof(buffer),
-        "HGT: est=%.2fm src=%s range=%.2fm q=%d",
+        "HGT: est=%.2fm use=%s raw=%.2fm q=%d",
         landing_status_.current_height_m,
-        landing_status_.height_using_range ? "range" : "odom",
+        landing_status_.height_using_range ? "range" : "none",
         landing_status_.range_height_m,
         static_cast<int>(landing_status_.range_signal_quality));
       lines.emplace_back(buffer);
 
       std::snprintf(
         buffer, sizeof(buffer),
-        "RNG: avail=%s fresh=%s in=%s cons=%s age=%.2fs",
-        boolFlag(landing_status_.range_available),
+        "RNG: ok=%s fresh=%s in=%s age=%.2fs",
+        boolFlag(landing_status_.height_using_range),
         boolFlag(landing_status_.range_fresh),
         boolFlag(landing_status_.range_in_bounds),
-        boolFlag(landing_status_.range_consistent),
         landing_status_.range_age_s);
+      lines.emplace_back(buffer);
+
+      const char * z_mode = "HOVER";
+      const char * z_sem = "wait_tag";
+      if (!landing_status_.active) {
+        z_mode = "OFF";
+        z_sem = "inactive";
+      } else if (!landing_status_.height_using_range) {
+        z_mode = "WAIT";
+        z_sem = "need_range";
+      } else if (landing_status_.state == "ALIGN") {
+        z_mode = "HOLD";
+        z_sem = "keep_height";
+      } else if (landing_status_.state == "SEARCH_RISE") {
+        z_mode = "RISE";
+        z_sem = "search_up";
+      } else if (landing_status_.state == "DESCEND") {
+        z_mode = "DOWN";
+        z_sem = "descend";
+      } else if (landing_status_.state == "LAND") {
+        z_mode = "LAND";
+        z_sem = "land_service";
+      } else if (landing_status_.state == "DONE") {
+        z_mode = "DONE";
+        z_sem = "finished";
+      } else if (landing_status_.state == "READY") {
+        z_mode = "HOVER";
+        z_sem = "standby";
+      }
+
+      if (velocity_cmd_.received) {
+        std::snprintf(
+          buffer, sizeof(buffer),
+          "Z  : mode=%s vz=%.2f sem=%s",
+          z_mode, velocity_cmd_.vz, z_sem);
+      } else {
+        std::snprintf(
+          buffer, sizeof(buffer),
+          "Z  : mode=%s vz=n/a sem=%s",
+          z_mode, z_sem);
+      }
       lines.emplace_back(buffer);
     } else {
       lines.emplace_back("VL : status unavailable");
+      lines.emplace_back("Z  : mode=UNK vz=n/a sem=no_status");
     }
 
     if (velocity_cmd_.received) {
@@ -753,54 +761,41 @@ private:
       lines.emplace_back("CMD: unavailable");
     }
 
-    if (range_telemetry_.received) {
-      std::snprintf(
-        buffer, sizeof(buffer),
-        "RAW: range=%.2fm q=%d age=%.2fs",
-        range_telemetry_.current_distance_m,
-        static_cast<int>(range_telemetry_.signal_quality), range_age_s);
-      lines.emplace_back(buffer);
+    const int overlay_font = cv::FONT_HERSHEY_SIMPLEX;
+    double text_scale = 0.85 + 0.24 * std::log2(scale);
+    text_scale = std::max(0.85, std::min(1.45, text_scale));
+    const double title_scale = std::min(1.70, text_scale + 0.28);
+    const int text_thickness = text_scale >= 1.20 ? 3 : 2;
+    const int title_thickness = text_thickness + 1;
+
+    int title_baseline = 0;
+    const cv::Size title_size = cv::getTextSize(
+      "VISUAL LANDING DEBUG", overlay_font, title_scale, title_thickness, &title_baseline);
+
+    int text_baseline = 0;
+    const cv::Size text_size = cv::getTextSize(
+      "Ag", overlay_font, text_scale, text_thickness, &text_baseline);
+
+    const int left_padding = std::max(20, static_cast<int>(std::lround(22.0 + text_scale * 10.0)));
+    const int top_padding = std::max(24, static_cast<int>(std::lround(24.0 + title_scale * 12.0)));
+    const int title_gap = std::max(18, static_cast<int>(std::lround(text_size.height * 1.00)));
+    const int line_gap = std::max(10, static_cast<int>(std::lround(text_size.height * 0.55)));
+
+    int current_y = top_padding + title_size.height;
+    drawOverlayText(
+      zoomed_image, left_padding, current_y,
+      "VISUAL LANDING DEBUG", title_scale, title_thickness);
+
+    current_y += title_baseline + title_gap;
+    for (const auto & line : lines) {
+      current_y += text_size.height;
+      drawOverlayText(
+        zoomed_image, left_padding,
+        current_y, line, text_scale, text_thickness);
+      current_y += text_baseline + line_gap;
     }
 
-    if (flow_telemetry_.received) {
-      std::snprintf(
-        buffer, sizeof(buffer),
-        "FLOW: q=%u min=%.2f max=%.2f age=%.2fs",
-        static_cast<unsigned>(flow_telemetry_.quality),
-        flow_telemetry_.min_ground_distance,
-        flow_telemetry_.max_ground_distance, flow_age_s);
-      lines.emplace_back(buffer);
-    } else {
-      lines.emplace_back("FLOW: unavailable");
-    }
-
-    const int panel_width = std::max(debug_panel_width_px_, 260);
-    const int top_margin = 26;
-    const int line_height = 22;
-    const int panel_height = std::max(
-      zoomed_image.rows, top_margin + static_cast<int>(lines.size()) * line_height + 14);
-    cv::Mat canvas(
-      panel_height, zoomed_image.cols + panel_width,
-      CV_8UC1, cv::Scalar(16));
-    zoomed_image.copyTo(canvas(cv::Rect(0, 0, zoomed_image.cols, zoomed_image.rows)));
-
-    const int panel_x = zoomed_image.cols;
-    cv::rectangle(
-      canvas, cv::Rect(panel_x, 0, panel_width, panel_height),
-      cv::Scalar(28), cv::FILLED);
-    cv::line(
-      canvas, cv::Point(panel_x, 0), cv::Point(panel_x, panel_height - 1),
-      cv::Scalar(100), 1);
-
-    drawPanelText(canvas, panel_x + 10, 16, "VISUAL LANDING DEBUG", 0.55);
-    for (size_t index = 0; index < lines.size(); ++index) {
-      drawPanelText(
-        canvas, panel_x + 10,
-        top_margin + static_cast<int>(index) * line_height,
-        lines[index], 0.50);
-    }
-
-    return canvas;
+    return zoomed_image;
   }
 
   void onCameraInfo(const sensor_msgs::msg::CameraInfo::SharedPtr msg)
@@ -940,8 +935,8 @@ private:
 
       const float fx_safe = std::max(fx_, 1.0e-6f);
       const float fy_safe = std::max(fy_, 1.0e-6f);
-      estimate.err_u_norm = (estimate.center_px.x - cx_) / fx_safe;
-      estimate.err_v_norm = (estimate.center_px.y - cy_) / fy_safe;
+      estimate.err_u_norm = (estimate.center_px.x - img_center.x) / fx_safe;
+      estimate.err_v_norm = (estimate.center_px.y - img_center.y) / fy_safe;
       estimate.marker_span_px = computeMarkerSpanPx(target_corners);
 
       const float edge_dx = target_corners[1].x - target_corners[0].x;
@@ -1040,8 +1035,6 @@ private:
   std::string landing_error_topic_;
   std::string status_topic_;
   std::string velocity_topic_;
-  std::string height_distance_topic_;
-  std::string optical_flow_topic_;
   int target_marker_id_{-1};
   bool always_publish_debug_{true};
   double debug_publish_period_s_{0.0};
@@ -1075,8 +1068,6 @@ private:
 
   LandingStatusTelemetry landing_status_;
   VelocityCommandTelemetry velocity_cmd_;
-  RangeTelemetry range_telemetry_;
-  FlowTelemetry flow_telemetry_;
 
   cv::Ptr<cv::aruco::Dictionary> tag_dict_;
   cv::Ptr<cv::aruco::DetectorParameters> tag_params_;
@@ -1086,8 +1077,6 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;
   rclcpp::Subscription<uav_visual_landing::msg::LandingStatus>::SharedPtr landing_status_sub_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr velocity_cmd_sub_;
-  rclcpp::Subscription<px4_msgs::msg::DistanceSensor>::SharedPtr range_sub_;
-  rclcpp::Subscription<px4_msgs::msg::SensorOpticalFlow>::SharedPtr optical_flow_sub_;
   rclcpp::Publisher<geometry_msgs::msg::PointStamped>::SharedPtr pixel_error_pub_;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr detected_pub_;
   rclcpp::Publisher<uav_visual_landing::msg::LandingError>::SharedPtr landing_error_pub_;

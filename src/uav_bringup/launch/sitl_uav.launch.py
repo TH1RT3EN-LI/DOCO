@@ -36,6 +36,7 @@ from sim_worlds.launch_common import (
 from uav_bringup.profile_defaults import DEFAULT_PX4_FRAME
 
 SIM_WORLDS_SHARE = get_package_share_directory("sim_worlds")
+VISUAL_LANDING_SHARE = get_package_share_directory("uav_visual_landing")
 
 
 def generate_launch_description():
@@ -95,6 +96,7 @@ def generate_launch_description():
     distance_sensor_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/in/distance_sensor"'])
     sensor_optical_flow_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/in/sensor_optical_flow"'])
     vehicle_local_position_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/out/vehicle_local_position"'])
+    vehicle_odometry_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/out/vehicle_odometry"'])
     vehicle_status_topic = PythonExpression(['"', fmu_topic_prefix, '" + "/out/vehicle_status"'])
     gz_pose_topic = LaunchConfiguration("gz_pose_topic")
     gz_image_topic = LaunchConfiguration("gz_image_topic")
@@ -105,6 +107,7 @@ def generate_launch_description():
         ['"', model_name, '" if "', attach_existing_model, '".lower() in ("1", "true", "yes", "on") else ""']
     )
     default_rviz_config = os.path.join(bringup_share, "config", "rviz", "sitl_uav.rviz")
+    visual_landing_config = os.path.join(VISUAL_LANDING_SHARE, "config", "visual_landing_stable.yaml")
 
     resolve_world_action = OpaqueFunction(
         function=partial(
@@ -254,10 +257,10 @@ def generate_launch_description():
         ],
     )
 
-    gz_pose_tf_bridge = Node(
+    gz_ground_truth_bridge = Node(
         package="uav_bridge",
         executable="tf_bridge_node",
-        name="gz_pose_tf_bridge",
+        name="gz_ground_truth_bridge",
         output="screen",
         parameters=[
             {"use_sim_time": True},
@@ -265,11 +268,49 @@ def generate_launch_description():
             {"gz_world_name": resolved_gz_world_name},
             {"model_name": model_name},
             {"map_frame": uav_map_frame},
-            {"odom_frame": uav_odom_frame},
-            {"base_frame": base_frame},
-            {"odom_topic": "/uav/odom"},
+            {"odom_frame": "uav_ground_truth_odom"},
+            {"base_frame": "uav_ground_truth_base_link"},
+            {"odom_topic": "/uav/sim/ground_truth/odom"},
             {"publish_odometry": True},
             {"use_initial_pose_as_map_origin": False},
+        ],
+    )
+
+    px4_odom_adapter = Node(
+        package="uav_bridge",
+        executable="px4_odom_adapter_node",
+        name="px4_odom_adapter",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"vehicle_local_position_topic": vehicle_local_position_topic},
+            {"vehicle_odometry_topic": vehicle_odometry_topic},
+            {"output_odom_topic": "/uav/odom"},
+            {"map_frame_id": uav_map_frame},
+            {"odom_frame_id": uav_odom_frame},
+            {"base_frame_id": base_frame},
+            {"publish_rate_hz": 50.0},
+            {"publish_odometry": True},
+            {"publish_tf": True},
+            {"log_state": False},
+        ],
+    )
+
+    px4_planar_state_reader = Node(
+        package="uav_bridge",
+        executable="px4_planar_state_reader_node",
+        name="px4_planar_state_reader",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"vehicle_local_position_topic": vehicle_local_position_topic},
+            {"vehicle_odometry_topic": vehicle_odometry_topic},
+            {"output_odom_topic": "/uav/px4/planar_odom"},
+            {"world_frame_id": uav_odom_frame},
+            {"base_frame_id": base_frame},
+            {"publish_rate_hz": 50.0},
+            {"publish_odometry": True},
+            {"log_state": False},
         ],
     )
 
@@ -444,6 +485,7 @@ def generate_launch_description():
         executable="visual_landing_node",
         name="visual_landing_node",
         output="screen",
+        parameters=[visual_landing_config],
     )
     def create_robot_state_publisher(context):
         if shutil.which("xacro") is None:
@@ -480,6 +522,43 @@ def generate_launch_description():
         ]
 
     robot_state_publisher_action = OpaqueFunction(function=create_robot_state_publisher)
+
+    def create_ground_truth_robot_state_publisher(context):
+        if shutil.which("xacro") is None:
+            return [
+                LogInfo(
+                    msg="[uav_sitl] xacro executable not found; skipping ground truth robot_state_publisher.")
+            ]
+
+        ground_truth_robot_description = Command(
+            [
+                "xacro",
+                " ",
+                xacro_file,
+                " ",
+                "prefix:=uav_ground_truth_",
+                " ",
+                "base_frame:=base_link",
+            ]
+        )
+        return [
+            Node(
+                package="robot_state_publisher",
+                executable="robot_state_publisher",
+                name="uav_ground_truth_robot_state_publisher",
+                output="screen",
+                parameters=[
+                    {"use_sim_time": True},
+                    {"robot_description": ground_truth_robot_description},
+                ],
+                remappings=[
+                    ("/robot_description", "/uav/ground_truth_robot_description"),
+                ],
+            )
+        ]
+
+    ground_truth_robot_state_publisher_action = OpaqueFunction(
+        function=create_ground_truth_robot_state_publisher)
 
     rviz = Node(
         package="rviz2",
@@ -616,7 +695,9 @@ def generate_launch_description():
             gz_launch,
             sim_clock_bridge,
             global_to_uav_map_tf_action,
-            gz_pose_tf_bridge,
+            gz_ground_truth_bridge,
+            px4_odom_adapter,
+            px4_planar_state_reader,
             mono_camera_bridge,
             stereo_camera_bridge,
             fmu_topic_namespace_bridge,
@@ -627,6 +708,7 @@ def generate_launch_description():
             aruco_detector,
             visual_landing,
             robot_state_publisher_action,
+            ground_truth_robot_state_publisher_action,
             rviz,
             px4_proc_delayed,
         ]

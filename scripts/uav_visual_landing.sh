@@ -1,52 +1,100 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-usage() {
-  cat <<'USAGE'
-Usage:
-  uav_visual_landing.sh [--foreground] [-- <extra ros2 run args>]
-
-Options:
-  --foreground, -f   Run in foreground (default: background).
-  --help, -h         Show this help.
-
-Examples:
-  ./ws/scripts/uav_visual_landing.sh
-  ./ws/scripts/uav_visual_landing.sh --foreground
-  ./ws/scripts/uav_visual_landing.sh -- --ros-args -p land_height_m:=0.08
-USAGE
-}
-
+SCRIPT_NAME="$(basename "$0")"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SETUP_FILE="${WS_DIR}/install/setup.bash"
-RUN_DIR="${WS_DIR}/.run"
-LOG_DIR="${WS_DIR}/log/scripts"
-PID_FILE="${RUN_DIR}/visual_landing_node.pid"
-FOREGROUND=0
-EXTRA_ARGS=()
+DEFAULT_WAIT_TIMEOUT_SEC="${UAV_VL_WAIT_TIMEOUT_SEC:-5}"
+ACTION="start"
+SERVICE_NAME=""
+WAIT_TIMEOUT_SEC="${DEFAULT_WAIT_TIMEOUT_SEC}"
+
+usage() {
+  cat <<EOF_USAGE
+Usage:
+  ${SCRIPT_NAME} [start|stop] [service_name] [--timeout SEC]
+
+Actions:
+  start               Call visual landing start service (default).
+  stop                Call visual landing stop service.
+
+Arguments:
+  service_name        Override the default ROS 2 service name.
+
+Options:
+  --timeout SEC       Wait up to SEC seconds for the service to appear.
+  -h, --help          Show this help.
+
+Default services:
+  start -> /uav/visual_landing/start
+  stop  -> /uav/visual_landing/stop
+
+Notes:
+  - In the current sim stack, these services are provided by
+    visual_landing_node launched from ws/src/uav_bringup/launch/sitl_uav.launch.py,
+    which is included by ws/src/duojin01_bringup/launch/sim.launch.py.
+  - This script no longer launches a standalone node.
+
+Examples:
+  ./ws/scripts/uav_visual_landing.sh
+  ./ws/scripts/uav_visual_landing.sh stop
+  ./ws/scripts/uav_visual_landing.sh start --timeout 10
+  ./ws/scripts/uav_visual_landing.sh stop /uav/visual_landing/stop
+EOF_USAGE
+}
+
+log() {
+  echo "[uav_visual_landing] $*"
+}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --foreground|-f)
-      FOREGROUND=1
+    start|stop)
+      ACTION="$1"
       shift
       ;;
-    --help|-h)
+    --timeout)
+      if [[ $# -lt 2 ]]; then
+        echo "[uav_visual_landing] missing value for --timeout" >&2
+        usage >&2
+        exit 1
+      fi
+      WAIT_TIMEOUT_SEC="$2"
+      shift 2
+      ;;
+    -h|--help)
       usage
       exit 0
       ;;
-    --)
-      shift
-      EXTRA_ARGS+=("$@")
-      break
-      ;;
     *)
-      EXTRA_ARGS+=("$1")
-      shift
+      if [[ -z "${SERVICE_NAME}" ]]; then
+        SERVICE_NAME="$1"
+        shift
+      else
+        echo "[uav_visual_landing] unexpected argument: $1" >&2
+        usage >&2
+        exit 1
+      fi
       ;;
   esac
 done
+
+case "${ACTION}" in
+  start)
+    DEFAULT_SERVICE_NAME="/uav/visual_landing/start"
+    ;;
+  stop)
+    DEFAULT_SERVICE_NAME="/uav/visual_landing/stop"
+    ;;
+  *)
+    echo "[uav_visual_landing] unsupported action: ${ACTION}" >&2
+    usage >&2
+    exit 1
+    ;;
+esac
+
+SERVICE_NAME="${SERVICE_NAME:-${DEFAULT_SERVICE_NAME}}"
 
 if [[ ! -f "${SETUP_FILE}" ]]; then
   echo "[uav_visual_landing] missing ${SETUP_FILE}" >&2
@@ -54,31 +102,41 @@ if [[ ! -f "${SETUP_FILE}" ]]; then
   exit 1
 fi
 
-# shellcheck disable=SC1090
+if ! [[ "${WAIT_TIMEOUT_SEC}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "[uav_visual_landing] invalid --timeout value: ${WAIT_TIMEOUT_SEC}" >&2
+  exit 1
+fi
+
 set +u
+# shellcheck source=/dev/null
 source "${SETUP_FILE}"
 set -u
 
-mkdir -p "${RUN_DIR}" "${LOG_DIR}"
+wait_for_service() {
+  local service_name="$1"
+  local timeout_sec="$2"
+  local timeout_ceil_sec
+  local deadline_sec
 
-if [[ -f "${PID_FILE}" ]]; then
-  old_pid="$(cat "${PID_FILE}")"
-  if [[ -n "${old_pid}" ]] && kill -0 "${old_pid}" 2>/dev/null; then
-    echo "[uav_visual_landing] already running (pid=${old_pid})"
-    exit 0
-  fi
-  rm -f "${PID_FILE}"
+  timeout_ceil_sec="$(awk -v timeout="${timeout_sec}" 'BEGIN { print (timeout == int(timeout)) ? int(timeout) : int(timeout) + 1 }')"
+  deadline_sec=$((SECONDS + timeout_ceil_sec))
+
+  while (( SECONDS <= deadline_sec )); do
+    if ros2 service type "${service_name}" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 0.2
+  done
+
+  return 1
+}
+
+log "waiting for ${SERVICE_NAME} (timeout=${WAIT_TIMEOUT_SEC}s)"
+if ! wait_for_service "${SERVICE_NAME}" "${WAIT_TIMEOUT_SEC}"; then
+  echo "[uav_visual_landing] service not available: ${SERVICE_NAME}" >&2
+  echo "[uav_visual_landing] start the sim stack first: ros2 launch duojin01_bringup sim.launch.py" >&2
+  exit 1
 fi
 
-if [[ "${FOREGROUND}" -eq 1 ]]; then
-  echo "[uav_visual_landing] starting in foreground"
-  exec ros2 run uav_visual_landing visual_landing_node "${EXTRA_ARGS[@]}"
-fi
-
-ts="$(date +%Y%m%d_%H%M%S)"
-log_file="${LOG_DIR}/visual_landing_${ts}.log"
-echo "[uav_visual_landing] starting in background, log=${log_file}"
-nohup ros2 run uav_visual_landing visual_landing_node "${EXTRA_ARGS[@]}" >"${log_file}" 2>&1 &
-pid=$!
-echo "${pid}" > "${PID_FILE}"
-echo "[uav_visual_landing] started pid=${pid}"
+log "calling ${SERVICE_NAME}"
+ros2 service call "${SERVICE_NAME}" std_srvs/srv/Trigger "{}"
