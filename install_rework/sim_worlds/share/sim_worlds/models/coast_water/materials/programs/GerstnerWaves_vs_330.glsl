@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/src/sim_worlds/models/coast_water/materials/programs/GerstnerWaves_vs_330.glsl

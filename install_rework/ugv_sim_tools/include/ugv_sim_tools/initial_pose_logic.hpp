@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/src/ugv_sim_tools/include/ugv_sim_tools/initial_pose_logic.hpp

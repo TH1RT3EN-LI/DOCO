@@ -1,0 +1,6 @@
+Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/ugv_sim_tools -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools
+Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/ugv_sim_tools -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools
+Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools -- -j16 -l16
+Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools -- -j16 -l16
+Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools
+Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/ugv_sim_tools

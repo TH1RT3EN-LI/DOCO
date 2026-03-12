@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing/ament_cmake_environment_hooks/pythonpath.sh

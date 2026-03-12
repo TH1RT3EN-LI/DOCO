@@ -1,0 +1,65 @@
+[0.014s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bridge': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/uav_bridge -- -j16 -l16
+[0.078s] Consolidate compiler generated dependencies of target uav_control_node
+[0.081s] [ 18%] Built target stereo_camera_bridge_node
+[0.081s] [ 18%] Built target uav_bridge_uav_state_bridge_logic
+[0.081s] [ 18%] Built target tf_bridge_node
+[0.081s] [ 18%] Built target fmu_topic_namespace_bridge_node
+[0.081s] [ 30%] Built target px4_planar_state_reader_node
+[0.081s] [ 30%] Built target uav_bridge_px4_odom_adapter_logic
+[0.082s] [ 34%] Built target mono_camera_bridge_node
+[0.082s] [ 39%] Built target gtest_main
+[0.082s] [ 48%] Built target mono_camera_source_node
+[0.082s] [ 53%] Built target gtest
+[0.082s] [ 55%] Built target optical_flow_bridge_node
+[0.083s] [ 55%] Built target rangefinder_bridge_node
+[0.092s] [ 69%] Built target offboard_bridge_node
+[0.099s] Consolidate compiler generated dependencies of target test_uav_control_logic
+[0.101s] [ 72%] Building CXX object CMakeFiles/uav_control_node.dir/src/uav_control_node.cpp.o
+[0.112s] [ 90%] Built target px4_odom_adapter_node
+[0.112s] [ 90%] Built target uav_state_bridge_node
+[0.112s] [ 90%] Built target test_px4_odom_adapter_logic
+[0.112s] [ 90%] Built target test_uav_state_bridge_logic
+[0.115s] [ 95%] Built target test_uav_control_logic
+[15.873s] [ 97%] Linking CXX executable uav_control_node
+[16.709s] [100%] Built target uav_control_node
+[16.722s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bridge' returned '0': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/uav_bridge -- -j16 -l16
+[16.732s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bridge': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/uav_bridge
+[16.740s] -- Install configuration: ""
+[16.740s] -- Execute custom install script
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/libuav_bridge_px4_odom_adapter_logic.a
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/mono_camera_bridge_node
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/mono_camera_source_node
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/stereo_camera_bridge_node
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/tf_bridge_node
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/offboard_bridge_node
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/rangefinder_bridge_node
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/optical_flow_bridge_node
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/px4_planar_state_reader_node
+[16.741s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/px4_odom_adapter_node
+[16.742s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/uav_state_bridge_node
+[16.742s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/uav_control_node
+[16.742s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/lib/uav_bridge/fmu_topic_namespace_bridge_node
+[16.742s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/flight_mode_manager.hpp
+[16.742s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/frame_aligner.hpp
+[16.742s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/gz_topic_utils.hpp
+[16.742s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/math_utils.hpp
+[16.742s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/px4_commander.hpp
+[16.742s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/px4_odom_adapter_logic.hpp
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/uav_control_logic.hpp
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/include/uav_bridge/uav_state_bridge_logic.hpp
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/ament_index/resource_index/package_run_dependencies/uav_bridge
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/ament_index/resource_index/parent_prefix_path/uav_bridge
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/environment/ament_prefix_path.sh
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/environment/ament_prefix_path.dsv
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/environment/path.sh
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/environment/path.dsv
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/local_setup.bash
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/local_setup.sh
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/local_setup.zsh
+[16.743s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/local_setup.dsv
+[16.743s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/package.dsv
+[16.753s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/ament_index/resource_index/packages/uav_bridge
+[16.753s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/cmake/uav_bridgeConfig.cmake
+[16.753s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/cmake/uav_bridgeConfig-version.cmake
+[16.753s] -- Up-to-date symlink: /home/th1rt3en/DOCO/ws/install_rework/uav_bridge/share/uav_bridge/package.xml
+[16.756s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/uav_bridge' returned '0': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs:/opt/ros/humble LD_LIBRARY_PATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/lib:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/th1rt3en/DOCO/ws/install_rework/quadrotor_msgs/local/lib/python3.10/dist-packages:/home/th1rt3en/DOCO/ws/install_rework/px4_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/uav_bridge

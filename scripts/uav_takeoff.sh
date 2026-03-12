@@ -3,11 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-if [[ -f "${WS_DIR}/install_rework/setup.bash" ]]; then
-  SETUP_FILE="${WS_DIR}/install_rework/setup.bash"
-else
-  SETUP_FILE="${WS_DIR}/install/setup.bash"
-fi
+SETUP_FILE="${WS_DIR}/install/setup.bash"
 
 if [[ ! -f "${SETUP_FILE}" ]]; then
   echo "[uav_takeoff] missing ${SETUP_FILE}" >&2

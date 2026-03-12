@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/src/ugv_sim_tools/include/ugv_sim_tools/point_cloud_utils.hpp

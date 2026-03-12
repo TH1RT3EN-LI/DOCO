@@ -1,1 +1,0 @@
-rclcpp;sensor_msgs;geometry_msgs;nav_msgs;std_msgs;std_srvs;tf2;tf2_ros;quadrotor_msgs;px4_msgs;gz-transport13;gz-msgs10;libopencv-dev;ament_lint_auto;ament_lint_common;ament_cmake_gtest

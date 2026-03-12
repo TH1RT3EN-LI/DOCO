@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/src/uav_bringup/launch/profile_defaults.py

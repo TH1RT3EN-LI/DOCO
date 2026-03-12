@@ -1,0 +1,6 @@
+Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/uav_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/uav_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/uav_description
+Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/uav_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/uav_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/uav_description
+Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/uav_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/uav_description -- -j16 -l16
+Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/uav_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/uav_description -- -j16 -l16
+Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/uav_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/uav_description
+Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/uav_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/uav_description

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="4" failures="0" disabled="0" errors="0" time="0" timestamp="2026-03-12T15:34:04" name="AllTests">
-  <testsuite name="Px4OdomAdapterLogic" tests="4" failures="0" disabled="0" errors="0" time="0" timestamp="2026-03-12T15:34:04">
-    <testcase name="ResolvesOdometryPoseVelocityAndCovariance" status="run" result="completed" time="0" timestamp="2026-03-12T15:34:04" classname="uav_bridge.Px4OdomAdapterLogic" />
-    <testcase name="FallsBackToLocalPositionHeadingAndVelocity" status="run" result="completed" time="0" timestamp="2026-03-12T15:34:04" classname="uav_bridge.Px4OdomAdapterLogic" />
-    <testcase name="ConvertsBodyVelocityToWorldEnu" status="run" result="completed" time="0" timestamp="2026-03-12T15:34:04" classname="uav_bridge.Px4OdomAdapterLogic" />
-    <testcase name="WrapsYawRateAcrossPiBoundary" status="run" result="completed" time="0" timestamp="2026-03-12T15:34:04" classname="uav_bridge.Px4OdomAdapterLogic" />
-  </testsuite>
-</testsuites>

@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/px4_msgs/rosidl_cmake/srv/VehicleCommand_Request.msg

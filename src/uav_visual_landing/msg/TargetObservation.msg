@@ -9,3 +9,7 @@ float32 err_v_norm
 float32 yaw_err_rad
 float32 marker_span_px
 float32 reproj_err_px
+bool tag_depth_valid
+float32 tag_depth_m
+string tag_depth_source
+float32 tag_depth_confidence

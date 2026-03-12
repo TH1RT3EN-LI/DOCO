@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/src/uav_bridge/include/uav_bridge/flight_mode_manager.hpp

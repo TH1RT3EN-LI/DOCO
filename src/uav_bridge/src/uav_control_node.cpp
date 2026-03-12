@@ -11,7 +11,6 @@
 #include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
 
-#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <px4_msgs/msg/offboard_control_mode.hpp>
@@ -19,12 +18,12 @@
 #include <px4_msgs/msg/vehicle_command.hpp>
 #include <px4_msgs/msg/vehicle_local_position.hpp>
 #include <px4_msgs/msg/vehicle_status.hpp>
-#include <quadrotor_msgs/msg/position_command.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_srvs/srv/trigger.hpp>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Vector3.h>
+
 #include "uav_bridge/gz_topic_utils.hpp"
 #include "uav_bridge/math_utils.hpp"
 #include "uav_bridge/uav_control_logic.hpp"
@@ -46,8 +45,6 @@ public:
   UavControlNode()
   : Node("uav_control_node")
   {
-    this->declare_parameter<std::string>("trajectory_topic", "/uav/control/setpoint/trajectory");
-    this->declare_parameter<std::string>("pose_topic", "/uav/control/setpoint/pose");
     this->declare_parameter<std::string>("velocity_body_topic", "/uav/control/setpoint/velocity_body");
     this->declare_parameter<std::string>("state_topic", "/uav/state/odometry");
     this->declare_parameter<std::string>("offboard_mode_topic", "/uav/fmu/in/offboard_control_mode");
@@ -58,7 +55,6 @@ public:
     this->declare_parameter<std::string>("takeoff_service", "/uav/control/command/takeoff");
     this->declare_parameter<std::string>("hold_service", "/uav/control/command/hold");
     this->declare_parameter<std::string>("land_service", "/uav/control/command/land");
-    this->declare_parameter<std::string>("auto_enable_service", "/uav/control/command/auto_enable");
     this->declare_parameter<double>("publish_rate_hz", 50.0);
     this->declare_parameter<int>("warmup_cycles", 20);
     this->declare_parameter<int>("target_system", 1);
@@ -74,14 +70,11 @@ public:
     this->declare_parameter<double>("velocity_mode_max_acc_xy_mps2", 1.0);
     this->declare_parameter<double>("velocity_mode_max_acc_z_mps2", 0.6);
     this->declare_parameter<double>("velocity_mode_max_acc_yaw_radps2", 1.5);
-    this->declare_parameter<std::string>("world_frame_id", "uav_odom");
     this->declare_parameter<std::string>("base_frame_id", "uav_base_link");
     this->declare_parameter<std::string>("px4_timestamp_source", "system");
     this->declare_parameter<std::string>("gz_world_name", "test");
     this->declare_parameter<std::string>("gz_clock_topic", "");
 
-    trajectory_topic_ = this->get_parameter("trajectory_topic").as_string();
-    pose_topic_ = this->get_parameter("pose_topic").as_string();
     velocity_body_topic_ = this->get_parameter("velocity_body_topic").as_string();
     state_topic_ = this->get_parameter("state_topic").as_string();
     offboard_mode_topic_ = this->get_parameter("offboard_mode_topic").as_string();
@@ -92,7 +85,6 @@ public:
     takeoff_service_ = this->get_parameter("takeoff_service").as_string();
     hold_service_ = this->get_parameter("hold_service").as_string();
     land_service_ = this->get_parameter("land_service").as_string();
-    auto_enable_service_ = this->get_parameter("auto_enable_service").as_string();
     publish_rate_hz_ = this->get_parameter("publish_rate_hz").as_double();
     warmup_cycles_ = this->get_parameter("warmup_cycles").as_int();
     target_system_ = static_cast<uint8_t>(this->get_parameter("target_system").as_int());
@@ -108,17 +100,12 @@ public:
     velocity_mode_max_acc_xy_mps2_ = static_cast<float>(this->get_parameter("velocity_mode_max_acc_xy_mps2").as_double());
     velocity_mode_max_acc_z_mps2_ = static_cast<float>(this->get_parameter("velocity_mode_max_acc_z_mps2").as_double());
     velocity_mode_max_acc_yaw_radps2_ = static_cast<float>(this->get_parameter("velocity_mode_max_acc_yaw_radps2").as_double());
-    world_frame_id_ = this->get_parameter("world_frame_id").as_string();
     base_frame_id_ = this->get_parameter("base_frame_id").as_string();
     gz_world_name_ = this->get_parameter("gz_world_name").as_string();
     gz_clock_topic_ = this->get_parameter("gz_clock_topic").as_string();
 
     const std::string timestamp_source = this->get_parameter("px4_timestamp_source").as_string();
-    if (timestamp_source == "gz_sim") {
-      px4_timestamp_source_ = Px4TimestampSource::GazeboSim;
-    } else {
-      px4_timestamp_source_ = Px4TimestampSource::System;
-    }
+    px4_timestamp_source_ = timestamp_source == "gz_sim" ? Px4TimestampSource::GazeboSim : Px4TimestampSource::System;
 
     if (px4_timestamp_source_ == Px4TimestampSource::GazeboSim) {
       if (gz_clock_topic_.empty()) {
@@ -133,21 +120,6 @@ public:
     offboard_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>(offboard_mode_topic_, 10);
     trajectory_setpoint_pub_ = this->create_publisher<px4_msgs::msg::TrajectorySetpoint>(trajectory_setpoint_topic_, 10);
     vehicle_command_pub_ = this->create_publisher<px4_msgs::msg::VehicleCommand>(vehicle_command_topic_, 10);
-
-    trajectory_sub_ = this->create_subscription<quadrotor_msgs::msg::PositionCommand>(
-      trajectory_topic_, 10,
-      [this](const quadrotor_msgs::msg::PositionCommand::SharedPtr msg)
-      {
-        last_auto_cmd_ = *msg;
-        has_auto_cmd_ = true;
-      });
-
-    pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
-      pose_topic_, 10,
-      [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
-      {
-        handlePoseTarget(*msg);
-      });
 
     velocity_body_sub_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
       velocity_body_topic_, 10,
@@ -187,7 +159,6 @@ public:
       {
         is_armed_ = msg->arming_state == px4_msgs::msg::VehicleStatus::ARMING_STATE_ARMED;
         is_offboard_mode_ = msg->nav_state == px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD;
-        is_auto_land_mode_ = msg->nav_state == px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_AUTO_LAND;
         if (!is_armed_ && mode_tracker_.mode() == UavControlMode::Landing) {
           mode_tracker_.onLandingComplete();
           resetWarmup();
@@ -215,30 +186,21 @@ public:
         response->success = handleLandRequest(response->message);
       });
 
-    auto_enable_srv_ = this->create_service<Trigger>(
-      auto_enable_service_,
-      [this](const std::shared_ptr<Trigger::Request>, std::shared_ptr<Trigger::Response> response)
-      {
-        response->success = handleAutoEnableRequest(response->message);
-      });
-
     const auto timer_period = std::chrono::duration_cast<std::chrono::nanoseconds>(
       std::chrono::duration<double>(1.0 / publish_rate_hz_));
     timer_ = this->create_wall_timer(timer_period, std::bind(&UavControlNode::timerCallback, this));
 
     RCLCPP_INFO(
       this->get_logger(),
-      "uav_control_node: trajectory=%s pose=%s velocity_body=%s state=%s takeoff=%s hold=%s land=%s auto_enable=%s",
-      trajectory_topic_.c_str(), pose_topic_.c_str(), velocity_body_topic_.c_str(), state_topic_.c_str(),
-      takeoff_service_.c_str(), hold_service_.c_str(), land_service_.c_str(), auto_enable_service_.c_str());
+      "uav_control_node: velocity_body=%s state=%s takeoff=%s hold=%s land=%s",
+      velocity_body_topic_.c_str(), state_topic_.c_str(),
+      takeoff_service_.c_str(), hold_service_.c_str(), land_service_.c_str());
   }
 
 private:
   static const char * modeName(UavControlMode mode)
   {
     switch (mode) {
-      case UavControlMode::Auto:
-        return "AUTO";
       case UavControlMode::Hold:
         return "HOLD";
       case UavControlMode::Takeoff:
@@ -324,12 +286,10 @@ private:
       ++setpoint_counter_;
       return;
     }
-
     if (!isPx4ExecutionReady()) {
       ++setpoint_counter_;
       return;
     }
-
     const int cycles_after_warmup = setpoint_counter_ - warmup_cycles_;
     constexpr int kRetryIntervalCycles = 50;
     if ((!is_offboard_mode_ || !is_armed_) && (cycles_after_warmup % kRetryIntervalCycles == 0)) {
@@ -465,33 +425,6 @@ private:
     return true;
   }
 
-  void handlePoseTarget(const geometry_msgs::msg::PoseStamped & msg)
-  {
-    const std::array<float, 3> target = {
-      static_cast<float>(msg.pose.position.x),
-      static_cast<float>(msg.pose.position.y),
-      static_cast<float>(msg.pose.position.z)};
-    if (!isFiniteVector(target)) {
-      RCLCPP_WARN(this->get_logger(), "ignored non-finite pose target");
-      return;
-    }
-    hold_target_position_enu_ = target;
-    const double quat_norm =
-      (msg.pose.orientation.x * msg.pose.orientation.x) +
-      (msg.pose.orientation.y * msg.pose.orientation.y) +
-      (msg.pose.orientation.z * msg.pose.orientation.z) +
-      (msg.pose.orientation.w * msg.pose.orientation.w);
-    if (quat_norm > 1.0e-6) {
-      hold_target_yaw_enu_ = quaternionToYaw(msg.pose.orientation);
-    } else if (has_state_) {
-      hold_target_yaw_enu_ = current_yaw_enu_;
-    }
-    hold_target_valid_ = true;
-    const auto previous = mode_tracker_.mode();
-    mode_tracker_.requestHold();
-    logModeChange(previous, "pose target");
-  }
-
   void handleVelocityBodyTarget(const geometry_msgs::msg::TwistStamped & msg)
   {
     if (!msg.header.frame_id.empty() && msg.header.frame_id != base_frame_id_) {
@@ -546,45 +479,15 @@ private:
     return true;
   }
 
-  bool handleAutoEnableRequest(std::string & message)
-  {
-    const auto previous = mode_tracker_.mode();
-    if (!mode_tracker_.requestAutoEnable(has_auto_cmd_)) {
-      message = mode_tracker_.mode() == UavControlMode::Landing ? "cannot enable auto while landing" : "no trajectory command available";
-      return false;
-    }
-    logModeChange(previous, "auto enable");
-    message = "auto mode enabled";
-    return true;
-  }
-
-  void publishAutoTrajectory()
-  {
-    if (!has_auto_cmd_) {
-      return;
-    }
-    publishPositionSetpoint(
-      {
-        static_cast<float>(last_auto_cmd_.position.x),
-        static_cast<float>(last_auto_cmd_.position.y),
-        static_cast<float>(last_auto_cmd_.position.z)},
-      static_cast<float>(last_auto_cmd_.yaw),
-      {
-        static_cast<float>(last_auto_cmd_.velocity.x),
-        static_cast<float>(last_auto_cmd_.velocity.y),
-        static_cast<float>(last_auto_cmd_.velocity.z)},
-      {
-        static_cast<float>(last_auto_cmd_.acceleration.x),
-        static_cast<float>(last_auto_cmd_.acceleration.y),
-        static_cast<float>(last_auto_cmd_.acceleration.z)});
-  }
-
   void publishHoldTarget()
   {
     if (!hold_target_valid_) {
       return;
     }
-    publishPositionSetpoint(hold_target_position_enu_, hold_target_yaw_enu_, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
+    publishPositionSetpoint(
+      hold_target_position_enu_, hold_target_yaw_enu_,
+      {0.0f, 0.0f, 0.0f},
+      {0.0f, 0.0f, 0.0f});
   }
 
   void handleTakeoffMode()
@@ -618,8 +521,9 @@ private:
     }
     const double elapsed_ms = static_cast<double>(now_us - last_velocity_body_time_us_) / 1000.0;
     if (elapsed_ms > velocity_body_timeout_ms_) {
-      std::string ignored;
       has_velocity_body_cmd_ = false;
+      mode_tracker_.onVelocityCommandTimeout();
+      std::string ignored;
       handleHoldRequest(ignored);
       return;
     }
@@ -639,9 +543,6 @@ private:
   void timerCallback()
   {
     switch (mode_tracker_.mode()) {
-      case UavControlMode::Auto:
-        publishAutoTrajectory();
-        break;
       case UavControlMode::Hold:
         publishHoldTarget();
         break;
@@ -657,8 +558,6 @@ private:
     }
   }
 
-  std::string trajectory_topic_;
-  std::string pose_topic_;
   std::string velocity_body_topic_;
   std::string state_topic_;
   std::string offboard_mode_topic_;
@@ -669,8 +568,6 @@ private:
   std::string takeoff_service_;
   std::string hold_service_;
   std::string land_service_;
-  std::string auto_enable_service_;
-  std::string world_frame_id_;
   std::string base_frame_id_;
   std::string gz_world_name_;
   std::string gz_clock_topic_;
@@ -693,8 +590,6 @@ private:
   gz::transport::Node gz_node_;
   std::atomic<uint64_t> latest_gz_clock_us_{0};
   UavControlModeTracker mode_tracker_{};
-  quadrotor_msgs::msg::PositionCommand last_auto_cmd_{};
-  bool has_auto_cmd_{false};
   geometry_msgs::msg::TwistStamped last_velocity_body_cmd_{};
   bool has_velocity_body_cmd_{false};
   uint64_t last_velocity_body_time_us_{0};
@@ -708,7 +603,6 @@ private:
   bool has_local_position_{false};
   bool is_armed_{false};
   bool is_offboard_mode_{false};
-  bool is_auto_land_mode_{false};
   std::array<float, 3> hold_target_position_enu_{0.0f, 0.0f, 0.0f};
   float hold_target_yaw_enu_{0.0f};
   bool hold_target_valid_{false};
@@ -716,8 +610,6 @@ private:
   int setpoint_counter_{0};
   bool land_command_sent_{false};
   int landing_retry_counter_{0};
-  rclcpp::Subscription<quadrotor_msgs::msg::PositionCommand>::SharedPtr trajectory_sub_;
-  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr velocity_body_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr state_sub_;
   rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition>::SharedPtr px4_local_position_sub_;
@@ -728,7 +620,6 @@ private:
   rclcpp::Service<Trigger>::SharedPtr takeoff_srv_;
   rclcpp::Service<Trigger>::SharedPtr hold_srv_;
   rclcpp::Service<Trigger>::SharedPtr land_srv_;
-  rclcpp::Service<Trigger>::SharedPtr auto_enable_srv_;
   rclcpp::TimerBase::SharedPtr timer_;
 };
 

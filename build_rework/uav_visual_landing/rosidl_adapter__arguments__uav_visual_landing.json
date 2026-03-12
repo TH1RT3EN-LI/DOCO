@@ -1,7 +1,0 @@
-{
-  "package_name": "uav_visual_landing",
-  "non_idl_tuples": [
-    "/home/th1rt3en/DOCO/ws/src/uav_visual_landing:msg/TargetObservation.msg",
-    "/home/th1rt3en/DOCO/ws/src/uav_visual_landing:msg/LandingControllerState.msg"
-  ]
-}

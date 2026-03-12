@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/ament_cmake_core/quadrotor_msgsConfig-version.cmake

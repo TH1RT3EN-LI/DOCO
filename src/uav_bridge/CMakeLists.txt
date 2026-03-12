@@ -100,29 +100,6 @@ target_link_libraries(tf_bridge_node
   gz-msgs10::core
 )
 
-add_executable(offboard_bridge_node
-  src/offboard_bridge_node.cpp
-  src/frame_aligner.cpp
-  src/flight_mode_manager.cpp
-  src/px4_commander.cpp
-  src/math_utils.cpp
-)
-target_compile_features(offboard_bridge_node PUBLIC cxx_std_17)
-target_include_directories(offboard_bridge_node PRIVATE include)
-ament_target_dependencies(offboard_bridge_node
-  geometry_msgs
-  nav_msgs
-  rclcpp
-  std_msgs
-  std_srvs
-  quadrotor_msgs
-  px4_msgs
-)
-target_link_libraries(offboard_bridge_node
-  gz-transport13::core
-  gz-msgs10::core
-)
-
 add_executable(rangefinder_bridge_node
   src/rangefinder_bridge_node.cpp
 )
@@ -232,7 +209,6 @@ install(TARGETS
   mono_camera_source_node
   stereo_camera_bridge_node
   tf_bridge_node
-  offboard_bridge_node
   rangefinder_bridge_node
   optical_flow_bridge_node
   px4_planar_state_reader_node

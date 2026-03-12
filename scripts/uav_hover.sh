@@ -16,6 +16,6 @@ set +u
 source "${SETUP_FILE}"
 set -u
 
-SERVICE_NAME="${1:-/uav/control/hover}"
+SERVICE_NAME="${1:-/uav/control/command/hold}"
 echo "[uav_hover] calling ${SERVICE_NAME}"
 ros2 service call "${SERVICE_NAME}" std_srvs/srv/Trigger "{}"

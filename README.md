@@ -1,5 +1,7 @@
 # DOCO 工作区：相对位置融合设计文档集
 
+> 注意：当前 UAV 视觉降落主链已升级为 `/uav/state/odometry` + `/uav/control/setpoint/velocity_body` + `TargetObservation` / `LandingControllerState`，旧 `/uav/odom` / `LandingError` / `LandingStatus` 仅保留在历史说明中。
+
 本文档集面向后续实现 `relative_position_fusion` 模块的开发者与 Codex agent。
 目标不是立即改动现有代码，而是把“要做什么、为什么这样做、接口怎么定、先后顺序如何安排”一次性讲清楚，避免后续实现时再反复做高层决策。
 

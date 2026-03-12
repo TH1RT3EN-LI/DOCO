@@ -1,6 +1,0 @@
-test_relative_position_filter 2 0.0266657
-test_relocalization_monitor 2 0.0271919
-test_time_alignment_buffer 2 0.0265486
-test_uav_state_adapter 2 0.0975833
-test_ugv_state_adapter 2 0.0886432
----

@@ -10,21 +10,26 @@ visual_landing_node:
     start_service: /uav/visual_landing/command/start
     stop_service: /uav/visual_landing/command/stop
 
-    kp_xy: 0.42
+    kp_xy_m: 0.80
+    kd_xy_m: 0.15
+    xy_error_alpha: 0.50
+    xy_error_rate_alpha: 0.35
+    xy_error_rate_limit: 2.0
+    xy_error_rate_dt_min_s: 0.005
+    xy_error_rate_dt_max_s: 0.20
+
     kp_yaw: 1.20
-    max_vxy: 0.40
     max_vyaw: 0.60
-    vel_damping_xy: 0.25
     vel_damping_yaw: 0.18
     yaw_deadband_rad: 0.03
-    min_height_for_xy: 0.35
 
-    align_enter_error: 0.030
-    align_exit_error: 0.022
-    align_enter_yaw: 0.12
-    align_exit_yaw: 0.09
+    align_enter_lateral_m: 0.08
+    align_exit_lateral_m: 0.05
+    align_enter_yaw_rad: 0.08
+    align_exit_yaw_rad: 0.06
+    max_vxy: 0.40
+
     hold_verify_s: 0.5
-
     descend_speed: 0.12
     terminal_descend_speed: 0.06
     terminal_entry_height_m: 0.60
@@ -38,7 +43,7 @@ visual_landing_node:
     z_terminal_max_vz: 0.12
     vel_damping_z: 0.18
 
-    max_acc_xy: 0.80
+    max_acc_xy: 1.40
     max_acc_z: 0.50
     max_acc_yaw: 1.20
 

@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <string>
 
 namespace uav_visual_landing
 {
@@ -38,15 +40,24 @@ inline const char * phaseName(ControllerPhase phase)
   return "UNKNOWN";
 }
 
-struct AlignmentConfig
+enum class HeightSource
 {
-  float enter_error{0.03f};
-  float exit_error{0.02f};
-  float enter_yaw{0.12f};
-  float exit_yaw{0.09f};
+  Odom,
+  FlowRange,
 };
 
-struct RangeConfig
+inline const char * heightSourceName(HeightSource source)
+{
+  switch (source) {
+    case HeightSource::Odom:
+      return "ODOM";
+    case HeightSource::FlowRange:
+      return "FLOW_RANGE";
+  }
+  return "ODOM";
+}
+
+struct HeightConfig
 {
   double timeout_s{0.15};
   float min_m{0.05f};
@@ -54,10 +65,29 @@ struct RangeConfig
   float max_diff_m{0.35f};
 };
 
-struct RangeDecision
+struct HeightDecision
+{
+  bool height_valid{false};
+  float height_m{0.0f};
+  HeightSource height_source{HeightSource::Odom};
+};
+
+struct AlignmentConfig
+{
+  float align_enter_lateral_m{0.08f};
+  float align_exit_lateral_m{0.05f};
+  float align_enter_yaw_rad{0.08f};
+  float align_exit_yaw_rad{0.06f};
+};
+
+struct MetricLateralError
 {
   bool valid{false};
-  float effective_height_m{0.0f};
+  float x_m{0.0f};
+  float y_m{0.0f};
+  float norm_m{0.0f};
+  float x_rate_mps{0.0f};
+  float y_rate_mps{0.0f};
 };
 
 struct CommandRateLimitConfig
@@ -87,45 +117,83 @@ inline float clampDelta(float target, float previous, float max_delta)
   return target;
 }
 
-inline bool isAligned(
+inline float lerp(float a, float b, float t)
+{
+  return a + ((b - a) * t);
+}
+
+inline HeightDecision evaluateHeightDecision(
+  float odom_height_m,
+  bool has_height_measurement,
+  float height_measurement_m,
+  double height_age_s,
+  const HeightConfig & config)
+{
+  HeightDecision decision;
+  decision.height_m = odom_height_m;
+  if (!has_height_measurement) {
+    return decision;
+  }
+  if (!std::isfinite(height_measurement_m) || height_age_s < 0.0 ||
+    height_age_s > config.timeout_s)
+  {
+    return decision;
+  }
+  if (height_measurement_m < config.min_m || height_measurement_m > config.max_m) {
+    return decision;
+  }
+  if (std::isfinite(odom_height_m) &&
+    std::abs(height_measurement_m - odom_height_m) > config.max_diff_m)
+  {
+    return decision;
+  }
+  decision.height_valid = true;
+  decision.height_m = height_measurement_m;
+  decision.height_source = HeightSource::FlowRange;
+  return decision;
+}
+
+inline MetricLateralError computeMetricLateralError(
   float err_u_norm,
   float err_v_norm,
+  float err_u_rate_norm_s,
+  float err_v_rate_norm_s,
+  float active_height_m)
+{
+  MetricLateralError error;
+  if (!std::isfinite(err_u_norm) || !std::isfinite(err_v_norm) ||
+    !std::isfinite(err_u_rate_norm_s) || !std::isfinite(err_v_rate_norm_s) ||
+    !std::isfinite(active_height_m) || active_height_m <= 1.0e-6f)
+  {
+    return error;
+  }
+
+  error.valid = true;
+  error.x_m = active_height_m * err_u_norm;
+  error.y_m = active_height_m * err_v_norm;
+  error.norm_m = std::hypot(error.x_m, error.y_m);
+  error.x_rate_mps = active_height_m * err_u_rate_norm_s;
+  error.y_rate_mps = active_height_m * err_v_rate_norm_s;
+  return error;
+}
+
+inline bool isAligned(
+  const MetricLateralError & lateral_error,
   float yaw_err_rad,
   bool in_window,
   const AlignmentConfig & config)
 {
-  const float err_norm = std::sqrt((err_u_norm * err_u_norm) + (err_v_norm * err_v_norm));
+  if (!lateral_error.valid || !std::isfinite(yaw_err_rad)) {
+    return false;
+  }
+
   const float yaw_abs = std::abs(yaw_err_rad);
   if (in_window) {
-    return err_norm <= config.exit_error && yaw_abs <= config.exit_yaw;
+    return lateral_error.norm_m <= config.align_exit_lateral_m &&
+           yaw_abs <= config.align_exit_yaw_rad;
   }
-  return err_norm <= config.enter_error && yaw_abs <= config.enter_yaw;
-}
-
-inline RangeDecision evaluateRangeDecision(
-  float odom_height_m,
-  bool has_range,
-  float range_height_m,
-  double range_age_s,
-  const RangeConfig & config)
-{
-  RangeDecision decision;
-  decision.effective_height_m = odom_height_m;
-  if (!has_range) {
-    return decision;
-  }
-  if (!std::isfinite(range_height_m) || range_age_s < 0.0 || range_age_s > config.timeout_s) {
-    return decision;
-  }
-  if (range_height_m < config.min_m || range_height_m > config.max_m) {
-    return decision;
-  }
-  if (std::isfinite(odom_height_m) && std::abs(range_height_m - odom_height_m) > config.max_diff_m) {
-    return decision;
-  }
-  decision.valid = true;
-  decision.effective_height_m = range_height_m;
-  return decision;
+  return lateral_error.norm_m <= config.align_enter_lateral_m &&
+         yaw_abs <= config.align_enter_yaw_rad;
 }
 
 inline ControllerPhase nextPhaseOnTargetLoss(ControllerPhase phase)
@@ -152,7 +220,27 @@ inline float computeClosedLoopVelocity(
   float damping,
   float max_speed)
 {
-  return clamp((kp * (target_position - current_position)) - (damping * current_velocity), max_speed);
+  return clamp(
+    (kp * (target_position - current_position)) - (damping * current_velocity),
+    max_speed);
+}
+
+inline bool computeLimitedRate(
+  float current_value,
+  float previous_value,
+  float dt_s,
+  float dt_min_s,
+  float dt_max_s,
+  float max_abs_rate,
+  float & out_rate)
+{
+  if (!std::isfinite(current_value) || !std::isfinite(previous_value) || !std::isfinite(dt_s) ||
+    dt_s < dt_min_s || dt_s > dt_max_s || dt_s <= 1.0e-6f)
+  {
+    return false;
+  }
+  out_rate = clamp((current_value - previous_value) / dt_s, max_abs_rate);
+  return true;
 }
 
 inline void applyBodyRateLimit(

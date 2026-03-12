@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/src/relative_position_fusion/launch/relative_position_fusion.launch.py

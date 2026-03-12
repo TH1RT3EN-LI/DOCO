@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_generator_py/quadrotor_msgs/msg/_lqr_trajectory_s.c

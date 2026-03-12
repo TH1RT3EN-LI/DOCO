@@ -4,11 +4,7 @@ set -euo pipefail
 SCRIPT_NAME="$(basename "$0")"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-if [[ -f "${WS_DIR}/install_rework/setup.bash" ]]; then
-  SETUP_FILE="${WS_DIR}/install_rework/setup.bash"
-else
-  SETUP_FILE="${WS_DIR}/install/setup.bash"
-fi
+SETUP_FILE="${WS_DIR}/install/setup.bash"
 DEFAULT_WAIT_TIMEOUT_SEC="${UAV_VL_WAIT_TIMEOUT_SEC:-5}"
 ACTION="start"
 SERVICE_NAME=""

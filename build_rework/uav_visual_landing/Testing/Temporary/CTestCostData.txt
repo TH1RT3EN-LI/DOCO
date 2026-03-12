@@ -1,6 +1,0 @@
-test_visual_landing_logic 3 0.017945
-cppcheck 1 0.130107
-lint_cmake 1 0.121271
-uncrustify 0 0
-xmllint 0 0
----

@@ -7,27 +7,19 @@ namespace uav_bridge
 namespace
 {
 
-TEST(UavControlLogic, VelocityBodyOverridesAutoAndFallsBackToHold)
+TEST(UavControlLogic, StartsInHold)
 {
   UavControlModeTracker tracker;
-  EXPECT_EQ(tracker.mode(), UavControlMode::Auto);
+  EXPECT_EQ(tracker.mode(), UavControlMode::Hold);
+}
+
+TEST(UavControlLogic, VelocityBodyFallsBackToHoldOnTimeout)
+{
+  UavControlModeTracker tracker;
   tracker.requestVelocityBody();
   EXPECT_EQ(tracker.mode(), UavControlMode::VelocityBody);
   tracker.onVelocityCommandTimeout();
   EXPECT_EQ(tracker.mode(), UavControlMode::Hold);
-}
-
-TEST(UavControlLogic, AutoEnableRequiresTrajectoryAndNoLanding)
-{
-  UavControlModeTracker tracker;
-  tracker.requestHold();
-  EXPECT_FALSE(tracker.requestAutoEnable(false));
-  EXPECT_EQ(tracker.mode(), UavControlMode::Hold);
-  EXPECT_TRUE(tracker.requestAutoEnable(true));
-  EXPECT_EQ(tracker.mode(), UavControlMode::Auto);
-  tracker.requestLanding();
-  EXPECT_FALSE(tracker.requestAutoEnable(true));
-  EXPECT_EQ(tracker.mode(), UavControlMode::Landing);
 }
 
 TEST(UavControlLogic, LandingCompletesToHold)
@@ -37,6 +29,14 @@ TEST(UavControlLogic, LandingCompletesToHold)
   EXPECT_EQ(tracker.mode(), UavControlMode::Landing);
   tracker.onLandingComplete();
   EXPECT_EQ(tracker.mode(), UavControlMode::Hold);
+}
+
+TEST(UavControlLogic, LandingRejectsVelocityOverride)
+{
+  UavControlModeTracker tracker;
+  tracker.requestLanding();
+  tracker.requestVelocityBody();
+  EXPECT_EQ(tracker.mode(), UavControlMode::Landing);
 }
 
 }  // namespace

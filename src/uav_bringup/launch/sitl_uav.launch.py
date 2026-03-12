@@ -478,7 +478,7 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": True},
             {"target_marker_id": 0},
-            {"marker_size_m": 0.2},
+            {"tag_size_m": 0.1625},
             {"target_observation_topic": "/uav/visual_landing/target_observation"},
         ],
     )

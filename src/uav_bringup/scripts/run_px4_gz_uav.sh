@@ -263,10 +263,15 @@ PX4_ROOTFS_DIR="${PX4_BUILD_DIR}/rootfs"
 PX4_BIN="${PX4_BUILD_DIR}/bin/px4"
 
 cp "${AIRFRAME_DIR}"/* "${PX4_BUILD_DIR}/etc/init.d-posix/airframes/"
+PX4_INSTANCE_ROOTFS_DIR="${PX4_ROOTFS_DIR}/${PX4_INSTANCE}"
+mkdir -p "${PX4_INSTANCE_ROOTFS_DIR}"
 rm -f \
   "${PX4_ROOTFS_DIR}/parameters.bson" \
   "${PX4_ROOTFS_DIR}/parameters_backup.bson" \
-  "${PX4_ROOTFS_DIR}/param_import_fail.bson"
+  "${PX4_ROOTFS_DIR}/param_import_fail.bson" \
+  "${PX4_INSTANCE_ROOTFS_DIR}/parameters.bson" \
+  "${PX4_INSTANCE_ROOTFS_DIR}/parameters_backup.bson" \
+  "${PX4_INSTANCE_ROOTFS_DIR}/param_import_fail.bson"
 
 cd "${PX4_ROOTFS_DIR}"
 exec "${PX4_BIN}" -i "${PX4_INSTANCE}"

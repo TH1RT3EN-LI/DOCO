@@ -5,7 +5,6 @@ namespace uav_bridge
 
 enum class UavControlMode
 {
-  Auto,
   Hold,
   Takeoff,
   VelocityBody,
@@ -42,15 +41,6 @@ public:
     mode_ = UavControlMode::Landing;
   }
 
-  bool requestAutoEnable(bool has_auto_command)
-  {
-    if (!has_auto_command || mode_ == UavControlMode::Landing) {
-      return false;
-    }
-    mode_ = UavControlMode::Auto;
-    return true;
-  }
-
   void onVelocityCommandTimeout()
   {
     if (mode_ == UavControlMode::VelocityBody) {
@@ -66,7 +56,7 @@ public:
   }
 
 private:
-  UavControlMode mode_{UavControlMode::Auto};
+  UavControlMode mode_{UavControlMode::Hold};
 };
 
 }  // namespace uav_bridge

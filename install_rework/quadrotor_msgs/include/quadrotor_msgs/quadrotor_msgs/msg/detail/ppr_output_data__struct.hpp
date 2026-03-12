@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_generator_cpp/quadrotor_msgs/msg/detail/ppr_output_data__struct.hpp

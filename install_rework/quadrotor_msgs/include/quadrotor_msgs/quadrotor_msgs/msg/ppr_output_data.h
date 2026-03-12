@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/quadrotor_msgs/rosidl_generator_c/quadrotor_msgs/msg/ppr_output_data.h

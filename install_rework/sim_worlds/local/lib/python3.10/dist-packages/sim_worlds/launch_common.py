@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/src/sim_worlds/sim_worlds/launch_common.py

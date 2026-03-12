@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/px4_msgs/rosidl_typesupport_introspection_c/px4_msgs/msg/detail/control_allocator_status__rosidl_typesupport_introspection_c.h

@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/sim_worlds/ament_cmake_environment_hooks/local_setup.bash

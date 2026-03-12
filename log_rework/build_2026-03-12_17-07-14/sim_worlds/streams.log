@@ -1,0 +1,124 @@
+[0.009s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/sim_worlds': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/opt/ros/humble /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/sim_worlds -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds
+[0.074s] -- The C compiler identification is GNU 11.4.0
+[0.132s] -- The CXX compiler identification is GNU 11.4.0
+[0.142s] -- Detecting C compiler ABI info
+[0.214s] -- Detecting C compiler ABI info - done
+[0.219s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.220s] -- Detecting C compile features
+[0.220s] -- Detecting C compile features - done
+[0.225s] -- Detecting CXX compiler ABI info
+[0.320s] -- Detecting CXX compiler ABI info - done
+[0.326s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.326s] -- Detecting CXX compile features
+[0.326s] -- Detecting CXX compile features - done
+[0.339s] -- Found ament_cmake: 1.3.13 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.553s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.650s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.880s] -- Configuring done
+[0.886s] -- Generating done
+[0.888s] -- Build files have been written to: /home/th1rt3en/DOCO/ws/build_rework/sim_worlds
+[0.901s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/sim_worlds' returned '0': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/opt/ros/humble /usr/bin/cmake /home/th1rt3en/DOCO/ws/src/sim_worlds -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/th1rt3en/DOCO/ws/install_rework/sim_worlds
+[0.902s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/sim_worlds': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/opt/ros/humble /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/sim_worlds -- -j16 -l16
+[0.969s] Built target ament_cmake_python_symlink_sim_worlds
+[1.397s] running egg_info
+[1.398s] creating sim_worlds.egg-info
+[1.399s] writing sim_worlds.egg-info/PKG-INFO
+[1.399s] writing dependency_links to sim_worlds.egg-info/dependency_links.txt
+[1.399s] writing top-level names to sim_worlds.egg-info/top_level.txt
+[1.399s] writing manifest file 'sim_worlds.egg-info/SOURCES.txt'
+[1.403s] reading manifest file 'sim_worlds.egg-info/SOURCES.txt'
+[1.404s] writing manifest file 'sim_worlds.egg-info/SOURCES.txt'
+[1.454s] Built target ament_cmake_python_build_sim_worlds_egg
+[1.466s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/sim_worlds' returned '0': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/opt/ros/humble /usr/bin/cmake --build /home/th1rt3en/DOCO/ws/build_rework/sim_worlds -- -j16 -l16
+[1.467s] Invoking command in '/home/th1rt3en/DOCO/ws/build_rework/sim_worlds': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/opt/ros/humble /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/sim_worlds
+[1.477s] -- Install configuration: ""
+[1.477s] -- Execute custom install script
+[1.477s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/environment/pythonpath.sh
+[1.490s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/environment/pythonpath.dsv
+[1.509s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages/sim_worlds-0.1.0-py3.10.egg-info/PKG-INFO
+[1.522s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages/sim_worlds-0.1.0-py3.10.egg-info/SOURCES.txt
+[1.548s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages/sim_worlds-0.1.0-py3.10.egg-info/dependency_links.txt
+[1.562s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages/sim_worlds-0.1.0-py3.10.egg-info/top_level.txt
+[1.580s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages/sim_worlds/__init__.py
+[1.593s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages/sim_worlds/launch_common.py
+[1.607s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/worlds/baylands.sdf
+[1.620s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/worlds/empty.sdf
+[1.638s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/worlds/test.sdf
+[1.654s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Asphalt.png
+[1.666s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Bark.png
+[1.679s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Branch.png
+[1.692s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Checker.png
+[1.705s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Concrete.png
+[1.718s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/ConcreteGround_01.png
+[1.729s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/ConcreteGround_02.png
+[1.740s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/ConcretePebbled.png
+[1.751s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Curb.png
+[1.762s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Curb_Red.png
+[1.775s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/DirtPath.png
+[1.789s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Grass.png
+[1.801s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Leaves.png
+[1.813s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Metal.png
+[1.827s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Metal_Roof.png
+[1.839s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/MurkyWater.png
+[1.849s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/ParkingLotMedian.png
+[1.860s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/ParkingMarkings.png
+[1.871s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/PicnicTable.png
+[1.883s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Road.jpg
+[1.896s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Rubber.png
+[1.907s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/RustyMetal.png
+[1.920s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Sand.png
+[1.932s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Sidewalk.png
+[1.944s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/Textures/Tree_Concrete.png
+[1.956s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/baylands_01.DAE
+[1.967s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/baylands_02.DAE
+[1.979s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/baylands_03.DAE
+[1.992s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/scripts/branch.material
+[2.003s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/scripts/caster_fp.glsl
+[2.017s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/media/scripts/caster_vp.glsl
+[2.031s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/model.config
+[2.043s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/baylands/model.sdf
+[2.055s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/materials/programs/GerstnerWaves_fs.metal
+[2.067s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/materials/programs/GerstnerWaves_fs_330.glsl
+[2.079s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/materials/programs/GerstnerWaves_vs.metal
+[2.091s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/materials/programs/GerstnerWaves_vs_330.glsl
+[2.103s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/materials/textures/skybox_lowres.dds
+[2.114s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/materials/textures/wave_normals.dds
+[2.127s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/meshes/waterlow.dae
+[2.139s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/model.config
+[2.152s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/model.sdf
+[2.163s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/coast_water/thumbnails/1.png
+[2.178s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/apriltag/media/README.md
+[2.190s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/apriltag/media/generate_tags.py
+[2.204s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/apriltag/media/tag16h5-0.png
+[2.217s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/apriltag/model.config
+[2.228s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/ground_texture/media/concrete_floor.png
+[2.239s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/ground_texture/model.config
+[2.250s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/models/ground_texture/model.sdf
+[2.262s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/launch/__pycache__/gz_sim.launch.cpython-310.pyc
+[2.274s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/launch/__pycache__/runtime.launch.cpython-310.pyc
+[2.285s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/launch/__pycache__/sim_clock.launch.cpython-310.pyc
+[2.301s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/launch/__pycache__/world_registry.cpython-310.pyc
+[2.312s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/launch/gz_sim.launch.py
+[2.325s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/launch/runtime.launch.py
+[2.336s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/launch/sim_clock.launch.py
+[2.350s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/launch/world_registry.py
+[2.361s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/config/ros_gz_bridge_clock.yaml
+[2.372s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/ament_index/resource_index/package_run_dependencies/sim_worlds
+[2.382s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/ament_index/resource_index/parent_prefix_path/sim_worlds
+[2.394s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/environment/ament_prefix_path.sh
+[2.405s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/environment/ament_prefix_path.dsv
+[2.416s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/environment/path.sh
+[2.427s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/environment/path.dsv
+[2.437s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/local_setup.bash
+[2.448s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/local_setup.sh
+[2.458s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/local_setup.zsh
+[2.470s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/local_setup.dsv
+[2.483s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/package.dsv
+[2.497s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/ament_index/resource_index/packages/sim_worlds
+[2.509s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/cmake/sim_worldsConfig.cmake
+[2.520s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/cmake/sim_worldsConfig-version.cmake
+[2.530s] -- Symlinking: /home/th1rt3en/DOCO/ws/install_rework/sim_worlds/share/sim_worlds/package.xml
+[2.583s] Listing '/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages/sim_worlds'...
+[2.583s] Compiling '/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages/sim_worlds/__init__.py'...
+[2.583s] Compiling '/home/th1rt3en/DOCO/ws/install_rework/sim_worlds/local/lib/python3.10/dist-packages/sim_worlds/launch_common.py'...
+[2.597s] Invoked command in '/home/th1rt3en/DOCO/ws/build_rework/sim_worlds' returned '0': AMENT_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/th1rt3en/DOCO/ws/install_rework/ugv_sim_tools:/opt/ros/humble /usr/bin/cmake --install /home/th1rt3en/DOCO/ws/build_rework/sim_worlds

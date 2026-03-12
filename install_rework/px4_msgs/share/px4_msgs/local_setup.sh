@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/px4_msgs/ament_cmake_environment_hooks/local_setup.sh

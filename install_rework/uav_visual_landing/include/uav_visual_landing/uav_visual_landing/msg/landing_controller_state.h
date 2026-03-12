@@ -1,1 +1,0 @@
-/home/th1rt3en/DOCO/ws/build_rework/uav_visual_landing/rosidl_generator_c/uav_visual_landing/msg/landing_controller_state.h
