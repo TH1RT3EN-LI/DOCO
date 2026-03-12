@@ -80,6 +80,39 @@ TEST(VisualLandingLogic, MetricAlignmentUsesHysteresisThresholds)
   EXPECT_FALSE(isAligned(aligned_error, 0.09f, false, config));
 }
 
+TEST(VisualLandingLogic, RelativeTargetUsesDepthToBuild3DMemory)
+{
+  const auto target = computeRelativeTarget3D(0.10f, -0.20f, 2.0f, 0.08f);
+
+  EXPECT_TRUE(target.valid);
+  EXPECT_NEAR(target.x_m, 0.20f, 1.0e-5f);
+  EXPECT_NEAR(target.y_m, -0.40f, 1.0e-5f);
+  EXPECT_NEAR(target.z_m, 2.0f, 1.0e-5f);
+  EXPECT_NEAR(target.yaw_err_rad, 0.08f, 1.0e-5f);
+}
+
+TEST(VisualLandingLogic, RelativeTargetCanAdvanceWithBodyMotion)
+{
+  auto target = computeRelativeTarget3D(0.10f, 0.20f, 1.5f, -0.05f);
+  ASSERT_TRUE(target.valid);
+
+  EXPECT_TRUE(advanceRelativeTarget(target, -0.4f, 0.2f, -0.1f, 0.5f));
+  EXPECT_NEAR(target.x_m, 0.25f, 1.0e-5f);
+  EXPECT_NEAR(target.y_m, 0.10f, 1.0e-5f);
+  EXPECT_NEAR(target.z_m, 1.45f, 1.0e-5f);
+}
+
+TEST(VisualLandingLogic, RelativeTargetConvertsBackToMetricError)
+{
+  const auto target = computeRelativeTarget3D(-0.05f, 0.15f, 2.0f, 0.0f);
+  const auto error = lateralErrorFromRelativeTarget(target);
+
+  EXPECT_TRUE(error.valid);
+  EXPECT_NEAR(error.x_m, -0.10f, 1.0e-5f);
+  EXPECT_NEAR(error.y_m, 0.30f, 1.0e-5f);
+  EXPECT_NEAR(error.norm_m, std::sqrt(0.10f * 0.10f + 0.30f * 0.30f), 1.0e-5f);
+}
+
 TEST(VisualLandingLogic, LimitedRateRejectsInvalidDt)
 {
   float rate = 123.0f;

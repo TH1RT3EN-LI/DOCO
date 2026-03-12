@@ -90,6 +90,15 @@ struct MetricLateralError
   float y_rate_mps{0.0f};
 };
 
+struct RelativeTarget3D
+{
+  bool valid{false};
+  float x_m{0.0f};
+  float y_m{0.0f};
+  float z_m{0.0f};
+  float yaw_err_rad{0.0f};
+};
+
 struct CommandRateLimitConfig
 {
   float max_acc_xy_mps2{0.8f};
@@ -175,6 +184,62 @@ inline MetricLateralError computeMetricLateralError(
   error.x_rate_mps = active_height_m * err_u_rate_norm_s;
   error.y_rate_mps = active_height_m * err_v_rate_norm_s;
   return error;
+}
+
+inline RelativeTarget3D computeRelativeTarget3D(
+  float err_u_norm,
+  float err_v_norm,
+  float depth_m,
+  float yaw_err_rad)
+{
+  RelativeTarget3D target;
+  if (!std::isfinite(err_u_norm) || !std::isfinite(err_v_norm) ||
+    !std::isfinite(depth_m) || depth_m <= 1.0e-6f)
+  {
+    return target;
+  }
+
+  target.valid = true;
+  target.x_m = depth_m * err_u_norm;
+  target.y_m = depth_m * err_v_norm;
+  target.z_m = depth_m;
+  target.yaw_err_rad = std::isfinite(yaw_err_rad) ? yaw_err_rad : 0.0f;
+  return target;
+}
+
+inline MetricLateralError lateralErrorFromRelativeTarget(const RelativeTarget3D & target)
+{
+  MetricLateralError error;
+  if (!target.valid || !std::isfinite(target.x_m) || !std::isfinite(target.y_m)) {
+    return error;
+  }
+
+  error.valid = true;
+  error.x_m = target.x_m;
+  error.y_m = target.y_m;
+  error.norm_m = std::hypot(target.x_m, target.y_m);
+  return error;
+}
+
+inline bool advanceRelativeTarget(
+  RelativeTarget3D & target,
+  float body_vx_mps,
+  float body_vy_mps,
+  float body_vz_mps,
+  float dt_s)
+{
+  if (!target.valid || !std::isfinite(body_vx_mps) || !std::isfinite(body_vy_mps) ||
+    !std::isfinite(body_vz_mps) || !std::isfinite(dt_s) || dt_s <= 1.0e-6f)
+  {
+    return false;
+  }
+
+  target.x_m += body_vy_mps * dt_s;
+  target.y_m += body_vx_mps * dt_s;
+  target.z_m = std::max(0.0f, target.z_m + (body_vz_mps * dt_s));
+  target.valid = std::isfinite(target.x_m) && std::isfinite(target.y_m) &&
+    std::isfinite(target.z_m);
+  return target.valid;
 }
 
 inline bool isAligned(

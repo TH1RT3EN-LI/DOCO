@@ -1,8 +1,0 @@
-/home/th1rt3en/DOCO/ws/src/uav_bridge/src/uav_control_node.cpp: In lambda function:
-/home/th1rt3en/DOCO/ws/src/uav_bridge/src/uav_control_node.cpp:128:9: error: ‘handleVelocityBodyTarget’ was not declared in this scope; did you mean ‘handleVelocityBodyMode’?
-  128 |         handleVelocityBodyTarget(*msg);
-      |         ^~~~~~~~~~~~~~~~~~~~~~~~
-      |         handleVelocityBodyMode
-gmake[2]: *** [CMakeFiles/uav_control_node.dir/build.make:76: CMakeFiles/uav_control_node.dir/src/uav_control_node.cpp.o] Error 1
-gmake[1]: *** [CMakeFiles/Makefile2:499: CMakeFiles/uav_control_node.dir/all] Error 2
-gmake: *** [Makefile:146: all] Error 2

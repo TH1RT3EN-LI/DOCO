@@ -30,9 +30,11 @@ visual_landing_node:
     max_vxy: 0.40
 
     hold_verify_s: 0.5
+    search_height_m: 1.0
+    search_height_tolerance_m: 0.10
     descend_speed: 0.12
     terminal_descend_speed: 0.06
-    terminal_entry_height_m: 0.60
+    terminal_entry_height_m: 0.40
     land_height_m: 0.12
 
     z_hold_kp: 1.20
@@ -48,6 +50,7 @@ visual_landing_node:
     max_acc_yaw: 1.20
 
     observation_timeout_s: 0.30
+    target_memory_timeout_s: 1.5
     range_timeout_s: 0.15
     range_min_m: 0.05
     range_max_m: 5.0

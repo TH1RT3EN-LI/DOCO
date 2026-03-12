@@ -151,6 +151,9 @@ public:
       [this](const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg)
       {
         has_local_position_ = msg->xy_valid && msg->z_valid;
+        has_local_velocity_ = hasValidVelocityEstimate(
+          msg->v_xy_valid, msg->v_z_valid,
+          {msg->vx, msg->vy, msg->vz});
       });
 
     vehicle_status_sub_ = this->create_subscription<px4_msgs::msg::VehicleStatus>(
@@ -261,6 +264,11 @@ private:
     return has_local_position_ && has_state_;
   }
 
+  bool isPx4VelocityExecutionReady() const
+  {
+    return isPx4ExecutionReady() && has_local_velocity_;
+  }
+
   void publishVehicleCommand(uint32_t command, float param1, float param2)
   {
     const uint64_t stamp = nowMicros();
@@ -342,6 +350,25 @@ private:
       return;
     }
 
+    if (!isFiniteVelocityBodyCommand(
+        static_cast<float>(cmd.twist.linear.x),
+        static_cast<float>(cmd.twist.linear.y),
+        static_cast<float>(cmd.twist.linear.z),
+        static_cast<float>(cmd.twist.angular.z)))
+    {
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 1000,
+        "rejecting non-finite velocity_body command");
+      return;
+    }
+
+    if (!isPx4VelocityExecutionReady()) {
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 1000,
+        "waiting for PX4 local velocity estimate before velocity offboard setpoint");
+      return;
+    }
+
     px4_msgs::msg::OffboardControlMode offboard_mode{};
     offboard_mode.timestamp = stamp;
     offboard_mode.position = false;
@@ -361,6 +388,13 @@ private:
       static_cast<float>(-velocity_enu.z())};
     clampVectorNorm(velocity_ned, max_velocity_setpoint_mps_);
     applyVelocityModeRateLimit(velocity_ned, cmd.twist.angular.z);
+
+    if (!isFiniteVelocitySetpoint(velocity_ned, last_velocity_mode_yawspeed_ned_)) {
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 1000,
+        "rejecting non-finite NED velocity setpoint");
+      return;
+    }
 
     px4_msgs::msg::TrajectorySetpoint setpoint{};
     setpoint.timestamp = stamp;
@@ -434,6 +468,26 @@ private:
         msg.header.frame_id.c_str(), base_frame_id_.c_str());
       return;
     }
+
+    if (!isFiniteVelocityBodyCommand(
+        static_cast<float>(msg.twist.linear.x),
+        static_cast<float>(msg.twist.linear.y),
+        static_cast<float>(msg.twist.linear.z),
+        static_cast<float>(msg.twist.angular.z)))
+    {
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 1000,
+        "ignoring non-finite velocity_body command");
+      return;
+    }
+
+    if (!isPx4VelocityExecutionReady()) {
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 1000,
+        "ignoring velocity_body command until PX4 local velocity estimate is valid");
+      return;
+    }
+
     last_velocity_body_cmd_ = msg;
     last_velocity_body_time_us_ = nowMicros();
     has_velocity_body_cmd_ = true;
@@ -512,6 +566,16 @@ private:
 
   void handleVelocityBodyMode()
   {
+    if (!isPx4VelocityExecutionReady()) {
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 1000,
+        "PX4 local velocity estimate lost during velocity mode, switching to hold");
+      has_velocity_body_cmd_ = false;
+      std::string ignored;
+      handleHoldRequest(ignored);
+      return;
+    }
+
     if (!has_velocity_body_cmd_) {
       return;
     }
@@ -601,6 +665,7 @@ private:
   float current_yaw_enu_{0.0f};
   bool has_state_{false};
   bool has_local_position_{false};
+  bool has_local_velocity_{false};
   bool is_armed_{false};
   bool is_offboard_mode_{false};
   std::array<float, 3> hold_target_position_enu_{0.0f, 0.0f, 0.0f};

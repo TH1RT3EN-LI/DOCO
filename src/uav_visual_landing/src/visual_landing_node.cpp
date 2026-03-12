@@ -61,9 +61,11 @@ public:
     this->declare_parameter<double>("max_vxy", 0.40);
 
     this->declare_parameter<double>("hold_verify_s", 0.50);
+    this->declare_parameter<double>("search_height_m", 1.0);
+    this->declare_parameter<double>("search_height_tolerance_m", 0.10);
     this->declare_parameter<double>("descend_speed", 0.12);
     this->declare_parameter<double>("terminal_descend_speed", 0.06);
-    this->declare_parameter<double>("terminal_entry_height_m", 0.60);
+    this->declare_parameter<double>("terminal_entry_height_m", 0.40);
     this->declare_parameter<double>("land_height_m", 0.12);
     this->declare_parameter<double>("z_hold_kp", 1.20);
     this->declare_parameter<double>("z_hold_max_vz", 0.18);
@@ -77,6 +79,7 @@ public:
     this->declare_parameter<double>("max_acc_z", 0.50);
     this->declare_parameter<double>("max_acc_yaw", 1.20);
     this->declare_parameter<double>("observation_timeout_s", 0.30);
+    this->declare_parameter<double>("target_memory_timeout_s", 1.5);
     this->declare_parameter<double>("range_timeout_s", 0.15);
     this->declare_parameter<double>("range_min_m", 0.05);
     this->declare_parameter<double>("range_max_m", 5.0);
@@ -122,6 +125,9 @@ public:
     max_vxy_ = static_cast<float>(this->get_parameter("max_vxy").as_double());
 
     hold_verify_s_ = this->get_parameter("hold_verify_s").as_double();
+    search_height_m_ = static_cast<float>(this->get_parameter("search_height_m").as_double());
+    search_height_tolerance_m_ =
+      static_cast<float>(this->get_parameter("search_height_tolerance_m").as_double());
     descend_speed_ = static_cast<float>(this->get_parameter("descend_speed").as_double());
     terminal_descend_speed_ =
       static_cast<float>(this->get_parameter("terminal_descend_speed").as_double());
@@ -144,6 +150,7 @@ public:
       static_cast<float>(this->get_parameter("max_acc_yaw").as_double());
 
     observation_timeout_s_ = this->get_parameter("observation_timeout_s").as_double();
+    target_memory_timeout_s_ = this->get_parameter("target_memory_timeout_s").as_double();
     height_config_.timeout_s = this->get_parameter("range_timeout_s").as_double();
     height_config_.min_m = static_cast<float>(this->get_parameter("range_min_m").as_double());
     height_config_.max_m = static_cast<float>(this->get_parameter("range_max_m").as_double());
@@ -176,6 +183,8 @@ public:
       [this](const nav_msgs::msg::Odometry::SharedPtr msg)
       {
         odom_height_m_ = static_cast<float>(msg->pose.pose.position.z);
+        current_body_vx_ = static_cast<float>(msg->twist.twist.linear.x);
+        current_body_vy_ = static_cast<float>(msg->twist.twist.linear.y);
         current_body_vz_ = static_cast<float>(msg->twist.twist.linear.z);
         current_yaw_rate_ = static_cast<float>(msg->twist.twist.angular.z);
         has_state_ = true;
@@ -229,7 +238,9 @@ private:
   {
     active_ = true;
     land_requested_ = false;
+    initial_search_completed_ = false;
     clearVisionTrackingState();
+    clearTargetMemory();
     transitionTo(ControllerPhase::HoldWait, true);
     message = "visual landing started";
     return true;
@@ -239,7 +250,9 @@ private:
   {
     active_ = false;
     land_requested_ = false;
+    initial_search_completed_ = false;
     clearVisionTrackingState();
+    clearTargetMemory();
     transitionTo(ControllerPhase::Ready, true);
     message = "visual landing stopped";
     return true;
@@ -257,6 +270,13 @@ private:
     align_in_window_ = false;
     align_hold_started_ = false;
     z_target_initialized_ = false;
+  }
+
+  void clearTargetMemory()
+  {
+    target_memory_ = RelativeTarget3D{};
+    target_memory_observed_time_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
+    target_memory_updated_time_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
   }
 
   void onObservation(const uav_visual_landing::msg::TargetObservation & msg)
@@ -341,6 +361,9 @@ private:
     phase_ = phase;
     phase_entered_time_ = this->now();
     align_hold_started_ = false;
+    if (phase == ControllerPhase::Terminal) {
+      z_target_initialized_ = false;
+    }
     if (phase == ControllerPhase::Ready || phase == ControllerPhase::HoldWait) {
       clearVisionTrackingState();
     }
@@ -364,6 +387,55 @@ private:
     return (this->now() - last_observation_time_).seconds() <= observation_timeout_s_;
   }
 
+  bool targetMemoryFresh() const
+  {
+    if (!target_memory_.valid || target_memory_observed_time_.nanoseconds() == 0) {
+      return false;
+    }
+
+    const double age_s = (this->now() - target_memory_observed_time_).seconds();
+    return age_s >= 0.0 && age_s <= target_memory_timeout_s_;
+  }
+
+  void updateTargetMemory(float control_height_m)
+  {
+    const float fallback_depth_m = std::isfinite(control_height_m) ? control_height_m : 0.0f;
+    const float depth_m =
+      (last_observation_.tag_depth_valid && std::isfinite(last_observation_.tag_depth_m) &&
+      last_observation_.tag_depth_m > 1.0e-6f) ? last_observation_.tag_depth_m : fallback_depth_m;
+    const float err_u_norm = filter_initialized_ ? err_u_f_ : last_observation_.err_u_norm;
+    const float err_v_norm = filter_initialized_ ? err_v_f_ : last_observation_.err_v_norm;
+    const RelativeTarget3D target = computeRelativeTarget3D(
+      err_u_norm, err_v_norm, depth_m, last_observation_.yaw_err_rad);
+    if (!target.valid) {
+      return;
+    }
+
+    target_memory_ = target;
+    const rclcpp::Time now = this->now();
+    target_memory_observed_time_ = now;
+    target_memory_updated_time_ = now;
+  }
+
+  void propagateTargetMemory()
+  {
+    if (!target_memory_.valid) {
+      return;
+    }
+
+    const rclcpp::Time now = this->now();
+    if (target_memory_updated_time_.nanoseconds() == 0) {
+      target_memory_updated_time_ = now;
+      return;
+    }
+
+    const float dt_s = static_cast<float>((now - target_memory_updated_time_).seconds());
+    advanceRelativeTarget(
+      target_memory_, current_body_vx_, current_body_vy_, current_body_vz_,
+      dt_s);
+    target_memory_updated_time_ = now;
+  }
+
   HeightDecision heightDecision() const
   {
     const double age_s =
@@ -381,6 +453,32 @@ private:
     return isAligned(
       lateral_error, last_observation_.yaw_err_rad, align_in_window_,
       alignment_config_);
+  }
+
+  bool flowHeightFresh(float & height_m) const
+  {
+    if (!has_height_measurement_ || !std::isfinite(height_measurement_m_)) {
+      return false;
+    }
+
+    const double age_s = (this->now() - height_measurement_stamp_).seconds();
+    if (age_s < 0.0 || age_s > height_config_.timeout_s) {
+      return false;
+    }
+    if (height_measurement_m_ < height_config_.min_m ||
+      height_measurement_m_ > height_config_.max_m)
+    {
+      return false;
+    }
+
+    height_m = height_measurement_m_;
+    return true;
+  }
+
+  bool nearSearchHeight(float control_height_m) const
+  {
+    return std::isfinite(control_height_m) &&
+           std::abs(control_height_m - search_height_m_) <= search_height_tolerance_m_;
   }
 
   void publishVelocityBody(float vx, float vy, float vz, float yaw_rate)
@@ -453,7 +551,7 @@ private:
     msg.lateral_error_rate_y_mps = lateral_error.y_rate_mps;
     msg.z_target_height_m = z_target_initialized_ ? z_target_height_m_ : control_height_m;
     msg.z_error_m = z_error;
-    msg.xy_control_mode = "vision_pd_metric";
+    msg.xy_control_mode = xy_control_mode_;
     msg.cmd_vx = cmd_vx;
     msg.cmd_vy = cmd_vy;
     msg.cmd_vz = cmd_vz;
@@ -465,6 +563,7 @@ private:
 
   void computeTrackingCommand(
     const MetricLateralError & lateral_error,
+    float yaw_err_rad,
     float & vx,
     float & vy,
     float & yaw_rate) const
@@ -482,16 +581,16 @@ private:
       }
     }
 
-    if (std::abs(last_observation_.yaw_err_rad) < yaw_deadband_rad_) {
+    if (std::abs(yaw_err_rad) < yaw_deadband_rad_) {
       yaw_rate = 0.0f;
     } else {
       yaw_rate = clamp(
-        (-(kp_yaw_ * last_observation_.yaw_err_rad)) - (vel_damping_yaw_ * current_yaw_rate_),
+        (-(kp_yaw_ * yaw_err_rad)) - (vel_damping_yaw_ * current_yaw_rate_),
         max_vyaw_);
     }
   }
 
-  void initializeZTarget(float target_height_m)
+  void setZTarget(float target_height_m)
   {
     z_target_height_m_ = target_height_m;
     z_target_initialized_ = true;
@@ -521,8 +620,14 @@ private:
     const MetricLateralError lateral_error = (fresh_observation && filter_initialized_) ?
       computeMetricLateralError(err_u_f_, err_v_f_, derr_u_f_, derr_v_f_, control_height_m) :
       MetricLateralError{};
+    if (fresh_observation) {
+      updateTargetMemory(control_height_m);
+    } else {
+      propagateTargetMemory();
+    }
     const bool currently_aligned = fresh_observation && aligned(lateral_error);
     align_in_window_ = currently_aligned;
+    xy_control_mode_ = "idle";
 
     float cmd_vx = 0.0f;
     float cmd_vy = 0.0f;
@@ -540,11 +645,29 @@ private:
       case ControllerPhase::Ready:
         break;
       case ControllerPhase::HoldWait:
-        if (!z_target_initialized_) {
-          initializeZTarget(control_height_m);
-        }
         if (fresh_observation) {
           transitionTo(ControllerPhase::TrackAlign, false);
+          break;
+        }
+        if (!initial_search_completed_) {
+          setZTarget(search_height_m_);
+          cmd_vz = computeZCommand(
+            control_height_m, current_body_vz_, z_target_height_m_, z_hold_kp_,
+            z_hold_max_vz_);
+        }
+        if (targetMemoryFresh()) {
+          const MetricLateralError memory_error = lateralErrorFromRelativeTarget(target_memory_);
+          if (memory_error.valid) {
+            computeTrackingCommand(
+              memory_error, target_memory_.yaw_err_rad, cmd_vx, cmd_vy, cmd_yaw_rate);
+            xy_control_mode_ = "memory_search_pd";
+            publishVelocityBody(cmd_vx, cmd_vy, cmd_vz, cmd_yaw_rate);
+            break;
+          }
+        }
+        if (!initial_search_completed_) {
+          xy_control_mode_ = "vertical_search_hold";
+          publishVelocityBody(0.0f, 0.0f, cmd_vz, 0.0f);
         }
         break;
       case ControllerPhase::TrackAlign:
@@ -552,16 +675,17 @@ private:
           transitionTo(nextPhaseOnTargetLoss(phase_), true);
           break;
         }
-        if (!z_target_initialized_) {
-          initializeZTarget(control_height_m);
-        }
-        computeTrackingCommand(lateral_error, cmd_vx, cmd_vy, cmd_yaw_rate);
+        setZTarget(search_height_m_);
+        computeTrackingCommand(
+          lateral_error, last_observation_.yaw_err_rad, cmd_vx, cmd_vy,
+          cmd_yaw_rate);
         cmd_vz = computeZCommand(
           control_height_m, current_body_vz_, z_target_height_m_, z_hold_kp_,
           z_hold_max_vz_);
+        xy_control_mode_ = "vision_pd_metric";
         publishVelocityBody(cmd_vx, cmd_vy, cmd_vz, cmd_yaw_rate);
-        if (currently_aligned) {
-          transitionTo(ControllerPhase::HoldVerify, true);
+        if (currently_aligned && nearSearchHeight(control_height_m)) {
+          transitionTo(ControllerPhase::HoldVerify, false);
         }
         break;
       case ControllerPhase::HoldVerify:
@@ -569,26 +693,25 @@ private:
           transitionTo(nextPhaseOnTargetLoss(phase_), true);
           break;
         }
-        if (!currently_aligned) {
+        if (!currently_aligned || !nearSearchHeight(control_height_m)) {
           transitionTo(ControllerPhase::TrackAlign, false);
           break;
         }
-        if (!z_target_initialized_) {
-          initializeZTarget(control_height_m);
-        }
+        setZTarget(search_height_m_);
+        computeTrackingCommand(
+          lateral_error, last_observation_.yaw_err_rad, cmd_vx, cmd_vy,
+          cmd_yaw_rate);
+        cmd_vz = computeZCommand(
+          control_height_m, current_body_vz_, z_target_height_m_, z_hold_kp_,
+          z_hold_max_vz_);
+        xy_control_mode_ = "vision_pd_metric";
+        publishVelocityBody(cmd_vx, cmd_vy, cmd_vz, cmd_yaw_rate);
         if (!align_hold_started_) {
           align_hold_started_ = true;
           align_hold_since_ = this->now();
         } else if ((this->now() - align_hold_since_).seconds() >= hold_verify_s_) {
-          if (control_height_m <= terminal_entry_height_m_) {
-            if (!height_decision.height_valid) {
-              transitionTo(ControllerPhase::HoldWait, true);
-            } else {
-              transitionTo(ControllerPhase::Terminal, false);
-            }
-          } else {
-            transitionTo(ControllerPhase::DescendTrack, false);
-          }
+          initial_search_completed_ = true;
+          transitionTo(ControllerPhase::DescendTrack, false);
         }
         break;
       case ControllerPhase::DescendTrack:
@@ -596,48 +719,56 @@ private:
           transitionTo(nextPhaseOnTargetLoss(phase_), true);
           break;
         }
-        if (control_height_m <= terminal_entry_height_m_ && !height_decision.height_valid) {
-          transitionTo(ControllerPhase::HoldWait, true);
-          break;
+        {
+          float flow_height_m = 0.0f;
+          const bool fresh_flow_height = flowHeightFresh(flow_height_m);
+          if (fresh_flow_height && flow_height_m <= terminal_entry_height_m_) {
+            transitionTo(ControllerPhase::Terminal, false);
+            break;
+          }
+          if (control_height_m <= terminal_entry_height_m_ && !fresh_flow_height) {
+            transitionTo(ControllerPhase::HoldWait, true);
+            break;
+          }
         }
         if (!z_target_initialized_) {
-          initializeZTarget(control_height_m);
+          setZTarget(control_height_m);
         }
         z_target_height_m_ =
           std::max(terminal_entry_height_m_, z_target_height_m_ - (descend_speed_ * control_dt_s_));
-        computeTrackingCommand(lateral_error, cmd_vx, cmd_vy, cmd_yaw_rate);
+        computeTrackingCommand(
+          lateral_error, last_observation_.yaw_err_rad, cmd_vx, cmd_vy,
+          cmd_yaw_rate);
         cmd_vz = computeZCommand(
           control_height_m, current_body_vz_, z_target_height_m_,
           z_descend_kp_, z_descend_max_vz_);
+        xy_control_mode_ = "vision_pd_metric";
         publishVelocityBody(cmd_vx, cmd_vy, cmd_vz, cmd_yaw_rate);
-        if (control_height_m <= terminal_entry_height_m_) {
-          if (height_decision.height_valid) {
-            transitionTo(ControllerPhase::Terminal, false);
-          } else {
-            transitionTo(ControllerPhase::HoldWait, true);
-          }
-        }
         break;
       case ControllerPhase::Terminal:
         if (!fresh_observation) {
-          transitionTo(nextPhaseOnTargetLoss(phase_), true);
-          break;
-        }
-        if (!height_decision.height_valid) {
           transitionTo(ControllerPhase::HoldWait, true);
           break;
         }
         if (!z_target_initialized_) {
-          initializeZTarget(control_height_m);
+          setZTarget(control_height_m);
         }
-        z_target_height_m_ =
-          std::max(land_height_m_, z_target_height_m_ - (terminal_descend_speed_ * control_dt_s_));
-        computeTrackingCommand(lateral_error, cmd_vx, cmd_vy, cmd_yaw_rate);
+        computeTrackingCommand(
+          lateral_error, last_observation_.yaw_err_rad, cmd_vx, cmd_vy,
+          cmd_yaw_rate);
         cmd_vz = computeZCommand(
           control_height_m, current_body_vz_, z_target_height_m_,
           z_terminal_kp_, z_terminal_max_vz_);
+        xy_control_mode_ = "vision_pd_metric";
         publishVelocityBody(cmd_vx, cmd_vy, cmd_vz, cmd_yaw_rate);
-        if (control_height_m <= land_height_m_) {
+        if (!currently_aligned) {
+          align_hold_started_ = false;
+          break;
+        }
+        if (!align_hold_started_) {
+          align_hold_started_ = true;
+          align_hold_since_ = this->now();
+        } else if ((this->now() - align_hold_since_).seconds() >= hold_verify_s_) {
           transitionTo(ControllerPhase::Land, false);
         }
         break;
@@ -674,9 +805,11 @@ private:
   float vel_damping_yaw_{0.18f};
   float yaw_deadband_rad_{0.03f};
   double hold_verify_s_{0.5};
+  float search_height_m_{1.0f};
+  float search_height_tolerance_m_{0.10f};
   float descend_speed_{0.12f};
   float terminal_descend_speed_{0.06f};
-  float terminal_entry_height_m_{0.60f};
+  float terminal_entry_height_m_{0.40f};
   float land_height_m_{0.12f};
   float z_hold_kp_{1.2f};
   float z_hold_max_vz_{0.18f};
@@ -687,16 +820,20 @@ private:
   float vel_damping_z_{0.18f};
   CommandRateLimitConfig command_rate_limit_{};
   double observation_timeout_s_{0.30};
+  double target_memory_timeout_s_{1.5};
   bool active_{false};
   ControllerPhase phase_{ControllerPhase::Ready};
   bool align_in_window_{false};
   bool align_hold_started_{false};
   bool land_requested_{false};
+  bool initial_search_completed_{false};
   bool has_observation_{false};
   bool has_state_{false};
   bool has_height_measurement_{false};
   bool filter_initialized_{false};
   float odom_height_m_{0.0f};
+  float current_body_vx_{0.0f};
+  float current_body_vy_{0.0f};
   float current_body_vz_{0.0f};
   float current_yaw_rate_{0.0f};
   float height_measurement_m_{0.0f};
@@ -715,13 +852,17 @@ private:
   float control_dt_s_{1.0f / 30.0f};
   double status_period_s_{0.2};
   bool status_initialized_{false};
+  std::string xy_control_mode_{"idle"};
   rclcpp::Time last_status_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time last_observation_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time prev_observation_stamp_{0, 0, RCL_ROS_TIME};
   rclcpp::Time height_measurement_stamp_{0, 0, RCL_ROS_TIME};
   rclcpp::Time phase_entered_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time align_hold_since_{0, 0, RCL_ROS_TIME};
+  rclcpp::Time target_memory_observed_time_{0, 0, RCL_ROS_TIME};
+  rclcpp::Time target_memory_updated_time_{0, 0, RCL_ROS_TIME};
   uav_visual_landing::msg::TargetObservation last_observation_{};
+  RelativeTarget3D target_memory_{};
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr velocity_pub_;
   rclcpp::Publisher<uav_visual_landing::msg::LandingControllerState>::SharedPtr
     controller_state_pub_;
