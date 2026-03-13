@@ -63,9 +63,9 @@ PX4
 
 ### 2.1 仿真里 PX4 是怎么启动的
 
-`sitl_uav.launch.py` 会调用：
+`uav_sim_bringup/sitl_uav.launch.py` 会调用：
 
-- `run_px4_gz_uav.sh`
+- `uav_sim_bringup/scripts/run_px4_gz_uav.sh`
 
 这个脚本会设置：
 

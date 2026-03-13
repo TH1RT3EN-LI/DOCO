@@ -14,8 +14,6 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
-from nav2_common.launch import RewrittenYaml
-
 from sim_worlds.launch_common import (
     create_launch_summary_action,
     create_static_transform_node,
@@ -24,12 +22,54 @@ from sim_worlds.launch_common import (
     parse_six_dof,
     resolve_world_launch_configurations,
 )
-from ugv_bringup.launch_helpers import create_controller_device_ready_gate, resolve_default_map_yaml
+
+
+def _runtime_maps_dir() -> str:
+    xdg_data_home = os.environ.get("XDG_DATA_HOME")
+    if not xdg_data_home:
+        xdg_data_home = os.path.join(os.path.expanduser("~"), ".local", "share")
+    return os.path.join(os.path.abspath(os.path.expanduser(xdg_data_home)), "ugv_bringup", "maps")
+
+
+def _resolve_latest_map_yaml_in_dir(maps_dir: str):
+    numeric_maps = []
+    newest_map = None
+    newest_mtime = -1.0
+
+    if not os.path.isdir(maps_dir):
+        return None
+
+    for filename in os.listdir(maps_dir):
+        if not filename.endswith(".yaml"):
+            continue
+        path = os.path.join(maps_dir, filename)
+        if not os.path.isfile(path):
+            continue
+        stem = os.path.splitext(filename)[0]
+        if stem.isdigit():
+            numeric_maps.append((int(stem), path))
+        mtime = os.path.getmtime(path)
+        if mtime > newest_mtime:
+            newest_mtime = mtime
+            newest_map = path
+
+    if numeric_maps:
+        numeric_maps.sort(key=lambda item: item[0])
+        return numeric_maps[-1][1]
+    return newest_map
+
+
+def resolve_default_map_yaml(package_root: str) -> str:
+    for maps_dir in (_runtime_maps_dir(), os.path.join(package_root, "maps")):
+        resolved = _resolve_latest_map_yaml_in_dir(maps_dir)
+        if resolved is not None:
+            return resolved
+    return os.path.join(package_root, "maps", "default.yaml")
 
 
 def generate_launch_description():
-    ugv_bringup_share = get_package_share_directory("ugv_bringup")
-    uav_bringup_share = get_package_share_directory("uav_bringup")
+    ugv_sim_bringup_share = get_package_share_directory("ugv_sim_bringup")
+    uav_sim_bringup_share = get_package_share_directory("uav_sim_bringup")
     relative_position_fusion_share = get_package_share_directory("relative_position_fusion")
     uav_mode_supervisor_share = get_package_share_directory("uav_mode_supervisor")
     sim_worlds_share = get_package_share_directory("sim_worlds")
@@ -39,7 +79,6 @@ def generate_launch_description():
     default_rviz_config = os.path.join(package_root, "config", "rviz", "sim_navigation.rviz")
     default_relative_fusion_overlay = os.path.join(package_root, "config", "relative_position_fusion.sim_navigation.yaml")
     default_map_yaml = resolve_default_map_yaml(package_root)
-    default_nav2_params = os.path.join(ugv_bringup_share, "config", "nav2.yaml")
 
     world = LaunchConfiguration("world")
     resolved_world_id = LaunchConfiguration("resolved_world_id")
@@ -59,6 +98,7 @@ def generate_launch_description():
     controller_device_path = LaunchConfiguration("controller_device_path")
     map_yaml = LaunchConfiguration("map")
     params_file = LaunchConfiguration("params_file")
+    ugv_nav_config_overlay = LaunchConfiguration("ugv_nav_config_overlay")
     nav_autostart = LaunchConfiguration("autostart")
     nav_log_level = LaunchConfiguration("log_level")
 
@@ -78,13 +118,6 @@ def generate_launch_description():
     enable_uav_mode_supervisor = LaunchConfiguration("enable_uav_mode_supervisor")
     relative_position_fusion_config = LaunchConfiguration("relative_position_fusion_config")
     default_uav_model_name = PythonExpression(['"', uav_sim_model, '" + "_" + "', uav_px4_instance, '"'])
-    sim_nav_params = RewrittenYaml(
-        source_file=params_file,
-        param_rewrites={
-            "odom_topic": "/ugv/odom",
-        },
-        convert_types=True,
-    )
 
     resolve_world_action = OpaqueFunction(
         function=partial(
@@ -121,67 +154,45 @@ def generate_launch_description():
         }.items(),
     )
 
-    ugv_sim_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(ugv_bringup_share, "launch", "sim.launch.py")),
-        launch_arguments={
-            "world": world,
-            "resolved_world_id": resolved_world_id,
-            "resolved_world_sdf_path": resolved_world_sdf_path,
-            "resolved_gz_world_name": resolved_gz_world_name,
-            "headless": headless,
-            "gz_partition": gz_partition,
-            "render_engine": render_engine,
-            "use_rviz": "false",
-            "use_teleop": "false",
-            "keyboard_enabled": "false",
-            "use_sim_tf": "true",
-            "publish_map_tf": "false",
-            "global_frame": global_frame,
-            "ugv_map_frame": ugv_map_frame,
-            "global_to_ugv_map": global_to_ugv_map,
-            "publish_global_map_tf": "false",
+    def create_ugv_sim_navigation_launch(context):
+        launch_arguments = {
+            "world": world.perform(context),
+            "resolved_world_id": resolved_world_id.perform(context),
+            "resolved_world_sdf_path": resolved_world_sdf_path.perform(context),
+            "resolved_gz_world_name": resolved_gz_world_name.perform(context),
+            "headless": headless.perform(context),
+            "gz_partition": gz_partition.perform(context),
+            "render_engine": render_engine.perform(context),
             "clock_mode": "external",
-            "controller_device_path": controller_device_path,
-        }.items(),
-    )
-
-    ugv_scan_rewriter = Node(
-        package="ugv_sim_tools",
-        executable="scan_frame_rewriter",
-        name="scan_frame_rewriter",
-        output="screen",
-        parameters=[
-            {
-                "use_sim_time": True,
-                "input_topic": "/ugv/scan_raw",
-                "output_topic": "/ugv/scan",
-                "output_frame_id": "ugv_laser",
-            }
-        ],
-    )
-
-    ugv_nav_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(ugv_bringup_share, "launch", "nav2.launch.py")),
-        launch_arguments={
-            "use_sim_time": "true",
             "use_rviz": "false",
-            "autostart": nav_autostart,
-            "log_level": nav_log_level,
-            "map": map_yaml,
-            "map_frame": ugv_map_frame,
-            "params_file": sim_nav_params,
-            "auto_initial_pose": "true",
-        }.items(),
-    )
+            "use_foxglove": "false",
+            "global_frame": global_frame.perform(context),
+            "ugv_map_frame": ugv_map_frame.perform(context),
+            "global_to_ugv_map": global_to_ugv_map.perform(context),
+            "publish_global_map_tf": "false",
+            "controller_device_path": controller_device_path.perform(context),
+            "map": map_yaml.perform(context),
+            "autostart": nav_autostart.perform(context),
+            "log_level": nav_log_level.perform(context),
+        }
+        params_file_value = params_file.perform(context).strip()
+        if params_file_value:
+            launch_arguments["params_file"] = params_file_value
+        ugv_nav_config_overlay_value = ugv_nav_config_overlay.perform(context).strip()
+        if ugv_nav_config_overlay_value:
+            launch_arguments["config_overlay"] = ugv_nav_config_overlay_value
 
-    ugv_nav_launch_gate = create_controller_device_ready_gate(
-        controller_device_path=controller_device_path,
-        actions=[ugv_nav_launch],
-        label="duojin_sim_navigation",
-    )
+        return [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(os.path.join(ugv_sim_bringup_share, "launch", "sim_navigation.launch.py")),
+                launch_arguments=launch_arguments.items(),
+            )
+        ]
+
+    ugv_sim_navigation_launch = OpaqueFunction(function=create_ugv_sim_navigation_launch)
 
     uav_sitl_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(uav_bringup_share, "launch", "sitl_uav.launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(uav_sim_bringup_share, "launch", "sitl_uav.launch.py")),
         launch_arguments={
             "world": world,
             "resolved_world_id": resolved_world_id,
@@ -300,7 +311,8 @@ def generate_launch_description():
             DeclareLaunchArgument("enable_dynamic_global_alignment", default_value="false"),
             DeclareLaunchArgument("controller_device_path", default_value="/tmp/ugv_controller"),
             DeclareLaunchArgument("map", default_value=default_map_yaml),
-            DeclareLaunchArgument("params_file", default_value=default_nav2_params),
+            DeclareLaunchArgument("params_file", default_value=""),
+            DeclareLaunchArgument("ugv_nav_config_overlay", default_value=""),
             DeclareLaunchArgument("autostart", default_value="true"),
             DeclareLaunchArgument("log_level", default_value="info"),
             DeclareLaunchArgument("uav_use_offboard_bridge", default_value="true"),
@@ -330,9 +342,7 @@ def generate_launch_description():
             summary_action,
             sim_clock_launch,
             global_map_tfs_action,
-            ugv_sim_launch,
-            ugv_scan_rewriter,
-            ugv_nav_launch_gate,
+            ugv_sim_navigation_launch,
             uav_sitl_launch,
             relative_position_fusion_launch,
             uav_mode_supervisor_launch,

@@ -17,15 +17,19 @@ resolve_first_existing_dir() {
 INSTALL_PREFIX_CANDIDATE="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 SOURCE_PKG_CANDIDATE="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-if [[ -d "${INSTALL_PREFIX_CANDIDATE}/share/uav_bringup/config/px4/rc" ]]; then
+if [[ -d "${INSTALL_PREFIX_CANDIDATE}/share/uav_sim_bringup/config/px4/rc" ]]; then
+  PKG_SHARE_DIR="${INSTALL_PREFIX_CANDIDATE}/share/uav_sim_bringup"
+  WS_DIR="$(cd "${INSTALL_PREFIX_CANDIDATE}/../.." && pwd)"
+elif [[ -d "${INSTALL_PREFIX_CANDIDATE}/share/uav_bringup/config/px4/rc" ]]; then
   PKG_SHARE_DIR="${INSTALL_PREFIX_CANDIDATE}/share/uav_bringup"
   WS_DIR="$(cd "${INSTALL_PREFIX_CANDIDATE}/../.." && pwd)"
 elif [[ -d "${SOURCE_PKG_CANDIDATE}/config/px4/rc" ]]; then
   PKG_SHARE_DIR="${SOURCE_PKG_CANDIDATE}"
   WS_DIR="$(cd "${SOURCE_PKG_CANDIDATE}/../.." && pwd)"
 else
-  echo "ERROR [run_px4_gz_uav] Unable to locate uav_bringup config directory." >&2
+  echo "ERROR [run_px4_gz_uav] Unable to locate uav_sim_bringup config directory." >&2
   echo "ERROR [run_px4_gz_uav] Checked:" >&2
+  echo "  - ${INSTALL_PREFIX_CANDIDATE}/share/uav_sim_bringup/config/px4/rc" >&2
   echo "  - ${INSTALL_PREFIX_CANDIDATE}/share/uav_bringup/config/px4/rc" >&2
   echo "  - ${SOURCE_PKG_CANDIDATE}/config/px4/rc" >&2
   exit 1

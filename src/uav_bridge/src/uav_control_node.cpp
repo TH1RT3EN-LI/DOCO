@@ -8,9 +8,6 @@
 #include <stdexcept>
 #include <string>
 
-#include <gz/msgs.hh>
-#include <gz/transport/Node.hh>
-
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <nav_msgs/msg/odometry.hpp>
@@ -25,7 +22,6 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Vector3.h>
 
-#include "uav_bridge/gz_topic_utils.hpp"
 #include "uav_bridge/math_utils.hpp"
 #include "uav_bridge/uav_control_logic.hpp"
 
@@ -118,12 +114,12 @@ public:
 
     if (px4_timestamp_source_ == Px4TimestampSource::GazeboSim) {
       if (gz_clock_topic_.empty()) {
-        gz_clock_topic_ = gz_topics::Clock(gz_world_name_);
+        gz_clock_topic_ = "/clock";
       }
-      const bool ok = gz_node_.Subscribe(gz_clock_topic_, &UavControlNode::onGzClock, this);
-      if (!ok) {
-        throw std::runtime_error("Gazebo clock subscribe failed");
-      }
+      RCLCPP_INFO(
+        this->get_logger(),
+        "px4_timestamp_source=gz_sim now uses the ROS clock exposed on %s; gz_world_name is kept for compatibility",
+        gz_clock_topic_.c_str());
     }
 
     offboard_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>(offboard_mode_topic_, 10);
@@ -280,19 +276,8 @@ private:
     }
   }
 
-  void onGzClock(const gz::msgs::Clock & clock)
-  {
-    const uint64_t now_us =
-      (static_cast<uint64_t>(clock.sim().sec()) * 1000000ULL) +
-      (static_cast<uint64_t>(clock.sim().nsec()) / 1000ULL);
-    latest_gz_clock_us_.store(now_us);
-  }
-
   uint64_t nowMicros()
   {
-    if (px4_timestamp_source_ == Px4TimestampSource::GazeboSim) {
-      return latest_gz_clock_us_.load();
-    }
     return static_cast<uint64_t>(this->get_clock()->now().nanoseconds() / 1000);
   }
 
@@ -799,8 +784,6 @@ private:
   float velocity_mode_max_acc_yaw_radps2_{1.5f};
   double state_timeout_s_{0.20};
   Px4TimestampSource px4_timestamp_source_{Px4TimestampSource::System};
-  gz::transport::Node gz_node_;
-  std::atomic<uint64_t> latest_gz_clock_us_{0};
   UavControlModeTracker mode_tracker_{};
   geometry_msgs::msg::TwistStamped last_velocity_body_cmd_{};
   bool has_velocity_body_cmd_{false};

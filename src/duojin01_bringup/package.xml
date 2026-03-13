@@ -3,7 +3,7 @@
 <package format="3">
   <name>duojin01_bringup</name>
   <version>0.0.0</version>
-  <description>Collaborative bringup for UGV simulation and UAV SITL.</description>
+  <description>Collaborative bringup for UGV and UAV simulation orchestration.</description>
   <maintainer email="litianshun.cn@gmail.com">litianshun</maintainer>
   <license>GPL-3.0-only</license>
 
@@ -11,8 +11,8 @@
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>sim_worlds</exec_depend>
-  <exec_depend>ugv_bringup</exec_depend>
-  <exec_depend>uav_bringup</exec_depend>
+  <exec_depend>ugv_sim_bringup</exec_depend>
+  <exec_depend>uav_sim_bringup</exec_depend>
   <exec_depend>relative_position_fusion</exec_depend>
   <exec_depend>uav_mode_supervisor</exec_depend>
 

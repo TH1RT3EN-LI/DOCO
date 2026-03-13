@@ -18,8 +18,6 @@ find_package(tf2_ros REQUIRED)
 find_package(quadrotor_msgs REQUIRED)
 find_package(px4_msgs REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS core imgproc video videoio)
-find_package(gz-transport13 REQUIRED)
-find_package(gz-msgs10 REQUIRED)
 
 add_library(${PROJECT_NAME}_px4_odom_adapter_logic
   src/px4_odom_adapter_logic.cpp
@@ -41,20 +39,6 @@ ament_target_dependencies(${PROJECT_NAME}_uav_state_bridge_logic
   tf2
 )
 
-add_executable(mono_camera_bridge_node
-  src/mono_camera_bridge_node.cpp
-)
-target_compile_features(mono_camera_bridge_node PUBLIC cxx_std_17)
-target_include_directories(mono_camera_bridge_node PRIVATE include)
-ament_target_dependencies(mono_camera_bridge_node
-  rclcpp
-  sensor_msgs
-)
-target_link_libraries(mono_camera_bridge_node
-  gz-transport13::core
-  gz-msgs10::core
-)
-
 add_executable(mono_camera_source_node
   src/mono_camera_source_node.cpp
 )
@@ -66,67 +50,6 @@ ament_target_dependencies(mono_camera_source_node
   sensor_msgs
 )
 target_link_libraries(mono_camera_source_node
-  ${OpenCV_LIBS}
-)
-
-add_executable(stereo_camera_bridge_node
-  src/stereo_camera_bridge_node.cpp
-)
-target_compile_features(stereo_camera_bridge_node PUBLIC cxx_std_17)
-target_include_directories(stereo_camera_bridge_node PRIVATE include)
-ament_target_dependencies(stereo_camera_bridge_node
-  rclcpp
-  sensor_msgs
-)
-target_link_libraries(stereo_camera_bridge_node
-  gz-transport13::core
-  gz-msgs10::core
-)
-
-add_executable(tf_bridge_node
-  src/tf_bridge_node.cpp
-)
-target_compile_features(tf_bridge_node PUBLIC cxx_std_17)
-target_include_directories(tf_bridge_node PRIVATE include)
-ament_target_dependencies(tf_bridge_node
-  rclcpp
-  geometry_msgs
-  nav_msgs
-  tf2
-  tf2_ros
-)
-target_link_libraries(tf_bridge_node
-  gz-transport13::core
-  gz-msgs10::core
-)
-
-add_executable(rangefinder_bridge_node
-  src/rangefinder_bridge_node.cpp
-)
-target_compile_features(rangefinder_bridge_node PUBLIC cxx_std_17)
-target_include_directories(rangefinder_bridge_node PRIVATE include)
-ament_target_dependencies(rangefinder_bridge_node
-  rclcpp
-  px4_msgs
-)
-target_link_libraries(rangefinder_bridge_node
-  gz-transport13::core
-  gz-msgs10::core
-)
-
-add_executable(optical_flow_bridge_node
-  src/optical_flow_bridge_node.cpp
-)
-target_compile_features(optical_flow_bridge_node PUBLIC cxx_std_17)
-target_include_directories(optical_flow_bridge_node PRIVATE include)
-target_include_directories(optical_flow_bridge_node SYSTEM PRIVATE ${OpenCV_INCLUDE_DIRS})
-ament_target_dependencies(optical_flow_bridge_node
-  rclcpp
-  px4_msgs
-)
-target_link_libraries(optical_flow_bridge_node
-  gz-transport13::core
-  gz-msgs10::core
   ${OpenCV_LIBS}
 )
 
@@ -189,11 +112,6 @@ ament_target_dependencies(uav_control_node
   px4_msgs
   tf2
 )
-target_link_libraries(uav_control_node
-  gz-transport13::core
-  gz-msgs10::core
-)
-
 add_executable(fmu_topic_namespace_bridge_node
   src/fmu_topic_namespace_bridge_node.cpp
 )
@@ -205,12 +123,7 @@ ament_target_dependencies(fmu_topic_namespace_bridge_node
 
 install(TARGETS
   ${PROJECT_NAME}_px4_odom_adapter_logic
-  mono_camera_bridge_node
   mono_camera_source_node
-  stereo_camera_bridge_node
-  tf_bridge_node
-  rangefinder_bridge_node
-  optical_flow_bridge_node
   px4_planar_state_reader_node
   px4_odom_adapter_node
   uav_state_bridge_node
@@ -222,6 +135,8 @@ install(TARGETS
 install(DIRECTORY include/
   DESTINATION include
 )
+
+ament_export_include_directories(include)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)

@@ -26,8 +26,8 @@ from sim_worlds.launch_common import (
 
 
 def generate_launch_description():
-    ugv_bringup_share = get_package_share_directory("ugv_bringup")
-    uav_bringup_share = get_package_share_directory("uav_bringup")
+    ugv_sim_bringup_share = get_package_share_directory("ugv_sim_bringup")
+    uav_sim_bringup_share = get_package_share_directory("uav_sim_bringup")
     relative_position_fusion_share = get_package_share_directory("relative_position_fusion")
     uav_mode_supervisor_share = get_package_share_directory("uav_mode_supervisor")
     sim_worlds_share = get_package_share_directory("sim_worlds")
@@ -109,7 +109,7 @@ def generate_launch_description():
     )
 
     ugv_sim_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(ugv_bringup_share, "launch", "sim.launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(ugv_sim_bringup_share, "launch", "sim.launch.py")),
         launch_arguments={
             "world": world,
             "resolved_world_id": resolved_world_id,
@@ -133,7 +133,7 @@ def generate_launch_description():
     )
 
     uav_sitl_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(uav_bringup_share, "launch", "sitl_uav.launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(uav_sim_bringup_share, "launch", "sitl_uav.launch.py")),
         launch_arguments={
             "world": world,
             "resolved_world_id": resolved_world_id,

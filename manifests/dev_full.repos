@@ -1,0 +1,20 @@
+repositories:
+  workspace:
+    type: git
+    url: git@github.com:TH1RT3EN-LI/DOCO.git
+    version: 9045fd931c3a1705c720fd341785713e35b25c35
+
+  workspace/third_party/PX4-Autopilot:
+    type: git
+    url: https://github.com/PX4/PX4-Autopilot.git
+    version: 99c40407ffd7ac184e2d7b4b293f36f10fe561ef
+
+  workspace/src/px4_msgs:
+    type: git
+    url: https://github.com/PX4/px4_msgs.git
+    version: a1045ec4feb6d709bdecaf3895f1d5b43a5dabb8
+
+  workspace/src/orbbec_sdk:
+    type: git
+    url: https://github.com/orbbec/OrbbecSDK_ROS2.git
+    version: c0c14f538a9faf24319d246a27580308c17b1b5e

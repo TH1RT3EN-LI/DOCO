@@ -1,0 +1,6 @@
+#!/bin/sh
+# Shared PX4 overrides for uav_bringup.
+# Keep sim/hw specific geometry and thrust values in config/px4/rc/frames/*.params.
+#
+# This file intentionally stays empty for now so profile-specific settings do not
+# leak across sim and hardware bringup.
