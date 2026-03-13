@@ -1,4 +1,5 @@
 /**:
   ros__parameters:
     assume_ugv_odom_is_global: false
-    pose_timeout_sec: 0.8
+    pose_timeout_sec: 2.0
+    measurement_sync_tolerance_sec: 0.15

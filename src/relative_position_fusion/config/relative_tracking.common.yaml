@@ -16,10 +16,10 @@
     go_above_ugv_service: /uav/relative_tracking/command/go_above_ugv
     stop_service: /uav/relative_tracking/command/stop
 
-    return_height_m: 1.0
+    return_height_m: 2.0
     takeoff_height_tolerance_m: 0.10
     takeoff_stable_s: 0.5
-    auto_track_after_takeoff: false
+    auto_track_after_takeoff: true
 
     relative_pose_timeout_s: 0.25
     uav_state_timeout_s: 0.25
