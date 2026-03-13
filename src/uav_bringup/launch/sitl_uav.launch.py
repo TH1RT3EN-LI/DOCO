@@ -270,6 +270,7 @@ def generate_launch_description():
             {"map_frame": uav_map_frame},
             {"odom_frame": "uav_ground_truth_odom"},
             {"base_frame": "uav_ground_truth_base_link"},
+            {"lookup_base_frame": base_frame},
             {"odom_topic": "/uav/sim/ground_truth/odom"},
             {"publish_odometry": True},
             {"use_initial_pose_as_map_origin": False},

@@ -16,7 +16,7 @@
     relocalize_requested_topic: /relative_position/relocalize_requested
     diagnostics_topic: /relative_position/diagnostics
 
-    uav_twist_in_child_frame: false
+    uav_twist_in_child_frame: true
     ugv_filtered_twist_in_child_frame: true
     ugv_odom_twist_in_child_frame: true
     assume_ugv_odom_is_global: false

@@ -42,6 +42,23 @@ TEST(UavControlLogic, LandingRejectsVelocityOverride)
   EXPECT_EQ(tracker.mode(), UavControlMode::Landing);
 }
 
+TEST(UavControlLogic, PositionModeCanBeRequestedAndPreserved)
+{
+  UavControlModeTracker tracker;
+  tracker.requestPosition();
+  EXPECT_EQ(tracker.mode(), UavControlMode::Position);
+  tracker.requestPosition();
+  EXPECT_EQ(tracker.mode(), UavControlMode::Position);
+}
+
+TEST(UavControlLogic, LandingRejectsPositionOverride)
+{
+  UavControlModeTracker tracker;
+  tracker.requestLanding();
+  tracker.requestPosition();
+  EXPECT_EQ(tracker.mode(), UavControlMode::Landing);
+}
+
 TEST(UavControlLogic, VelocityEstimateRequiresValidFlagsAndFiniteComponents)
 {
   EXPECT_TRUE(hasValidVelocityEstimate(true, true, {0.1f, -0.2f, 0.3f}));

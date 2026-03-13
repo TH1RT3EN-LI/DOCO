@@ -29,6 +29,7 @@ public:
     this->declare_parameter<std::string>("map_frame", "uav_map");
     this->declare_parameter<std::string>("odom_frame", "uav_odom");
     this->declare_parameter<std::string>("base_frame", "uav_base_link");
+    this->declare_parameter<std::string>("lookup_base_frame", "");
     this->declare_parameter<std::string>("odom_topic", "/uav/odom");
     this->declare_parameter<bool>("publish_odometry", true);
     this->declare_parameter<bool>("use_initial_pose_as_map_origin", false);
@@ -39,10 +40,16 @@ public:
     this->map_frame_ = this->get_parameter("map_frame").as_string();
     this->odom_frame_ = this->get_parameter("odom_frame").as_string();
     this->base_frame_ = this->get_parameter("base_frame").as_string();
+    this->lookup_base_frame_ =
+        this->get_parameter("lookup_base_frame").as_string();
     this->odom_topic_ = this->get_parameter("odom_topic").as_string();
     this->publish_odometry_ = this->get_parameter("publish_odometry").as_bool();
     this->use_initial_pose_as_map_origin_ =
         this->get_parameter("use_initial_pose_as_map_origin").as_bool();
+
+    if (this->lookup_base_frame_.empty()) {
+      this->lookup_base_frame_ = this->base_frame_;
+    }
 
     if (this->gz_pose_topic_.empty()) {
       gz_pose_topic_ = gz_topics::PoseInfo(this->gz_world_name_);
@@ -81,10 +88,11 @@ public:
     RCLCPP_INFO(
         this->get_logger(),
         "[pose->tf] Gazebo topic: %s, model_name: %s, static tf: %s -> %s, "
-        "dynamic tf: %s -> %s, odom: %s",
+        "dynamic tf: %s -> %s, lookup_base_frame: %s, odom: %s",
         this->gz_pose_topic_.c_str(), this->model_name_.c_str(),
         this->map_frame_.c_str(), this->odom_frame_.c_str(),
         this->odom_frame_.c_str(), this->base_frame_.c_str(),
+        this->lookup_base_frame_.c_str(),
         this->publish_odometry_ ? this->odom_topic_.c_str() : "<disabled>");
   }
 
@@ -101,6 +109,7 @@ private:
   std::string map_frame_;
   std::string odom_frame_;
   std::string base_frame_;
+  std::string lookup_base_frame_;
   std::string odom_topic_;
   bool publish_odometry_{true};
   bool use_initial_pose_as_map_origin_{false};
@@ -147,10 +156,11 @@ private:
   }
 
   std::optional<gz::msgs::Pose> FindRelativeBasePose(const gz::msgs::Pose_V &msg) const {
-    if (const auto exact = this->FindPoseByName(msg, this->base_frame_)) {
+    if (const auto exact = this->FindPoseByName(msg, this->lookup_base_frame_)) {
       return exact;
     }
-    return this->FindPoseByName(msg, this->model_name_ + "::" + this->base_frame_);
+    return this->FindPoseByName(msg,
+                                this->model_name_ + "::" + this->lookup_base_frame_);
   }
 
   PoseState PoseMsgToState(const gz::msgs::Pose &pose,
@@ -341,7 +351,9 @@ private:
     if (const auto relative_base_pose = this->FindRelativeBasePose(msg)) {
       odom_state = this->ComposePoseStates(
           odom_state, this->PoseMsgToState(relative_base_pose.value(), stamp));
-      this->LogResolvedEntity(this->model_name_ + " + " + this->base_frame_);
+      this->LogResolvedEntity(this->model_name_ + " + " +
+                              this->lookup_base_frame_ + " -> " +
+                              this->base_frame_);
     } else {
       this->LogResolvedEntity(model_pose->name());
     }

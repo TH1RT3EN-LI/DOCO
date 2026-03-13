@@ -98,7 +98,7 @@
     <xacro:uav_motor_base_visual x="${-rotor_x_offset}" y="${-rotor_y_offset}"/>
 
     <visual>
-      <origin xyz="0.005 0.05 0.0123" rpy="0 0 0"/>
+      <origin xyz="0.0903 0.025 0.0123" rpy="0 0 0"/>
       <geometry>
         <box size="0.030 0.015 0.005"/>
       </geometry>
@@ -106,7 +106,7 @@
     </visual>
 
     <visual>
-      <origin xyz="0.012 0.05 0.0095" rpy="0 0 0"/>
+      <origin xyz="0.0973 0.025 0.0095" rpy="0 0 0"/>
       <geometry>
         <box size="0.008 0.008 0.0008"/>
       </geometry>
@@ -114,7 +114,7 @@
     </visual>
 
     <visual>
-      <origin xyz="-0.008 0.05 0.0095" rpy="1.57079632679 0 0"/>
+      <origin xyz="0.0773 0.025 0.0095" rpy="1.57079632679 0 0"/>
       <geometry>
         <cylinder radius="0.0025" length="0.0008"/>
       </geometry>

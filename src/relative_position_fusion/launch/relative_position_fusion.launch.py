@@ -15,9 +15,11 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time")
     global_frame = LaunchConfiguration("global_frame")
     uav_body_frame = LaunchConfiguration("uav_body_frame")
+    enable_relative_tracking = LaunchConfiguration("enable_relative_tracking")
 
     def create_node(context):
         preset_value = preset.perform(context).strip()
+        tracking_enabled = enable_relative_tracking.perform(context).strip().lower() in ("1", "true", "yes", "on")
         preset_map = {
             "duojin_sim": os.path.join(config_dir, "relative_position_fusion.duojin_sim.yaml"),
             "sim_navigation": os.path.join(config_dir, "relative_position_fusion.sim_navigation.yaml"),
@@ -31,8 +33,9 @@ def generate_launch_description():
 
         common_yaml = os.path.join(config_dir, "relative_position_fusion.common.yaml")
         preset_yaml = preset_map[preset_value]
+        tracking_yaml = os.path.join(config_dir, "relative_tracking.common.yaml")
 
-        return [
+        nodes = [
             Node(
                 package="relative_position_fusion",
                 executable="relative_position_fusion_node",
@@ -50,6 +53,24 @@ def generate_launch_description():
             )
         ]
 
+        if tracking_enabled:
+            nodes.append(
+                Node(
+                    package="relative_position_fusion",
+                    executable="relative_tracking_node",
+                    name="relative_tracking_controller",
+                    output="screen",
+                    parameters=[
+                        tracking_yaml,
+                        {
+                            "use_sim_time": use_sim_time,
+                        },
+                    ],
+                )
+            )
+
+        return nodes
+
     return LaunchDescription(
         [
             DeclareLaunchArgument("preset", default_value="duojin_sim"),
@@ -59,6 +80,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument("global_frame", default_value="global"),
             DeclareLaunchArgument("uav_body_frame", default_value="uav_base_link"),
+            DeclareLaunchArgument("enable_relative_tracking", default_value="false"),
             OpaqueFunction(function=create_node),
         ]
     )

@@ -14,13 +14,25 @@ find_package(Eigen3 REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(rosidl_typesupport_cpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/StartRelativeTracking.srv"
+)
+
+ament_export_dependencies(rosidl_default_runtime)
+
+rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
 add_library(${PROJECT_NAME}_core
   src/diagnostics_publisher.cpp
+  src/relative_tracking_controller.cpp
   src/relative_position_filter.cpp
   src/relocalization_monitor.cpp
   src/time_alignment_buffer.cpp
@@ -38,6 +50,7 @@ ament_target_dependencies(${PROJECT_NAME}_core
   nav_msgs
   rclcpp
   std_msgs
+  std_srvs
   tf2
   tf2_geometry_msgs
   tf2_ros
@@ -59,10 +72,34 @@ ament_target_dependencies(relative_position_fusion_node
   tf2_ros
 )
 
+add_executable(relative_tracking_node
+  src/relative_tracking_node.cpp
+)
+target_include_directories(relative_tracking_node PRIVATE
+  ${EIGEN3_INCLUDE_DIRS}
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp>"
+)
+target_link_libraries(relative_tracking_node
+  ${PROJECT_NAME}_core
+  "${cpp_typesupport_target}"
+)
+add_dependencies(relative_tracking_node
+  ${PROJECT_NAME}
+)
+ament_target_dependencies(relative_tracking_node
+  geometry_msgs
+  nav_msgs
+  rclcpp
+  std_msgs
+  std_srvs
+  tf2
+)
+
 install(
   TARGETS
     ${PROJECT_NAME}_core
     relative_position_fusion_node
+    relative_tracking_node
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
@@ -102,6 +139,14 @@ if(BUILD_TESTING)
   if(TARGET test_time_alignment_buffer)
     target_link_libraries(test_time_alignment_buffer ${PROJECT_NAME}_core)
     target_include_directories(test_time_alignment_buffer PRIVATE ${EIGEN3_INCLUDE_DIRS})
+  endif()
+
+  ament_add_gtest(test_relative_tracking_controller
+    test/test_relative_tracking_controller.cpp
+  )
+  if(TARGET test_relative_tracking_controller)
+    target_link_libraries(test_relative_tracking_controller ${PROJECT_NAME}_core)
+    target_include_directories(test_relative_tracking_controller PRIVATE ${EIGEN3_INCLUDE_DIRS})
   endif()
 
   ament_add_gtest(test_uav_state_adapter

@@ -10,6 +10,7 @@ enum class UavControlMode
 {
   Hold,
   Takeoff,
+  Position,
   VelocityBody,
   Landing,
 };
@@ -30,6 +31,13 @@ public:
   void requestTakeoff()
   {
     mode_ = UavControlMode::Takeoff;
+  }
+
+  void requestPosition()
+  {
+    if (mode_ != UavControlMode::Landing) {
+      mode_ = UavControlMode::Position;
+    }
   }
 
   void requestVelocityBody()

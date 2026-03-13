@@ -14,6 +14,7 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
+from nav2_common.launch import RewrittenYaml
 
 from sim_worlds.launch_common import (
     create_launch_summary_action,
@@ -23,6 +24,7 @@ from sim_worlds.launch_common import (
     parse_six_dof,
     resolve_world_launch_configurations,
 )
+from ugv_bringup.launch_helpers import create_controller_device_ready_gate, resolve_default_map_yaml
 
 
 def generate_launch_description():
@@ -32,8 +34,10 @@ def generate_launch_description():
     sim_worlds_share = get_package_share_directory("sim_worlds")
     package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    default_gz_partition = f"duojin_{os.getpid()}"
-    default_rviz_config = os.path.join(package_root, "config", "rviz", "sim.rviz")
+    default_gz_partition = f"duojin_nav_{os.getpid()}"
+    default_rviz_config = os.path.join(package_root, "config", "rviz", "sim_navigation.rviz")
+    default_map_yaml = resolve_default_map_yaml(package_root)
+    default_nav2_params = os.path.join(ugv_bringup_share, "config", "nav2.yaml")
 
     world = LaunchConfiguration("world")
     resolved_world_id = LaunchConfiguration("resolved_world_id")
@@ -50,11 +54,11 @@ def generate_launch_description():
     global_to_uav_map = LaunchConfiguration("global_to_uav_map")
     publish_global_map_tf = LaunchConfiguration("publish_global_map_tf")
     enable_dynamic_global_alignment = LaunchConfiguration("enable_dynamic_global_alignment")
-
-    ugv_use_teleop = LaunchConfiguration("ugv_use_teleop")
-    ugv_keyboard_enabled = LaunchConfiguration("ugv_keyboard_enabled")
-    ugv_keyboard_backend = LaunchConfiguration("ugv_keyboard_backend")
-    ugv_use_sim_tf = LaunchConfiguration("ugv_use_sim_tf")
+    controller_device_path = LaunchConfiguration("controller_device_path")
+    map_yaml = LaunchConfiguration("map")
+    params_file = LaunchConfiguration("params_file")
+    nav_autostart = LaunchConfiguration("autostart")
+    nav_log_level = LaunchConfiguration("log_level")
 
     uav_use_offboard_bridge = LaunchConfiguration("uav_use_offboard_bridge")
     uav_sim_model = LaunchConfiguration("uav_sim_model")
@@ -70,6 +74,13 @@ def generate_launch_description():
     enable_relative_position_fusion = LaunchConfiguration("enable_relative_position_fusion")
     enable_relative_tracking = LaunchConfiguration("enable_relative_tracking")
     default_uav_model_name = PythonExpression(['"', uav_sim_model, '" + "_" + "', uav_px4_instance, '"'])
+    sim_nav_params = RewrittenYaml(
+        source_file=params_file,
+        param_rewrites={
+            "odom_topic": "/ugv/odom",
+        },
+        convert_types=True,
+    )
 
     resolve_world_action = OpaqueFunction(
         function=partial(
@@ -117,17 +128,52 @@ def generate_launch_description():
             "gz_partition": gz_partition,
             "render_engine": render_engine,
             "use_rviz": "false",
-            "use_teleop": ugv_use_teleop,
-            "keyboard_enabled": ugv_keyboard_enabled,
-            "keyboard_backend": ugv_keyboard_backend,
-            "use_sim_tf": ugv_use_sim_tf,
-            "publish_map_tf": "true",
+            "use_teleop": "false",
+            "keyboard_enabled": "false",
+            "use_sim_tf": "true",
+            "publish_map_tf": "false",
             "global_frame": global_frame,
             "ugv_map_frame": ugv_map_frame,
             "global_to_ugv_map": global_to_ugv_map,
             "publish_global_map_tf": "false",
             "clock_mode": "external",
+            "controller_device_path": controller_device_path,
         }.items(),
+    )
+
+    ugv_scan_rewriter = Node(
+        package="ugv_sim_tools",
+        executable="scan_frame_rewriter",
+        name="scan_frame_rewriter",
+        output="screen",
+        parameters=[
+            {
+                "use_sim_time": True,
+                "input_topic": "/ugv/scan_raw",
+                "output_topic": "/ugv/scan",
+                "output_frame_id": "ugv_laser",
+            }
+        ],
+    )
+
+    ugv_nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(ugv_bringup_share, "launch", "nav2.launch.py")),
+        launch_arguments={
+            "use_sim_time": "true",
+            "use_rviz": "false",
+            "autostart": nav_autostart,
+            "log_level": nav_log_level,
+            "map": map_yaml,
+            "map_frame": ugv_map_frame,
+            "params_file": sim_nav_params,
+            "auto_initial_pose": "true",
+        }.items(),
+    )
+
+    ugv_nav_launch_gate = create_controller_device_ready_gate(
+        controller_device_path=controller_device_path,
+        actions=[ugv_nav_launch],
+        label="duojin_sim_navigation",
     )
 
     uav_sitl_launch = IncludeLaunchDescription(
@@ -165,7 +211,7 @@ def generate_launch_description():
             os.path.join(relative_position_fusion_share, "launch", "relative_position_fusion.launch.py")
         ),
         launch_arguments={
-            "preset": "duojin_sim",
+            "preset": "sim_navigation",
             "use_sim_time": "true",
             "global_frame": global_frame,
             "uav_body_frame": "uav_base_link",
@@ -185,16 +231,17 @@ def generate_launch_description():
     )
 
     summary_action = create_launch_summary_action(
-        "duojin_sim",
+        "duojin_sim_navigation",
         items=[
             ("clock_mode", "top_level_internal"),
             ("gz_partition", gz_partition),
             ("world", resolved_world_id),
             ("gz_world", resolved_gz_world_name),
+            ("map", map_yaml),
         ],
     )
     no_op_alignment_notice = create_true_only_notice_action(
-        "duojin_sim",
+        "duojin_sim_navigation",
         argument_name="enable_dynamic_global_alignment",
         argument_value=enable_dynamic_global_alignment,
         message="The dynamic global alignment hook has no runtime consumer in the current stack.",
@@ -237,10 +284,11 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument("publish_global_map_tf", default_value="true"),
             DeclareLaunchArgument("enable_dynamic_global_alignment", default_value="false"),
-            DeclareLaunchArgument("ugv_use_teleop", default_value="true"),
-            DeclareLaunchArgument("ugv_keyboard_enabled", default_value="false"),
-            DeclareLaunchArgument("ugv_keyboard_backend", default_value="tty"),
-            DeclareLaunchArgument("ugv_use_sim_tf", default_value="true"),
+            DeclareLaunchArgument("controller_device_path", default_value="/tmp/ugv_controller"),
+            DeclareLaunchArgument("map", default_value=default_map_yaml),
+            DeclareLaunchArgument("params_file", default_value=default_nav2_params),
+            DeclareLaunchArgument("autostart", default_value="true"),
+            DeclareLaunchArgument("log_level", default_value="info"),
             DeclareLaunchArgument("uav_use_offboard_bridge", default_value="true"),
             DeclareLaunchArgument("uav_sim_model", default_value="uav"),
             DeclareLaunchArgument("uav_px4_instance", default_value="0"),
@@ -267,6 +315,8 @@ def generate_launch_description():
             sim_clock_launch,
             global_map_tfs_action,
             ugv_sim_launch,
+            ugv_scan_rewriter,
+            ugv_nav_launch_gate,
             uav_sitl_launch,
             relative_position_fusion_launch,
             rviz_node,
