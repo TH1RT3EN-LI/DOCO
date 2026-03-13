@@ -30,8 +30,7 @@
 - 配置：
   - `relative_position_fusion.common.yaml`
   - `relative_position_fusion.duojin_sim.yaml`
-  - `relative_position_fusion.sim_navigation.yaml`
-  - `relative_position_fusion.hw.yaml`
+  - `relative_tracking.common.yaml`
 - 独立 launch：`relative_position_fusion.launch.py`
 - 单元测试：5 个 gtest 目标
 

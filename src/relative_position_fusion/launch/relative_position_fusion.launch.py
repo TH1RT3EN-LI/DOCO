@@ -23,24 +23,22 @@ def generate_launch_description():
         tracking_enabled = enable_relative_tracking.perform(context).strip().lower() in ("1", "true", "yes", "on")
         preset_map = {
             "duojin_sim": os.path.join(config_dir, "relative_position_fusion.duojin_sim.yaml"),
-            "sim_navigation": os.path.join(config_dir, "relative_position_fusion.sim_navigation.yaml"),
-            "hw": os.path.join(config_dir, "relative_position_fusion.hw.yaml"),
         }
-        if preset_value not in preset_map:
+        if preset_value and preset_value not in preset_map:
             raise RuntimeError(
                 f"Unknown relative_position_fusion preset '{preset_value}'. "
                 f"Expected one of: {', '.join(sorted(preset_map.keys()))}"
             )
 
         common_yaml = os.path.join(config_dir, "relative_position_fusion.common.yaml")
-        preset_yaml = preset_map[preset_value]
         tracking_yaml = os.path.join(config_dir, "relative_tracking.common.yaml")
         overlay_yaml = config_overlay.perform(context).strip()
 
         fusion_parameters = [
             common_yaml,
-            preset_yaml,
         ]
+        if preset_value:
+            fusion_parameters.append(preset_map[preset_value])
         if overlay_yaml:
             if not os.path.isfile(overlay_yaml):
                 raise RuntimeError(f"relative_position_fusion config_overlay not found: {overlay_yaml}")

@@ -222,6 +222,15 @@ private:
     this->declare_parameter<double>("max_xy_speed_mps", 0.8);
     this->declare_parameter<double>("max_z_speed_mps", 0.5);
     this->declare_parameter<double>("max_relative_covariance_m2", 1.5);
+    this->declare_parameter<bool>("enable_heading_aligned_tracking", false);
+    this->declare_parameter<double>("heading_control_min_xy_speed_mps", 0.15);
+    this->declare_parameter<double>("yaw_kp", 1.8);
+    this->declare_parameter<double>("max_yaw_rate_radps", 1.2);
+    this->declare_parameter<double>("yaw_deadband_rad", 0.10);
+    this->declare_parameter<double>("lateral_release_yaw_error_rad", 0.20);
+    this->declare_parameter<double>("forward_only_yaw_error_rad", 0.55);
+    this->declare_parameter<double>("stop_translate_yaw_error_rad", 1.05);
+    this->declare_parameter<bool>("disallow_reverse_motion", true);
 
     RelativeTrackingController::Config config;
     config.return_height_m = this->get_parameter("return_height_m").as_double();
@@ -241,6 +250,21 @@ private:
     config.max_z_speed_mps = this->get_parameter("max_z_speed_mps").as_double();
     config.max_relative_covariance_m2 =
       this->get_parameter("max_relative_covariance_m2").as_double();
+    config.enable_heading_aligned_tracking =
+      this->get_parameter("enable_heading_aligned_tracking").as_bool();
+    config.heading_control_min_xy_speed_mps =
+      this->get_parameter("heading_control_min_xy_speed_mps").as_double();
+    config.yaw_kp = this->get_parameter("yaw_kp").as_double();
+    config.max_yaw_rate_radps = this->get_parameter("max_yaw_rate_radps").as_double();
+    config.yaw_deadband_rad = this->get_parameter("yaw_deadband_rad").as_double();
+    config.lateral_release_yaw_error_rad =
+      this->get_parameter("lateral_release_yaw_error_rad").as_double();
+    config.forward_only_yaw_error_rad =
+      this->get_parameter("forward_only_yaw_error_rad").as_double();
+    config.stop_translate_yaw_error_rad =
+      this->get_parameter("stop_translate_yaw_error_rad").as_double();
+    config.disallow_reverse_motion =
+      this->get_parameter("disallow_reverse_motion").as_bool();
     return config;
   }
 

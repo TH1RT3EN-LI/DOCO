@@ -1,0 +1,31 @@
+uav_mode_supervisor:
+  ros__parameters:
+    command_service: /uav/mode_supervisor/command
+    track_alias_service: /uav/mode/track
+    land_alias_service: /uav/mode/land
+    position_alias_service: /uav/mode/position
+    hold_alias_service: /uav/mode/hold
+    stop_alias_service: /uav/mode/stop
+    state_topic: /uav/mode_supervisor/state
+    diagnostics_topic: /relative_position/diagnostics
+    relocalize_requested_topic: /relative_position/relocalize_requested
+    visual_landing_state_topic: /uav/visual_landing/controller_state
+
+    tracking_start_service: /uav/relative_tracking/command/start
+    tracking_stop_service: /uav/relative_tracking/command/stop
+    visual_landing_start_service: /uav/visual_landing/command/start
+    visual_landing_stop_service: /uav/visual_landing/command/stop
+    position_mode_service: /uav/control/command/position_mode
+    hold_service: /uav/control/command/hold
+
+    service_wait_timeout_s: 1.0
+    automatic_action_retry_s: 1.0
+    tick_rate_hz: 10.0
+
+    default_tracking_height_m: 1.5
+    allow_visual_preempt_tracking: true
+    allow_tracking_preempt_visual_precommit: true
+    auto_recover_tracking_on_visual_loss: true
+    auto_hold_on_fusion_degrade: true
+    visual_landing_commit_phases: [DESCEND_TRACK, TERMINAL, LAND]
+    visual_landing_recover_on_phases: [HOLD_WAIT]

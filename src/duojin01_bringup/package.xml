@@ -14,6 +14,7 @@
   <exec_depend>ugv_bringup</exec_depend>
   <exec_depend>uav_bringup</exec_depend>
   <exec_depend>relative_position_fusion</exec_depend>
+  <exec_depend>uav_mode_supervisor</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

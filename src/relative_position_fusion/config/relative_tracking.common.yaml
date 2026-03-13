@@ -1,35 +1,4 @@
 /**:
   ros__parameters:
-    control_rate_hz: 30.0
-
-    relative_pose_body_topic: /relative_position/estimate/uav_body
-    relocalize_requested_topic: /relative_position/relocalize_requested
-    uav_state_topic: /uav/state/odometry
-    ugv_odom_topic: /ugv/odom
-
-    velocity_body_topic: /uav/control/setpoint/velocity_body
-    position_topic: /uav/control/pose
-    hold_service: /uav/control/command/hold
-    uav_position_mode_service: /uav/control/command/position_mode
-
-    start_service: /uav/relative_tracking/command/start
-    position_mode_service: /uav/relative_tracking/command/position_mode
-    go_above_ugv_service: /uav/relative_tracking/command/go_above_ugv
-    stop_service: /uav/relative_tracking/command/stop
-
     return_height_m: 2.0
-    takeoff_height_tolerance_m: 0.10
-    takeoff_stable_s: 0.5
-    auto_track_after_takeoff: true
-
-    relative_pose_timeout_s: 0.25
-    uav_state_timeout_s: 0.25
-    ugv_odom_timeout_s: 0.25
-    max_relative_covariance_m2: 1.5
-
-    xy_kp: 0.8
-    z_kp: 1.0
-    xy_deadband_m: 0.05
-    z_deadband_m: 0.05
-    max_xy_speed_mps: 0.8
-    max_z_speed_mps: 0.5
+    enable_heading_aligned_tracking: true

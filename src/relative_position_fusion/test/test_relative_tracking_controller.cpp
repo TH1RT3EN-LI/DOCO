@@ -44,6 +44,15 @@ RelativeTrackingController::Config MakeConfig()
   config.max_xy_speed_mps = 0.8;
   config.max_z_speed_mps = 0.5;
   config.max_relative_covariance_m2 = 1.5;
+  config.enable_heading_aligned_tracking = false;
+  config.heading_control_min_xy_speed_mps = 0.15;
+  config.yaw_kp = 1.8;
+  config.max_yaw_rate_radps = 1.2;
+  config.yaw_deadband_rad = 0.10;
+  config.lateral_release_yaw_error_rad = 0.20;
+  config.forward_only_yaw_error_rad = 0.55;
+  config.stop_translate_yaw_error_rad = 1.05;
+  config.disallow_reverse_motion = true;
   return config;
 }
 
@@ -174,6 +183,7 @@ TEST(RelativeTrackingControllerTest, GoAboveUgvFromPositionManualResumesTracking
   EXPECT_NEAR(outputs.velocity_body_mps.x(), 0.4, 1.0e-9);
   EXPECT_NEAR(outputs.velocity_body_mps.y(), -0.2, 1.0e-9);
   EXPECT_NEAR(outputs.velocity_body_mps.z(), -0.5, 1.0e-9);
+  EXPECT_NEAR(outputs.yaw_rate_radps, 0.0, 1.0e-9);
 }
 
 TEST(RelativeTrackingControllerTest, RelocalizationForcesDegradedHold)
@@ -257,6 +267,7 @@ TEST(RelativeTrackingControllerTest, ControlLawAppliesDeadbandAndClamp)
   EXPECT_TRUE(outputs.publish_velocity_body);
   EXPECT_NEAR(outputs.velocity_body_mps.x(), 0.8, 1.0e-9);
   EXPECT_NEAR(outputs.velocity_body_mps.z(), 0.5, 1.0e-9);
+  EXPECT_NEAR(outputs.yaw_rate_radps, 0.0, 1.0e-9);
 
   inputs.now_sec = 0.2;
   inputs.uav_state.stamp_sec = 0.2;
@@ -268,6 +279,125 @@ TEST(RelativeTrackingControllerTest, ControlLawAppliesDeadbandAndClamp)
   EXPECT_NEAR(outputs.velocity_body_mps.x(), 0.0, 1.0e-9);
   EXPECT_NEAR(outputs.velocity_body_mps.y(), 0.0, 1.0e-9);
   EXPECT_NEAR(outputs.velocity_body_mps.z(), 0.0, 1.0e-9);
+  EXPECT_NEAR(outputs.yaw_rate_radps, 0.0, 1.0e-9);
+}
+
+TEST(RelativeTrackingControllerTest, HeadingAlignedTrackingKeepsLegacyBehaviorWhenDisabled)
+{
+  RelativeTrackingController controller(MakeConfig());
+  auto inputs = MakeInputs(0.0);
+
+  std::string message;
+  ASSERT_TRUE(controller.Start(1.0, inputs, &message));
+  ASSERT_TRUE(controller.GoAboveUgv(inputs, &message));
+
+  inputs.now_sec = 0.1;
+  inputs.uav_state.stamp_sec = 0.1;
+  inputs.ugv_odom.stamp_sec = 0.1;
+  inputs.relative_pose.stamp_sec = 0.1;
+  inputs.relative_pose.position_body = Eigen::Vector2d(0.5, 0.25);
+  const auto outputs = controller.Update(inputs);
+
+  EXPECT_TRUE(outputs.publish_velocity_body);
+  EXPECT_NEAR(outputs.velocity_body_mps.x(), 0.4, 1.0e-9);
+  EXPECT_NEAR(outputs.velocity_body_mps.y(), 0.2, 1.0e-9);
+  EXPECT_NEAR(outputs.yaw_rate_radps, 0.0, 1.0e-9);
+}
+
+TEST(RelativeTrackingControllerTest, HeadingAlignedTrackingIgnoresSmallNominalXySpeed)
+{
+  auto config = MakeConfig();
+  config.enable_heading_aligned_tracking = true;
+  RelativeTrackingController controller(config);
+  auto inputs = MakeInputs(0.0);
+
+  std::string message;
+  ASSERT_TRUE(controller.Start(1.0, inputs, &message));
+  ASSERT_TRUE(controller.GoAboveUgv(inputs, &message));
+
+  inputs.now_sec = 0.1;
+  inputs.uav_state.stamp_sec = 0.1;
+  inputs.ugv_odom.stamp_sec = 0.1;
+  inputs.relative_pose.stamp_sec = 0.1;
+  inputs.relative_pose.position_body = Eigen::Vector2d(0.10, 0.05);
+  const auto outputs = controller.Update(inputs);
+
+  EXPECT_TRUE(outputs.publish_velocity_body);
+  EXPECT_NEAR(outputs.velocity_body_mps.x(), 0.08, 1.0e-9);
+  EXPECT_NEAR(outputs.velocity_body_mps.y(), 0.04, 1.0e-9);
+  EXPECT_NEAR(outputs.yaw_rate_radps, 0.0, 1.0e-9);
+}
+
+TEST(RelativeTrackingControllerTest, HeadingAlignedTrackingScalesLateralVelocityFirst)
+{
+  auto config = MakeConfig();
+  config.enable_heading_aligned_tracking = true;
+  RelativeTrackingController controller(config);
+  auto inputs = MakeInputs(0.0);
+
+  std::string message;
+  ASSERT_TRUE(controller.Start(1.0, inputs, &message));
+  ASSERT_TRUE(controller.GoAboveUgv(inputs, &message));
+
+  inputs.now_sec = 0.1;
+  inputs.uav_state.stamp_sec = 0.1;
+  inputs.ugv_odom.stamp_sec = 0.1;
+  inputs.relative_pose.stamp_sec = 0.1;
+  inputs.relative_pose.position_body = Eigen::Vector2d(0.5, 0.15466812480481165);
+  const auto outputs = controller.Update(inputs);
+
+  EXPECT_TRUE(outputs.publish_velocity_body);
+  EXPECT_NEAR(outputs.velocity_body_mps.x(), 0.4, 1.0e-9);
+  EXPECT_NEAR(outputs.velocity_body_mps.y(), 0.08838178560274951, 1.0e-9);
+  EXPECT_NEAR(outputs.yaw_rate_radps, 0.54, 1.0e-9);
+}
+
+TEST(RelativeTrackingControllerTest, HeadingAlignedTrackingSuppressesSidewaysFlightBeforeForwardMotion)
+{
+  auto config = MakeConfig();
+  config.enable_heading_aligned_tracking = true;
+  RelativeTrackingController controller(config);
+  auto inputs = MakeInputs(0.0);
+
+  std::string message;
+  ASSERT_TRUE(controller.Start(1.0, inputs, &message));
+  ASSERT_TRUE(controller.GoAboveUgv(inputs, &message));
+
+  inputs.now_sec = 0.1;
+  inputs.uav_state.stamp_sec = 0.1;
+  inputs.ugv_odom.stamp_sec = 0.1;
+  inputs.relative_pose.stamp_sec = 0.1;
+  inputs.relative_pose.position_body = Eigen::Vector2d(0.375, 0.3158581426736547);
+  const auto outputs = controller.Update(inputs);
+
+  EXPECT_TRUE(outputs.publish_velocity_body);
+  EXPECT_NEAR(outputs.velocity_body_mps.x(), 0.21, 1.0e-9);
+  EXPECT_NEAR(outputs.velocity_body_mps.y(), 0.0, 1.0e-9);
+  EXPECT_NEAR(outputs.yaw_rate_radps, 1.2, 1.0e-9);
+}
+
+TEST(RelativeTrackingControllerTest, HeadingAlignedTrackingTurnsInPlaceWhenTargetFallsBehind)
+{
+  auto config = MakeConfig();
+  config.enable_heading_aligned_tracking = true;
+  RelativeTrackingController controller(config);
+  auto inputs = MakeInputs(0.0);
+
+  std::string message;
+  ASSERT_TRUE(controller.Start(1.0, inputs, &message));
+  ASSERT_TRUE(controller.GoAboveUgv(inputs, &message));
+
+  inputs.now_sec = 0.1;
+  inputs.uav_state.stamp_sec = 0.1;
+  inputs.ugv_odom.stamp_sec = 0.1;
+  inputs.relative_pose.stamp_sec = 0.1;
+  inputs.relative_pose.position_body = Eigen::Vector2d(-0.5, 0.0);
+  const auto outputs = controller.Update(inputs);
+
+  EXPECT_TRUE(outputs.publish_velocity_body);
+  EXPECT_NEAR(outputs.velocity_body_mps.x(), 0.0, 1.0e-9);
+  EXPECT_NEAR(outputs.velocity_body_mps.y(), 0.0, 1.0e-9);
+  EXPECT_NEAR(outputs.yaw_rate_radps, 1.2, 1.0e-9);
 }
 
 }  // namespace

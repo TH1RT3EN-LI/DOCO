@@ -53,8 +53,7 @@ ws/src/relative_position_fusion/
 ├── config/
 │   ├── relative_position_fusion.common.yaml
 │   ├── relative_position_fusion.duojin_sim.yaml
-│   ├── relative_position_fusion.sim_navigation.yaml
-│   └── relative_position_fusion.hw.yaml
+│   └── relative_tracking.common.yaml
 ├── launch/
 │   └── relative_position_fusion.launch.py
 └── test/
@@ -498,37 +497,36 @@ on_timer_tick(now):
 
 ## 10. 配置文件固定方案
 
-后续实现时，配置拆成四类：
+当前实现里，参数分层固定为：代码默认值 + 共享差异 + 场景差异 + 入口 overlay。
 
 ### `relative_position_fusion.common.yaml`
 
-只放所有场景都共享的参数：
+只放所有场景都共享、且确实偏离代码默认值的 fusion 参数。
 
-- topic 名称默认值
-- 阈值
-- `Q / R` 保护参数
-- diagnostics 行为
+当前仅保留：
+
+- `uav_twist_in_child_frame=true`
 
 ### `relative_position_fusion.duojin_sim.yaml`
 
 仅覆盖联合仿真的差异：
 
 - `assume_ugv_odom_is_global=true`
-- 禁用 `/amcl_pose` 优先
 
-### `relative_position_fusion.sim_navigation.yaml`
+### `relative_tracking.common.yaml`
 
-用于 UGV 导航仿真：
+只放所有场景都共享、且确实偏离代码默认值的 tracking 参数。
 
-- 使用 `/amcl_pose`
-- 使用 `/ugv/odometry/filtered`
+- `return_height_m=2.0`
+- `enable_heading_aligned_tracking=true`
 
-### `relative_position_fusion.hw.yaml`
+### `duojin01_bringup/config/relative_position_fusion.sim_navigation.yaml`
 
-用于真机 / 半实物：
+只放 `sim_navigation` 入口独有的 fusion overlay：
 
-- 保持 `/uav/odom`、`/amcl_pose`、`/ugv/odometry/filtered`
-- 根据真机日志再调 `q_rate_*`
+- `pose_timeout_sec=2.0`
+- `bootstrap_measurement_sync_tolerance_sec=0.15`
+- `startup_relocalize_grace_sec=2.0`
 
 ---
 

@@ -31,6 +31,7 @@ def generate_launch_description():
     ugv_bringup_share = get_package_share_directory("ugv_bringup")
     uav_bringup_share = get_package_share_directory("uav_bringup")
     relative_position_fusion_share = get_package_share_directory("relative_position_fusion")
+    uav_mode_supervisor_share = get_package_share_directory("uav_mode_supervisor")
     sim_worlds_share = get_package_share_directory("sim_worlds")
     package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -74,6 +75,7 @@ def generate_launch_description():
     rviz_config = LaunchConfiguration("rviz_config")
     enable_relative_position_fusion = LaunchConfiguration("enable_relative_position_fusion")
     enable_relative_tracking = LaunchConfiguration("enable_relative_tracking")
+    enable_uav_mode_supervisor = LaunchConfiguration("enable_uav_mode_supervisor")
     relative_position_fusion_config = LaunchConfiguration("relative_position_fusion_config")
     default_uav_model_name = PythonExpression(['"', uav_sim_model, '" + "_" + "', uav_px4_instance, '"'])
     sim_nav_params = RewrittenYaml(
@@ -213,14 +215,23 @@ def generate_launch_description():
             os.path.join(relative_position_fusion_share, "launch", "relative_position_fusion.launch.py")
         ),
         launch_arguments={
-            "preset": "duojin_sim",
+            "preset": "",
             "use_sim_time": "true",
             "global_frame": global_frame,
-            "uav_body_frame": "uav_base_link",
             "enable_relative_tracking": enable_relative_tracking,
             "config_overlay": relative_position_fusion_config,
         }.items(),
         condition=IfCondition(enable_relative_position_fusion),
+    )
+
+    uav_mode_supervisor_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(uav_mode_supervisor_share, "launch", "uav_mode_supervisor.launch.py")
+        ),
+        launch_arguments={
+            "use_sim_time": "true",
+        }.items(),
+        condition=IfCondition(enable_uav_mode_supervisor),
     )
 
     rviz_node = Node(
@@ -309,6 +320,7 @@ def generate_launch_description():
             DeclareLaunchArgument("uav_uxrce_agent_port", default_value="8888"),
             DeclareLaunchArgument("enable_relative_position_fusion", default_value="true"),
             DeclareLaunchArgument("enable_relative_tracking", default_value="true"),
+            DeclareLaunchArgument("enable_uav_mode_supervisor", default_value="true"),
             DeclareLaunchArgument("use_rviz", default_value="true"),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz_config),
             DeclareLaunchArgument("relative_position_fusion_config", default_value=default_relative_fusion_overlay),
@@ -323,6 +335,7 @@ def generate_launch_description():
             ugv_nav_launch_gate,
             uav_sitl_launch,
             relative_position_fusion_launch,
+            uav_mode_supervisor_launch,
             rviz_node,
         ]
     )

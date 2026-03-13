@@ -191,14 +191,14 @@ ros2 topic echo /relative_position/diagnostics
 
 - `config/relative_position_fusion.common.yaml`
 - `config/relative_position_fusion.duojin_sim.yaml`
-- `config/relative_position_fusion.sim_navigation.yaml`
-- `config/relative_position_fusion.hw.yaml`
+- `config/relative_tracking.common.yaml`
 - `launch/relative_position_fusion.launch.py`
 
 ### 固定要求
 
 - launch 只启动新节点本身
-- common + preset 叠加加载
+- `relative_position_fusion` 参数按 `common + optional preset + optional overlay` 叠加加载
+- `relative_tracking` 参数按 `tracking.common + runtime args` 加载
 - 不在此阶段改现有 bringup
 
 ### 阶段完成判据

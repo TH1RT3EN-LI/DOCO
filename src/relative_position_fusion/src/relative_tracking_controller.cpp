@@ -37,6 +37,34 @@ double MaxCovarianceEigenvalue(const Eigen::Matrix2d & covariance)
   return solver.eigenvalues().maxCoeff();
 }
 
+double NormalizeAngle(double angle_rad)
+{
+  if (!std::isfinite(angle_rad)) {
+    return 0.0;
+  }
+  return std::atan2(std::sin(angle_rad), std::cos(angle_rad));
+}
+
+double RampDown(double value, double start, double stop)
+{
+  if (!std::isfinite(value)) {
+    return 0.0;
+  }
+
+  const double safe_start = std::max(0.0, start);
+  const double safe_stop = std::max(safe_start, stop);
+  if (value <= safe_start) {
+    return 1.0;
+  }
+  if (value >= safe_stop) {
+    return 0.0;
+  }
+  if (safe_stop <= safe_start + 1.0e-9) {
+    return 0.0;
+  }
+  return (safe_stop - value) / (safe_stop - safe_start);
+}
+
 }  // namespace
 
 RelativeTrackingController::RelativeTrackingController(const Config & config)
@@ -238,6 +266,39 @@ RelativeTrackingController::Outputs RelativeTrackingController::Update(const Inp
         xy_command *= config_.max_xy_speed_mps / xy_norm;
       }
 
+      const Eigen::Vector2d nominal_xy_command = xy_command;
+      if (config_.enable_heading_aligned_tracking) {
+        const double heading_control_min_xy_speed =
+          std::max(0.0, config_.heading_control_min_xy_speed_mps);
+        const double nominal_xy_speed = nominal_xy_command.norm();
+        if (nominal_xy_speed >= heading_control_min_xy_speed && nominal_xy_speed > 1.0e-9) {
+          const double yaw_error =
+            NormalizeAngle(std::atan2(nominal_xy_command.y(), nominal_xy_command.x()));
+          const double yaw_deadband = std::max(0.0, config_.yaw_deadband_rad);
+          const double yaw_error_for_rate = std::abs(yaw_error) < yaw_deadband ? 0.0 : yaw_error;
+          outputs.yaw_rate_radps = ClampAbs(
+            yaw_error_for_rate * config_.yaw_kp,
+            config_.max_yaw_rate_radps);
+
+          const double abs_yaw_error = std::abs(yaw_error);
+          const double lateral_scale = RampDown(
+            abs_yaw_error,
+            config_.lateral_release_yaw_error_rad,
+            config_.forward_only_yaw_error_rad);
+          const double forward_scale = RampDown(
+            abs_yaw_error,
+            config_.forward_only_yaw_error_rad,
+            config_.stop_translate_yaw_error_rad);
+
+          xy_command.x() *= forward_scale;
+          xy_command.y() *= lateral_scale;
+
+          if (config_.disallow_reverse_motion && xy_command.x() < 0.0) {
+            xy_command.x() = 0.0;
+          }
+        }
+      }
+
       const double target_z_m = inputs.ugv_odom.z_enu + active_target_height_m_;
       double z_command = (target_z_m - inputs.uav_state.position_enu.z()) * config_.z_kp;
       z_command = ApplyDeadband(z_command, config_.z_deadband_m * config_.z_kp);
@@ -246,7 +307,6 @@ RelativeTrackingController::Outputs RelativeTrackingController::Update(const Inp
       outputs.velocity_body_mps.x() = xy_command.x();
       outputs.velocity_body_mps.y() = xy_command.y();
       outputs.velocity_body_mps.z() = z_command;
-      outputs.yaw_rate_radps = 0.0;
       outputs.message = last_reason_;
       return outputs;
     }

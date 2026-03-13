@@ -35,6 +35,15 @@ public:
     double max_xy_speed_mps{0.8};
     double max_z_speed_mps{0.5};
     double max_relative_covariance_m2{1.5};
+    bool enable_heading_aligned_tracking{false};
+    double heading_control_min_xy_speed_mps{0.15};
+    double yaw_kp{1.8};
+    double max_yaw_rate_radps{1.2};
+    double yaw_deadband_rad{0.10};
+    double lateral_release_yaw_error_rad{0.20};
+    double forward_only_yaw_error_rad{0.55};
+    double stop_translate_yaw_error_rad{1.05};
+    bool disallow_reverse_motion{true};
   };
 
   struct UavState
