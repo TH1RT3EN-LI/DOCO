@@ -16,6 +16,7 @@ def generate_launch_description():
     global_frame = LaunchConfiguration("global_frame")
     uav_body_frame = LaunchConfiguration("uav_body_frame")
     enable_relative_tracking = LaunchConfiguration("enable_relative_tracking")
+    config_overlay = LaunchConfiguration("config_overlay")
 
     def create_node(context):
         preset_value = preset.perform(context).strip()
@@ -34,6 +35,23 @@ def generate_launch_description():
         common_yaml = os.path.join(config_dir, "relative_position_fusion.common.yaml")
         preset_yaml = preset_map[preset_value]
         tracking_yaml = os.path.join(config_dir, "relative_tracking.common.yaml")
+        overlay_yaml = config_overlay.perform(context).strip()
+
+        fusion_parameters = [
+            common_yaml,
+            preset_yaml,
+        ]
+        if overlay_yaml:
+            if not os.path.isfile(overlay_yaml):
+                raise RuntimeError(f"relative_position_fusion config_overlay not found: {overlay_yaml}")
+            fusion_parameters.append(overlay_yaml)
+        fusion_parameters.append(
+            {
+                "use_sim_time": use_sim_time,
+                "global_frame": global_frame,
+                "uav_body_frame": uav_body_frame,
+            }
+        )
 
         nodes = [
             Node(
@@ -41,15 +59,7 @@ def generate_launch_description():
                 executable="relative_position_fusion_node",
                 name="relative_position_fuser",
                 output="screen",
-                parameters=[
-                    common_yaml,
-                    preset_yaml,
-                    {
-                        "use_sim_time": use_sim_time,
-                        "global_frame": global_frame,
-                        "uav_body_frame": uav_body_frame,
-                    },
-                ],
+                parameters=fusion_parameters,
             )
         ]
 
@@ -81,6 +91,7 @@ def generate_launch_description():
             DeclareLaunchArgument("global_frame", default_value="global"),
             DeclareLaunchArgument("uav_body_frame", default_value="uav_base_link"),
             DeclareLaunchArgument("enable_relative_tracking", default_value="false"),
+            DeclareLaunchArgument("config_overlay", default_value=""),
             OpaqueFunction(function=create_node),
         ]
     )

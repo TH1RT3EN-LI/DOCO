@@ -51,6 +51,13 @@ TEST(UavControlLogic, PositionModeCanBeRequestedAndPreserved)
   EXPECT_EQ(tracker.mode(), UavControlMode::Position);
 }
 
+TEST(UavControlLogic, Px4PositionHoldCanBeRequested)
+{
+  UavControlModeTracker tracker;
+  tracker.requestPx4PositionHold();
+  EXPECT_EQ(tracker.mode(), UavControlMode::Px4PositionHold);
+}
+
 TEST(UavControlLogic, LandingRejectsPositionOverride)
 {
   UavControlModeTracker tracker;

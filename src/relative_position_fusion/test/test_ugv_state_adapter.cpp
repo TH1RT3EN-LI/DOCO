@@ -132,4 +132,74 @@ TEST_F(UgvStateAdapterTest, FallsBackToOdomPoseWhenEnabled)
   EXPECT_NEAR(state.p_global.y(), 3.0, 1e-9);
 }
 
+TEST_F(UgvStateAdapterTest, BuildPoseStateNearPrefersAmclBeforeOdomFallback)
+{
+  UgvStateAdapter::Config config;
+  config.global_frame = "global";
+  config.assume_odom_is_global = true;
+  UgvStateAdapter adapter(node_.get(), buffer_, config);
+
+  geometry_msgs::msg::PoseWithCovarianceStamped amcl;
+  amcl.header.stamp = MakeStamp(5);
+  amcl.header.frame_id = "global";
+  amcl.pose.pose.position.x = 5.0;
+  amcl.pose.pose.position.y = 6.0;
+  amcl.pose.pose.orientation.w = 1.0;
+  amcl.pose.covariance[0] = 0.2;
+  amcl.pose.covariance[7] = 0.3;
+  adapter.HandleAmclPose(amcl);
+
+  nav_msgs::msg::Odometry odom;
+  odom.header.stamp = MakeStamp(5, 50000000);
+  odom.header.frame_id = "global";
+  odom.pose.pose.position.x = 10.0;
+  odom.pose.pose.position.y = 20.0;
+  odom.pose.pose.orientation.w = 1.0;
+  odom.pose.covariance[0] = 0.8;
+  odom.pose.covariance[7] = 0.9;
+  adapter.HandleBaseOdometry(odom);
+
+  double abs_dt_sec = 0.0;
+  const auto state = adapter.BuildPoseStateNear(
+    rclcpp::Time(5, 40000000, RCL_ROS_TIME),
+    rclcpp::Time(5, 100000000, RCL_ROS_TIME),
+    0.05,
+    &abs_dt_sec);
+  ASSERT_TRUE(state.has_value());
+  EXPECT_FALSE(state->pose_from_fallback);
+  EXPECT_EQ(state->pose_source, "/amcl_pose");
+  EXPECT_NEAR(state->p_global.x(), 5.0, 1e-9);
+  EXPECT_NEAR(abs_dt_sec, 0.04, 1e-9);
+}
+
+TEST_F(UgvStateAdapterTest, BuildPoseStateNearFallsBackToOdomWhenAmclUnavailable)
+{
+  UgvStateAdapter::Config config;
+  config.global_frame = "global";
+  config.assume_odom_is_global = true;
+  UgvStateAdapter adapter(node_.get(), buffer_, config);
+
+  nav_msgs::msg::Odometry odom;
+  odom.header.stamp = MakeStamp(7, 30000000);
+  odom.header.frame_id = "global";
+  odom.pose.pose.position.x = 2.0;
+  odom.pose.pose.position.y = 3.0;
+  odom.pose.pose.orientation.w = 1.0;
+  odom.pose.covariance[0] = 0.8;
+  odom.pose.covariance[7] = 0.9;
+  adapter.HandleBaseOdometry(odom);
+
+  double abs_dt_sec = 0.0;
+  const auto state = adapter.BuildPoseStateNear(
+    rclcpp::Time(7, 50000000, RCL_ROS_TIME),
+    rclcpp::Time(7, 100000000, RCL_ROS_TIME),
+    0.05,
+    &abs_dt_sec);
+  ASSERT_TRUE(state.has_value());
+  EXPECT_TRUE(state->pose_from_fallback);
+  EXPECT_EQ(state->pose_source, "/ugv/odom");
+  EXPECT_NEAR(state->p_global.x(), 2.0, 1e-9);
+  EXPECT_NEAR(abs_dt_sec, 0.02, 1e-9);
+}
+
 }  // namespace relative_position_fusion

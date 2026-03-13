@@ -11,6 +11,7 @@ enum class UavControlMode
   Hold,
   Takeoff,
   Position,
+  Px4PositionHold,
   VelocityBody,
   Landing,
 };
@@ -37,6 +38,13 @@ public:
   {
     if (mode_ != UavControlMode::Landing) {
       mode_ = UavControlMode::Position;
+    }
+  }
+
+  void requestPx4PositionHold()
+  {
+    if (mode_ != UavControlMode::Landing) {
+      mode_ = UavControlMode::Px4PositionHold;
     }
   }
 

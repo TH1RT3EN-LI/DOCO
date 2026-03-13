@@ -5,6 +5,7 @@
 #include <rclcpp/time.hpp>
 
 #include <deque>
+#include <limits>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -30,6 +31,12 @@ struct VelocitySample2D
   std::string source;
 };
 
+struct PoseMatch2D
+{
+  PoseSample2D sample;
+  double abs_dt_sec{std::numeric_limits<double>::infinity()};
+};
+
 class TimeAlignmentBuffer
 {
 public:
@@ -42,6 +49,12 @@ public:
   void PushVelocity(const VelocitySample2D & sample);
 
   std::optional<PoseSample2D> LatestPose(const rclcpp::Time & now, double max_age_sec) const;
+
+  std::optional<PoseMatch2D> NearestPose(
+    const rclcpp::Time & target_stamp,
+    const rclcpp::Time & now,
+    double max_age_sec,
+    double max_abs_dt_sec) const;
 
   std::optional<VelocitySample2D> LatestVelocity(
     const rclcpp::Time & now,

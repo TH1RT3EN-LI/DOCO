@@ -67,13 +67,16 @@ diagnostic_msgs::msg::DiagnosticArray DiagnosticsPublisher::Build(
     status.message = "relative position fusion healthy";
   }
 
-  status.values.reserve(24);
+  status.values.reserve(27);
   status.values.push_back(MakeKeyValue("initialized", BoolString(diagnostics.initialized)));
   status.values.push_back(MakeKeyValue("mode", diagnostics.filter_mode));
   status.values.push_back(MakeKeyValue("relocalize_requested", BoolString(diagnostics.relocalize_requested)));
   status.values.push_back(MakeKeyValue("relocalization_reason", diagnostics.relocalization_reason));
   status.values.push_back(MakeKeyValue("measurement_available", BoolString(diagnostics.measurement_available)));
   status.values.push_back(MakeKeyValue("measurement_used", BoolString(diagnostics.measurement_used)));
+  status.values.push_back(MakeKeyValue("measurement_phase", diagnostics.measurement_phase));
+  status.values.push_back(MakeKeyValue("measurement_pairing_mode", diagnostics.measurement_pairing_mode));
+  status.values.push_back(MakeKeyValue("measurement_pair_dt_s", NumberString(diagnostics.measurement_pair_dt_s)));
   status.values.push_back(MakeKeyValue("gate_rejected", BoolString(diagnostics.gate_rejected)));
   status.values.push_back(MakeKeyValue("consecutive_gate_rejects", std::to_string(diagnostics.consecutive_gate_rejects)));
   status.values.push_back(MakeKeyValue("rho_m", NumberString(diagnostics.rho_m)));

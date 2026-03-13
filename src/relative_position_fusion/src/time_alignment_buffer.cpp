@@ -95,6 +95,44 @@ std::optional<PoseSample2D> TimeAlignmentBuffer::LatestPose(
   return LatestFreshSample(pose_samples_, now, max_age_sec);
 }
 
+std::optional<PoseMatch2D> TimeAlignmentBuffer::NearestPose(
+  const rclcpp::Time & target_stamp,
+  const rclcpp::Time & now,
+  double max_age_sec,
+  double max_abs_dt_sec) const
+{
+  std::scoped_lock lock(mutex_);
+
+  PoseMatch2D best_match;
+  bool found = false;
+
+  for (const PoseSample2D & sample : pose_samples_) {
+    const double age_sec = (now - sample.stamp).seconds();
+    if (age_sec < 0.0 || age_sec > max_age_sec) {
+      continue;
+    }
+
+    const double abs_dt_sec = std::abs((target_stamp - sample.stamp).seconds());
+    if (abs_dt_sec > max_abs_dt_sec) {
+      continue;
+    }
+
+    if (!found || abs_dt_sec < best_match.abs_dt_sec ||
+      (abs_dt_sec == best_match.abs_dt_sec && sample.stamp > best_match.sample.stamp))
+    {
+      best_match.sample = sample;
+      best_match.abs_dt_sec = abs_dt_sec;
+      found = true;
+    }
+  }
+
+  if (!found) {
+    return std::nullopt;
+  }
+
+  return best_match;
+}
+
 std::optional<VelocitySample2D> TimeAlignmentBuffer::LatestVelocity(
   const rclcpp::Time & now,
   double max_age_sec) const

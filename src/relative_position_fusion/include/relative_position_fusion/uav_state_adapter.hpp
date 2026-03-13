@@ -47,6 +47,12 @@ public:
 
   AgentPlanarState BuildState(const rclcpp::Time & now) const;
 
+  std::optional<AgentPlanarState> BuildPoseStateNear(
+    const rclcpp::Time & target_stamp,
+    const rclcpp::Time & now,
+    double max_abs_dt_sec,
+    double * abs_dt_sec = nullptr) const;
+
 private:
   rclcpp::Time ResolveStamp(const builtin_interfaces::msg::Time & stamp_msg) const;
 

@@ -36,6 +36,7 @@ def generate_launch_description():
 
     default_gz_partition = f"duojin_nav_{os.getpid()}"
     default_rviz_config = os.path.join(package_root, "config", "rviz", "sim_navigation.rviz")
+    default_relative_fusion_overlay = os.path.join(package_root, "config", "relative_position_fusion.sim_navigation.yaml")
     default_map_yaml = resolve_default_map_yaml(package_root)
     default_nav2_params = os.path.join(ugv_bringup_share, "config", "nav2.yaml")
 
@@ -73,6 +74,7 @@ def generate_launch_description():
     rviz_config = LaunchConfiguration("rviz_config")
     enable_relative_position_fusion = LaunchConfiguration("enable_relative_position_fusion")
     enable_relative_tracking = LaunchConfiguration("enable_relative_tracking")
+    relative_position_fusion_config = LaunchConfiguration("relative_position_fusion_config")
     default_uav_model_name = PythonExpression(['"', uav_sim_model, '" + "_" + "', uav_px4_instance, '"'])
     sim_nav_params = RewrittenYaml(
         source_file=params_file,
@@ -211,11 +213,12 @@ def generate_launch_description():
             os.path.join(relative_position_fusion_share, "launch", "relative_position_fusion.launch.py")
         ),
         launch_arguments={
-            "preset": "sim_navigation",
+            "preset": "duojin_sim",
             "use_sim_time": "true",
             "global_frame": global_frame,
             "uav_body_frame": "uav_base_link",
             "enable_relative_tracking": enable_relative_tracking,
+            "config_overlay": relative_position_fusion_config,
         }.items(),
         condition=IfCondition(enable_relative_position_fusion),
     )
@@ -308,6 +311,7 @@ def generate_launch_description():
             DeclareLaunchArgument("enable_relative_tracking", default_value="true"),
             DeclareLaunchArgument("use_rviz", default_value="true"),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz_config),
+            DeclareLaunchArgument("relative_position_fusion_config", default_value=default_relative_fusion_overlay),
             SetLaunchConfiguration("top_level_use_rviz", use_rviz),
             resolve_world_action,
             no_op_alignment_notice,

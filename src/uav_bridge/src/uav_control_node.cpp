@@ -56,6 +56,7 @@ public:
     this->declare_parameter<std::string>("px4_local_position_topic", "/uav/fmu/out/vehicle_local_position");
     this->declare_parameter<std::string>("takeoff_service", "/uav/control/command/takeoff");
     this->declare_parameter<std::string>("hold_service", "/uav/control/command/hold");
+    this->declare_parameter<std::string>("position_mode_service", "/uav/control/command/position_mode");
     this->declare_parameter<std::string>("land_service", "/uav/control/command/land");
     this->declare_parameter<double>("publish_rate_hz", 50.0);
     this->declare_parameter<int>("warmup_cycles", 20);
@@ -89,6 +90,7 @@ public:
     px4_local_position_topic_ = this->get_parameter("px4_local_position_topic").as_string();
     takeoff_service_ = this->get_parameter("takeoff_service").as_string();
     hold_service_ = this->get_parameter("hold_service").as_string();
+    position_mode_service_ = this->get_parameter("position_mode_service").as_string();
     land_service_ = this->get_parameter("land_service").as_string();
     publish_rate_hz_ = this->get_parameter("publish_rate_hz").as_double();
     warmup_cycles_ = this->get_parameter("warmup_cycles").as_int();
@@ -181,6 +183,7 @@ public:
       [this](const px4_msgs::msg::VehicleStatus::SharedPtr msg)
       {
         is_armed_ = msg->arming_state == px4_msgs::msg::VehicleStatus::ARMING_STATE_ARMED;
+        current_nav_state_ = msg->nav_state;
         is_offboard_mode_ = msg->nav_state == px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD;
         if (!is_armed_ && mode_tracker_.mode() == UavControlMode::Landing) {
           clearPostLandingCommands();
@@ -204,6 +207,13 @@ public:
         response->success = handleHoldRequest(response->message);
       });
 
+    position_mode_srv_ = this->create_service<Trigger>(
+      position_mode_service_,
+      [this](const std::shared_ptr<Trigger::Request>, std::shared_ptr<Trigger::Response> response)
+      {
+        response->success = handlePositionModeRequest(response->message);
+      });
+
     land_srv_ = this->create_service<Trigger>(
       land_service_,
       [this](const std::shared_ptr<Trigger::Request>, std::shared_ptr<Trigger::Response> response)
@@ -217,9 +227,9 @@ public:
 
     RCLCPP_INFO(
       this->get_logger(),
-      "uav_control_node: position=%s velocity_body=%s state=%s takeoff=%s hold=%s land=%s",
+      "uav_control_node: position=%s velocity_body=%s state=%s takeoff=%s hold=%s position_mode=%s land=%s",
       position_topic_.c_str(), velocity_body_topic_.c_str(), state_topic_.c_str(),
-      takeoff_service_.c_str(), hold_service_.c_str(), land_service_.c_str());
+      takeoff_service_.c_str(), hold_service_.c_str(), position_mode_service_.c_str(), land_service_.c_str());
   }
 
 private:
@@ -232,6 +242,8 @@ private:
         return "TAKEOFF";
       case UavControlMode::Position:
         return "POSITION";
+      case UavControlMode::Px4PositionHold:
+        return "PX4_POSITION_HOLD";
       case UavControlMode::VelocityBody:
         return "VELOCITY_BODY";
       case UavControlMode::Landing:
@@ -618,6 +630,18 @@ private:
     return true;
   }
 
+  bool handlePositionModeRequest(std::string & message)
+  {
+    const auto previous = mode_tracker_.mode();
+    mode_tracker_.requestPx4PositionHold();
+    position_mode_retry_counter_ = 0;
+    has_velocity_body_cmd_ = false;
+    position_target_valid_ = false;
+    logModeChange(previous, "px4 position mode");
+    message = "px4 position mode requested";
+    return true;
+  }
+
   void publishPositionTarget()
   {
     if (!position_target_valid_) {
@@ -701,6 +725,23 @@ private:
     ++landing_retry_counter_;
   }
 
+  void handlePx4PositionMode()
+  {
+    if (current_nav_state_ == px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_POSCTL) {
+      return;
+    }
+
+    constexpr int kRetryIntervalCycles = 50;
+    constexpr float kMavStandardModePositionHold = 1.0f;
+    if (position_mode_retry_counter_ % kRetryIntervalCycles == 0) {
+      publishVehicleCommand(
+        px4_msgs::msg::VehicleCommand::VEHICLE_CMD_DO_SET_STANDARD_MODE,
+        kMavStandardModePositionHold,
+        0.0f);
+    }
+    ++position_mode_retry_counter_;
+  }
+
   void timerCallback()
   {
     switch (mode_tracker_.mode()) {
@@ -712,6 +753,9 @@ private:
         break;
       case UavControlMode::Position:
         publishPositionTarget();
+        break;
+      case UavControlMode::Px4PositionHold:
+        handlePx4PositionMode();
         break;
       case UavControlMode::VelocityBody:
         handleVelocityBodyMode();
@@ -732,6 +776,7 @@ private:
   std::string px4_local_position_topic_;
   std::string takeoff_service_;
   std::string hold_service_;
+  std::string position_mode_service_;
   std::string land_service_;
   std::string base_frame_id_;
   std::string position_command_frame_id_;
@@ -772,6 +817,7 @@ private:
   bool has_local_velocity_{false};
   bool is_armed_{false};
   bool is_offboard_mode_{false};
+  uint8_t current_nav_state_{px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_MANUAL};
   std::array<float, 3> hold_target_position_enu_{0.0f, 0.0f, 0.0f};
   float hold_target_yaw_enu_{0.0f};
   bool hold_target_valid_{false};
@@ -781,6 +827,7 @@ private:
   rclcpp::Time last_state_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time takeoff_reached_since_{0, 0, RCL_ROS_TIME};
   int setpoint_counter_{0};
+  int position_mode_retry_counter_{0};
   bool land_command_sent_{false};
   int landing_retry_counter_{0};
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr position_sub_;
@@ -793,6 +840,7 @@ private:
   rclcpp::Publisher<px4_msgs::msg::VehicleCommand>::SharedPtr vehicle_command_pub_;
   rclcpp::Service<Trigger>::SharedPtr takeoff_srv_;
   rclcpp::Service<Trigger>::SharedPtr hold_srv_;
+  rclcpp::Service<Trigger>::SharedPtr position_mode_srv_;
   rclcpp::Service<Trigger>::SharedPtr land_srv_;
   rclcpp::TimerBase::SharedPtr timer_;
 };

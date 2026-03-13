@@ -83,6 +83,7 @@ public:
     velocity_body_topic_ = this->get_parameter("velocity_body_topic").as_string();
     position_topic_ = this->get_parameter("position_topic").as_string();
     hold_service_name_ = this->get_parameter("hold_service").as_string();
+    uav_position_mode_service_name_ = this->get_parameter("uav_position_mode_service").as_string();
     start_service_name_ = this->get_parameter("start_service").as_string();
     position_mode_service_name_ =
       this->get_parameter("position_mode_service").as_string();
@@ -131,6 +132,7 @@ public:
     velocity_body_pub_ =
       this->create_publisher<geometry_msgs::msg::TwistStamped>(velocity_body_topic_, sensor_qos);
     hold_client_ = this->create_client<Trigger>(hold_service_name_);
+    uav_position_mode_client_ = this->create_client<Trigger>(uav_position_mode_service_name_);
 
     start_srv_ = this->create_service<StartRelativeTracking>(
       start_service_name_,
@@ -149,6 +151,9 @@ public:
       {
         const auto inputs = BuildInputs();
         response->success = controller_.EnterPositionMode(inputs, &response->message);
+        if (response->success) {
+          response->success = RequestUavPositionMode(&response->message);
+        }
       });
     go_above_ugv_srv_ = this->create_service<Trigger>(
       go_above_ugv_service_name_,
@@ -192,6 +197,8 @@ private:
       "velocity_body_topic", "/uav/control/setpoint/velocity_body");
     this->declare_parameter<std::string>("position_topic", "/uav/control/pose");
     this->declare_parameter<std::string>("hold_service", "/uav/control/command/hold");
+    this->declare_parameter<std::string>(
+      "uav_position_mode_service", "/uav/control/command/position_mode");
     this->declare_parameter<std::string>(
       "start_service", "/uav/relative_tracking/command/start");
     this->declare_parameter<std::string>(
@@ -337,6 +344,29 @@ private:
     hold_client_->async_send_request(request);
   }
 
+  bool RequestUavPositionMode(std::string * message)
+  {
+    if (!uav_position_mode_client_->service_is_ready()) {
+      if (message != nullptr) {
+        if (!message->empty()) {
+          *message += "; ";
+        }
+        *message += "uav control position mode service is not ready";
+      }
+      return false;
+    }
+
+    auto request = std::make_shared<Trigger::Request>();
+    uav_position_mode_client_->async_send_request(request);
+    if (message != nullptr) {
+      if (!message->empty()) {
+        *message += "; ";
+      }
+      *message += "requested uav control position mode";
+    }
+    return true;
+  }
+
   std::string relative_pose_body_topic_;
   std::string relocalize_requested_topic_;
   std::string uav_state_topic_;
@@ -344,6 +374,7 @@ private:
   std::string velocity_body_topic_;
   std::string position_topic_;
   std::string hold_service_name_;
+  std::string uav_position_mode_service_name_;
   std::string start_service_name_;
   std::string position_mode_service_name_;
   std::string go_above_ugv_service_name_;
@@ -372,6 +403,7 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr position_pub_;
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr velocity_body_pub_;
   rclcpp::Client<Trigger>::SharedPtr hold_client_;
+  rclcpp::Client<Trigger>::SharedPtr uav_position_mode_client_;
   rclcpp::Service<StartRelativeTracking>::SharedPtr start_srv_;
   rclcpp::Service<Trigger>::SharedPtr position_mode_srv_;
   rclcpp::Service<Trigger>::SharedPtr go_above_ugv_srv_;

@@ -31,6 +31,7 @@ public:
   {
     DeclareParameters();
     LoadParameters();
+    startup_time_ = this->now();
 
     tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -74,6 +75,7 @@ private:
     bool valid{false};
     Eigen::Vector2d z{Eigen::Vector2d::Zero()};
     Eigen::Matrix2d r{Eigen::Matrix2d::Identity()};
+    double abs_dt_sec{std::numeric_limits<double>::quiet_NaN()};
   };
 
   void DeclareParameters()
@@ -106,9 +108,11 @@ private:
     this->declare_parameter<double>("pose_timeout_sec", 0.25);
     this->declare_parameter<double>("velocity_timeout_sec", 0.15);
     this->declare_parameter<double>("measurement_sync_tolerance_sec", 0.05);
+    this->declare_parameter<double>("bootstrap_measurement_sync_tolerance_sec", 0.12);
     this->declare_parameter<double>("min_pose_diff_velocity_dt_sec", 0.03);
     this->declare_parameter<double>("max_pose_diff_velocity_dt_sec", 0.25);
     this->declare_parameter<double>("buffer_length_sec", 2.0);
+    this->declare_parameter<double>("startup_relocalize_grace_sec", 1.0);
 
     this->declare_parameter<double>("covariance_floor_m2", 1e-4);
     this->declare_parameter<double>("covariance_ceiling_m2", 25.0);
@@ -140,11 +144,14 @@ private:
     const double pose_timeout_sec = this->get_parameter("pose_timeout_sec").as_double();
     const double velocity_timeout_sec = this->get_parameter("velocity_timeout_sec").as_double();
     measurement_sync_tolerance_sec_ = this->get_parameter("measurement_sync_tolerance_sec").as_double();
+    bootstrap_measurement_sync_tolerance_sec_ =
+      this->get_parameter("bootstrap_measurement_sync_tolerance_sec").as_double();
     const double min_pose_diff_velocity_dt_sec =
       this->get_parameter("min_pose_diff_velocity_dt_sec").as_double();
     const double max_pose_diff_velocity_dt_sec =
       this->get_parameter("max_pose_diff_velocity_dt_sec").as_double();
     const double buffer_length_sec = this->get_parameter("buffer_length_sec").as_double();
+    startup_relocalize_grace_sec_ = this->get_parameter("startup_relocalize_grace_sec").as_double();
     const double covariance_floor_m2 = this->get_parameter("covariance_floor_m2").as_double();
     const double covariance_ceiling_m2 = this->get_parameter("covariance_ceiling_m2").as_double();
     const double covariance_nan_fallback_m2 =
@@ -222,13 +229,17 @@ private:
     const rclcpp::Time now = this->now();
     const AgentPlanarState uav_state = uav_adapter_->BuildState(now);
     const AgentPlanarState ugv_state = ugv_adapter_->BuildState(now);
+    const bool bootstrap_phase = !filter_.initialized();
 
     FusionDiagnostics diagnostics;
     diagnostics.uav_state = uav_state;
     diagnostics.ugv_state = ugv_state;
+    diagnostics.measurement_phase = bootstrap_phase ? "bootstrap" : "nominal";
+    diagnostics.measurement_pairing_mode = "nearest_buffer_pair";
 
-    const Measurement measurement = BuildMeasurement(uav_state, ugv_state);
+    const Measurement measurement = BuildMeasurement(now, uav_state, ugv_state, bootstrap_phase);
     diagnostics.measurement_available = measurement.valid;
+    diagnostics.measurement_pair_dt_s = measurement.abs_dt_sec;
 
     const Eigen::Vector2d relative_velocity = BuildRelativeVelocity(uav_state, ugv_state);
     const bool control_valid = uav_state.velocity_valid && ugv_state.velocity_valid;
@@ -245,8 +256,7 @@ private:
       } else {
         diagnostics.initialized = false;
         diagnostics.filter_mode = "uninitialized";
-        const RelocalizationDecision decision = monitor_.Update(
-          RelocalizationInput{false, false, std::numeric_limits<double>::infinity(), 0});
+        const RelocalizationDecision decision = BuildUninitializedDecision(now);
         diagnostics.relocalize_requested = decision.requested;
         diagnostics.relocalization_reason = decision.reason;
         PublishRelocalizeRequested(decision.requested);
@@ -303,9 +313,25 @@ private:
     last_tick_time_ = now;
   }
 
+  RelocalizationDecision BuildUninitializedDecision(const rclcpp::Time & now)
+  {
+    RelocalizationDecision decision;
+    const double elapsed_sec = std::max(0.0, (now - startup_time_).seconds());
+    if (elapsed_sec < startup_relocalize_grace_sec_) {
+      decision.requested = false;
+      decision.reason = "startup_grace";
+      return decision;
+    }
+
+    return monitor_.Update(
+      RelocalizationInput{false, false, std::numeric_limits<double>::infinity(), 0});
+  }
+
   Measurement BuildMeasurement(
+    const rclcpp::Time & now,
     const AgentPlanarState & uav_state,
-    const AgentPlanarState & ugv_state) const
+    const AgentPlanarState & ugv_state,
+    bool bootstrap_phase) const
   {
     Measurement measurement;
     if (!uav_state.pose_valid || !ugv_state.pose_valid ||
@@ -314,14 +340,46 @@ private:
       return measurement;
     }
 
-    const double dt_sec = std::abs((ugv_state.pose_stamp - uav_state.pose_stamp).seconds());
-    if (dt_sec > measurement_sync_tolerance_sec_) {
+    const double sync_tolerance_sec = bootstrap_phase ?
+      bootstrap_measurement_sync_tolerance_sec_ : measurement_sync_tolerance_sec_;
+    const bool uav_is_anchor = uav_state.pose_stamp >= ugv_state.pose_stamp;
+
+    AgentPlanarState aligned_uav_state = uav_state;
+    AgentPlanarState aligned_ugv_state = ugv_state;
+    double abs_dt_sec = 0.0;
+
+    if (uav_is_anchor) {
+      const auto aligned_ugv = ugv_adapter_->BuildPoseStateNear(
+        uav_state.pose_stamp,
+        now,
+        sync_tolerance_sec,
+        &abs_dt_sec);
+      if (!aligned_ugv.has_value()) {
+        return measurement;
+      }
+      aligned_ugv_state = *aligned_ugv;
+    } else {
+      const auto aligned_uav = uav_adapter_->BuildPoseStateNear(
+        ugv_state.pose_stamp,
+        now,
+        sync_tolerance_sec,
+        &abs_dt_sec);
+      if (!aligned_uav.has_value()) {
+        return measurement;
+      }
+      aligned_uav_state = *aligned_uav;
+    }
+
+    if (!aligned_uav_state.pose_valid || !aligned_ugv_state.pose_valid ||
+      !aligned_uav_state.covariance_valid || !aligned_ugv_state.covariance_valid)
+    {
       return measurement;
     }
 
     measurement.valid = true;
-    measurement.z = ugv_state.p_global - uav_state.p_global;
-    measurement.r = Symmetrize(ugv_state.sigma_p + uav_state.sigma_p);
+    measurement.abs_dt_sec = abs_dt_sec;
+    measurement.z = aligned_ugv_state.p_global - aligned_uav_state.p_global;
+    measurement.r = Symmetrize(aligned_ugv_state.sigma_p + aligned_uav_state.sigma_p);
     return measurement;
   }
 
@@ -443,6 +501,8 @@ private:
 
   double publish_rate_hz_{20.0};
   double measurement_sync_tolerance_sec_{0.05};
+  double bootstrap_measurement_sync_tolerance_sec_{0.12};
+  double startup_relocalize_grace_sec_{1.0};
   double q_rate_nominal_m2_per_s_{0.004};
   double q_rate_measurement_missing_m2_per_s_{0.012};
   double q_rate_gate_rejected_m2_per_s_{0.020};
@@ -468,6 +528,7 @@ private:
 
   int consecutive_gate_rejects_{0};
 
+  rclcpp::Time startup_time_{0, 0, RCL_ROS_TIME};
   rclcpp::Time last_tick_time_{0, 0, RCL_ROS_TIME};
 
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;

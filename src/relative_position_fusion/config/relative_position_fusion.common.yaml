@@ -24,9 +24,11 @@
     pose_timeout_sec: 0.25
     velocity_timeout_sec: 0.15
     measurement_sync_tolerance_sec: 0.05
+    bootstrap_measurement_sync_tolerance_sec: 0.12
     min_pose_diff_velocity_dt_sec: 0.03
     max_pose_diff_velocity_dt_sec: 0.25
     buffer_length_sec: 2.0
+    startup_relocalize_grace_sec: 1.0
 
     covariance_floor_m2: 1.0e-4
     covariance_ceiling_m2: 25.0

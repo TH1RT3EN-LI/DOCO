@@ -13,6 +13,7 @@ DEFAULT_READY_TIMEOUT_SEC="${UAV_RELATIVE_TRACKING_READY_TIMEOUT_SEC:-30}"
 DEFAULT_TAKEOFF_SERVICE_NAME="${UAV_RELATIVE_TRACKING_TAKEOFF_SERVICE:-/uav/control/command/takeoff}"
 DEFAULT_TAKEOFF_READY_TIMEOUT_SEC="${UAV_RELATIVE_TRACKING_TAKEOFF_READY_TIMEOUT_SEC:-15}"
 DEFAULT_TAKEOFF_READY_DELTA_M="${UAV_RELATIVE_TRACKING_TAKEOFF_READY_DELTA_M:-0.6}"
+POSITION_MODE_CONTROL_SERVICE="${UAV_RELATIVE_TRACKING_POSITION_MODE_CONTROL_SERVICE:-/uav/control/command/position_mode}"
 READY_STATUS_TOPIC="${UAV_RELATIVE_TRACKING_READY_TOPIC:-/relative_position/relocalize_requested}"
 DIAGNOSTICS_TOPIC="${UAV_RELATIVE_TRACKING_DIAGNOSTICS_TOPIC:-/relative_position/diagnostics}"
 UAV_STATE_TOPIC="${UAV_RELATIVE_TRACKING_UAV_STATE_TOPIC:-/uav/state/odometry}"
@@ -40,7 +41,7 @@ Usage:
 Actions:
   start                Call takeoff service, wait until airborne, then start relative tracking.
                        Optional arg: target_height_m
-  position_mode        Switch UAV to manual position mode.
+  position_mode        Stop relative tracking and switch PX4/QGC to position mode.
   go_above_ugv         Resume tracking and return to 1.0 m above UGV.
   stop                 Stop relative tracking and request hold.
 
@@ -123,7 +124,7 @@ wait_for_service() {
   return 1
 }
 
-fetch_ready_state() {
+fetch_relocalize_requested_state() {
   timeout 1s ros2 topic echo \
     --once \
     --qos-profile system_default \
@@ -132,6 +133,56 @@ fetch_ready_state() {
     std_msgs/msg/Bool 2>/dev/null |
     tr '[:upper:]' '[:lower:]' |
     grep -Eom1 'true|false' || true
+}
+
+fetch_diagnostics_value() {
+  local key_name="$1"
+
+  timeout 1s ros2 topic echo \
+    --once \
+    --qos-profile system_default \
+    "${DIAGNOSTICS_TOPIC}" \
+    diagnostic_msgs/msg/DiagnosticArray 2>/dev/null | awk -v target_key="${key_name}" '
+      /^[[:space:]]+- key: / {
+        current_key = $0
+        sub(/^[[:space:]]+- key: /, "", current_key)
+        gsub(/^'\''|'\''$/, "", current_key)
+        expect_value = (current_key == target_key)
+        next
+      }
+      expect_value && /^[[:space:]]+value: / {
+        value = $0
+        sub(/^[[:space:]]+value: /, "", value)
+        gsub(/^'\''|'\''$/, "", value)
+        print value
+        exit
+      }' || true
+}
+
+fetch_fusion_ready_state() {
+  local initialized_state
+  local relocalize_requested_state
+
+  initialized_state="$(fetch_diagnostics_value initialized | tr '[:upper:]' '[:lower:]')"
+  relocalize_requested_state="$(fetch_diagnostics_value relocalize_requested | tr '[:upper:]' '[:lower:]')"
+
+  if [[ "${initialized_state}" == "true" && "${relocalize_requested_state}" == "false" ]]; then
+    printf 'ready\n'
+    return 0
+  fi
+
+  if [[ -n "${initialized_state}" || -n "${relocalize_requested_state}" ]]; then
+    printf 'not_ready\n'
+    return 0
+  fi
+
+  relocalize_requested_state="$(fetch_relocalize_requested_state)"
+  if [[ "${relocalize_requested_state}" == "false" ]]; then
+    printf 'not_ready\n'
+    return 0
+  fi
+
+  return 1
 }
 
 fetch_relocalization_reason() {
@@ -265,8 +316,8 @@ wait_for_ready() {
 
   while (( SECONDS <= deadline_sec )); do
     local ready_state
-    ready_state="$(fetch_ready_state)"
-    if [[ "${ready_state}" == "false" ]]; then
+    ready_state="$(fetch_fusion_ready_state || true)"
+    if [[ "${ready_state}" == "ready" ]]; then
       LAST_RELOCALIZATION_REASON=""
       return 0
     fi
@@ -486,7 +537,7 @@ if ! wait_for_service "${SERVICE_NAME}" "${WAIT_TIMEOUT_SEC}"; then
 fi
 
 if [[ "${ACTION}" == "start" ]] && is_true "${WAIT_FOR_READY}"; then
-  log "waiting for relative position fusion readiness on ${READY_STATUS_TOPIC} (timeout=${READY_TIMEOUT_SEC}s)"
+  log "waiting for relative position fusion readiness on ${DIAGNOSTICS_TOPIC} (timeout=${READY_TIMEOUT_SEC}s)"
   if ! wait_for_ready "${READY_TIMEOUT_SEC}"; then
     echo "[uav_relative_tracking] relative position fusion is not ready" >&2
     if [[ -n "${LAST_RELOCALIZATION_REASON}" ]]; then
@@ -557,4 +608,23 @@ if service_response_failed "${SERVICE_OUTPUT}"; then
     fi
   fi
   exit 1
+fi
+
+if [[ "${ACTION}" == "position_mode" ]]; then
+  log "waiting for ${POSITION_MODE_CONTROL_SERVICE} (timeout=${WAIT_TIMEOUT_SEC}s)"
+  if ! wait_for_service "${POSITION_MODE_CONTROL_SERVICE}" "${WAIT_TIMEOUT_SEC}"; then
+    echo "[uav_relative_tracking] position mode control service not available: ${POSITION_MODE_CONTROL_SERVICE}" >&2
+    exit 1
+  fi
+
+  log "calling ${POSITION_MODE_CONTROL_SERVICE}"
+  if ! POSITION_MODE_OUTPUT="$(ros2 service call "${POSITION_MODE_CONTROL_SERVICE}" std_srvs/srv/Trigger "{}" 2>&1)"; then
+    printf '%s\n' "${POSITION_MODE_OUTPUT}"
+    exit 1
+  fi
+  printf '%s\n' "${POSITION_MODE_OUTPUT}"
+
+  if service_response_failed "${POSITION_MODE_OUTPUT}"; then
+    exit 1
+  fi
 fi

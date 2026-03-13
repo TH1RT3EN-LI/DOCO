@@ -37,4 +37,49 @@ TEST(TimeAlignmentBufferTest, EstimatesVelocityFromPoseHistory)
   EXPECT_NEAR(velocity->velocity_global.y(), 1.0, 1e-9);
 }
 
+TEST(TimeAlignmentBufferTest, ReturnsNearestFreshPoseWithinTolerance)
+{
+  TimeAlignmentBuffer buffer(5.0);
+
+  PoseSample2D pose0;
+  pose0.stamp = rclcpp::Time(1, 0, RCL_ROS_TIME);
+  pose0.position_global = Eigen::Vector2d(1.0, 0.0);
+  buffer.PushPose(pose0);
+
+  PoseSample2D pose1;
+  pose1.stamp = rclcpp::Time(2, 50000000, RCL_ROS_TIME);
+  pose1.position_global = Eigen::Vector2d(2.0, 0.0);
+  buffer.PushPose(pose1);
+
+  const auto match = buffer.NearestPose(
+    rclcpp::Time(2, 70000000, RCL_ROS_TIME),
+    rclcpp::Time(3, 0, RCL_ROS_TIME),
+    2.0,
+    0.05);
+  ASSERT_TRUE(match.has_value());
+  EXPECT_NEAR(match->sample.position_global.x(), 2.0, 1e-9);
+  EXPECT_NEAR(match->abs_dt_sec, 0.02, 1e-9);
+}
+
+TEST(TimeAlignmentBufferTest, RejectsStaleOrDistantNearestPose)
+{
+  TimeAlignmentBuffer buffer(5.0);
+
+  PoseSample2D pose;
+  pose.stamp = rclcpp::Time(1, 0, RCL_ROS_TIME);
+  pose.position_global = Eigen::Vector2d(1.0, 0.0);
+  buffer.PushPose(pose);
+
+  EXPECT_FALSE(buffer.NearestPose(
+      rclcpp::Time(1, 50000000, RCL_ROS_TIME),
+      rclcpp::Time(3, 0, RCL_ROS_TIME),
+      1.0,
+      0.1).has_value());
+  EXPECT_FALSE(buffer.NearestPose(
+      rclcpp::Time(1, 500000000, RCL_ROS_TIME),
+      rclcpp::Time(1, 500000000, RCL_ROS_TIME),
+      1.0,
+      0.1).has_value());
+}
+
 }  // namespace relative_position_fusion

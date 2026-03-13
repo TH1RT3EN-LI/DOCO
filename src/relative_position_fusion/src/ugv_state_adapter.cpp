@@ -101,6 +101,33 @@ std::optional<VelocitySample2D> BuildVelocitySample(
   return sample;
 }
 
+AgentPlanarState BuildPoseStateFromSample(
+  const PoseSample2D & pose_sample,
+  const UgvStateAdapter::Config & config,
+  const rclcpp::Time & now,
+  bool pose_from_fallback)
+{
+  AgentPlanarState state;
+  state.pose_valid = true;
+  state.pose_from_fallback = pose_from_fallback;
+  state.pose_stamp = pose_sample.stamp;
+  state.p_global = pose_sample.position_global;
+  state.yaw_global = pose_sample.yaw_global;
+  state.yaw_valid = pose_sample.yaw_valid;
+  state.pose_age_sec = (now - pose_sample.stamp).seconds();
+  state.pose_source = pose_sample.source;
+  state.sigma_p = SanitizePlanarCovariance(
+    pose_sample.covariance_global,
+    config.covariance_floor_m2,
+    config.covariance_ceiling_m2,
+    config.covariance_nan_fallback_m2,
+    state.pose_age_sec,
+    config.covariance_age_inflation_m2_per_s);
+  state.covariance_valid = true;
+  state.stamp = state.pose_stamp;
+  return state;
+}
+
 }  // namespace
 
 UgvStateAdapter::UgvStateAdapter(
@@ -260,21 +287,7 @@ AgentPlanarState UgvStateAdapter::BuildState(const rclcpp::Time & now) const
   }
 
   if (selected_pose.has_value()) {
-    state.pose_valid = true;
-    state.pose_stamp = selected_pose->stamp;
-    state.p_global = selected_pose->position_global;
-    state.yaw_global = selected_pose->yaw_global;
-    state.yaw_valid = selected_pose->yaw_valid;
-    state.pose_age_sec = (now - selected_pose->stamp).seconds();
-    state.pose_source = selected_pose->source;
-    state.sigma_p = SanitizePlanarCovariance(
-      selected_pose->covariance_global,
-      config_.covariance_floor_m2,
-      config_.covariance_ceiling_m2,
-      config_.covariance_nan_fallback_m2,
-      state.pose_age_sec,
-      config_.covariance_age_inflation_m2_per_s);
-    state.covariance_valid = true;
+    state = BuildPoseStateFromSample(*selected_pose, config_, now, state.pose_from_fallback);
   }
 
   auto velocity_sample = filtered_buffer_.LatestVelocity(now, config_.velocity_timeout_sec);
@@ -312,6 +325,45 @@ AgentPlanarState UgvStateAdapter::BuildState(const rclcpp::Time & now) const
   }
 
   return state;
+}
+
+std::optional<AgentPlanarState> UgvStateAdapter::BuildPoseStateNear(
+  const rclcpp::Time & target_stamp,
+  const rclcpp::Time & now,
+  double max_abs_dt_sec,
+  double * abs_dt_sec) const
+{
+  std::scoped_lock lock(mutex_);
+
+  const auto amcl_match = amcl_buffer_.NearestPose(
+    target_stamp,
+    now,
+    config_.pose_timeout_sec,
+    max_abs_dt_sec);
+  if (amcl_match.has_value()) {
+    if (abs_dt_sec != nullptr) {
+      *abs_dt_sec = amcl_match->abs_dt_sec;
+    }
+    return BuildPoseStateFromSample(amcl_match->sample, config_, now, false);
+  }
+
+  if (!config_.assume_odom_is_global) {
+    return std::nullopt;
+  }
+
+  const auto odom_match = odom_buffer_.NearestPose(
+    target_stamp,
+    now,
+    config_.pose_timeout_sec,
+    max_abs_dt_sec);
+  if (!odom_match.has_value()) {
+    return std::nullopt;
+  }
+
+  if (abs_dt_sec != nullptr) {
+    *abs_dt_sec = odom_match->abs_dt_sec;
+  }
+  return BuildPoseStateFromSample(odom_match->sample, config_, now, true);
 }
 
 rclcpp::Time UgvStateAdapter::ResolveStamp(const builtin_interfaces::msg::Time & stamp_msg) const

@@ -127,4 +127,37 @@ TEST_F(UavStateAdapterTest, FallsBackToPoseDifferentiationForVelocity)
   EXPECT_NEAR(state.v_global.y(), 0.5, 1e-9);
 }
 
+TEST_F(UavStateAdapterTest, BuildsNearestPoseStateForAlignment)
+{
+  UavStateAdapter::Config config;
+  config.global_frame = "global";
+  config.tf_lookup_timeout_sec = 0.0;
+  UavStateAdapter adapter(node_.get(), buffer_, config);
+
+  nav_msgs::msg::Odometry msg0;
+  msg0.header.stamp = MakeStamp(10);
+  msg0.header.frame_id = "uav_map";
+  msg0.pose.pose.orientation.w = 1.0;
+  msg0.pose.pose.position.x = 1.0;
+  msg0.pose.covariance[0] = 0.4;
+  msg0.pose.covariance[7] = 0.6;
+  adapter.HandleOdometry(msg0);
+
+  nav_msgs::msg::Odometry msg1 = msg0;
+  msg1.header.stamp = MakeStamp(11, 50000000);
+  msg1.pose.pose.position.x = 2.0;
+  adapter.HandleOdometry(msg1);
+
+  double abs_dt_sec = 0.0;
+  const auto state = adapter.BuildPoseStateNear(
+    rclcpp::Time(11, 70000000, RCL_ROS_TIME),
+    rclcpp::Time(11, 100000000, RCL_ROS_TIME),
+    0.05,
+    &abs_dt_sec);
+  ASSERT_TRUE(state.has_value());
+  EXPECT_TRUE(state->pose_valid);
+  EXPECT_NEAR(state->p_global.x(), 2.0, 1e-9);
+  EXPECT_NEAR(abs_dt_sec, 0.02, 1e-9);
+}
+
 }  // namespace relative_position_fusion

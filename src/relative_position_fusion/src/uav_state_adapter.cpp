@@ -41,6 +41,31 @@ geometry_msgs::msg::TransformStamped LookupTransform(
   }
 }
 
+AgentPlanarState BuildPoseStateFromSample(
+  const PoseSample2D & pose_sample,
+  const UavStateAdapter::Config & config,
+  const rclcpp::Time & now)
+{
+  AgentPlanarState state;
+  state.pose_valid = true;
+  state.pose_stamp = pose_sample.stamp;
+  state.p_global = pose_sample.position_global;
+  state.yaw_global = pose_sample.yaw_global;
+  state.yaw_valid = pose_sample.yaw_valid;
+  state.pose_age_sec = (now - pose_sample.stamp).seconds();
+  state.pose_source = pose_sample.source;
+  state.sigma_p = SanitizePlanarCovariance(
+    pose_sample.covariance_global,
+    config.covariance_floor_m2,
+    config.covariance_ceiling_m2,
+    config.covariance_nan_fallback_m2,
+    state.pose_age_sec,
+    config.covariance_age_inflation_m2_per_s);
+  state.covariance_valid = true;
+  state.stamp = state.pose_stamp;
+  return state;
+}
+
 }  // namespace
 
 UavStateAdapter::UavStateAdapter(
@@ -125,21 +150,7 @@ AgentPlanarState UavStateAdapter::BuildState(const rclcpp::Time & now) const
 
   const auto pose_sample = buffer_.LatestPose(now, config_.pose_timeout_sec);
   if (pose_sample.has_value()) {
-    state.pose_valid = true;
-    state.pose_stamp = pose_sample->stamp;
-    state.p_global = pose_sample->position_global;
-    state.yaw_global = pose_sample->yaw_global;
-    state.yaw_valid = pose_sample->yaw_valid;
-    state.pose_age_sec = (now - pose_sample->stamp).seconds();
-    state.pose_source = pose_sample->source;
-    state.sigma_p = SanitizePlanarCovariance(
-      pose_sample->covariance_global,
-      config_.covariance_floor_m2,
-      config_.covariance_ceiling_m2,
-      config_.covariance_nan_fallback_m2,
-      state.pose_age_sec,
-      config_.covariance_age_inflation_m2_per_s);
-    state.covariance_valid = true;
+    state = BuildPoseStateFromSample(*pose_sample, config_, now);
   }
 
   auto velocity_sample = buffer_.LatestVelocity(now, config_.velocity_timeout_sec);
@@ -171,6 +182,30 @@ AgentPlanarState UavStateAdapter::BuildState(const rclcpp::Time & now) const
   }
 
   return state;
+}
+
+std::optional<AgentPlanarState> UavStateAdapter::BuildPoseStateNear(
+  const rclcpp::Time & target_stamp,
+  const rclcpp::Time & now,
+  double max_abs_dt_sec,
+  double * abs_dt_sec) const
+{
+  std::scoped_lock lock(mutex_);
+
+  const auto pose_match = buffer_.NearestPose(
+    target_stamp,
+    now,
+    config_.pose_timeout_sec,
+    max_abs_dt_sec);
+  if (!pose_match.has_value()) {
+    return std::nullopt;
+  }
+
+  if (abs_dt_sec != nullptr) {
+    *abs_dt_sec = pose_match->abs_dt_sec;
+  }
+
+  return BuildPoseStateFromSample(pose_match->sample, config_, now);
 }
 
 rclcpp::Time UavStateAdapter::ResolveStamp(const builtin_interfaces::msg::Time & stamp_msg) const
